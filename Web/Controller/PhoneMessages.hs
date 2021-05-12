@@ -53,3 +53,4 @@ instance Controller PhoneMessagesController where
 
 buildPhoneMessage phoneMessage = phoneMessage
     |> fill @["toId","fromId","body"]
+    |> validateField #body nonEmpty
