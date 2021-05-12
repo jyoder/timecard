@@ -5,6 +5,7 @@ import Web.Controller.Prelude
 import Web.View.Layout (defaultLayout)
 
 -- Controller Imports
+import Web.Controller.PhoneMessages
 import Web.Controller.PhoneContacts
 import Web.Controller.PhoneNumbers
 import Web.Controller.Persons
@@ -14,6 +15,7 @@ instance FrontController WebApplication where
     controllers = 
         [ startPage WelcomeAction
         -- Generator Marker
+        , parseRoute @PhoneMessagesController
         , parseRoute @PhoneContactsController
         , parseRoute @PhoneNumbersController
         , parseRoute @PersonsController
