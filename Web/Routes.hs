@@ -6,4 +6,4 @@ import Web.Types
 -- Generator Marker
 instance AutoRoute StaticController
 instance AutoRoute PersonsController
-
+instance AutoRoute PhoneNumbersController

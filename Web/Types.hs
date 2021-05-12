@@ -18,3 +18,13 @@ data PersonsController
     | UpdatePersonAction { personId :: !(Id Person) }
     | DeletePersonAction { personId :: !(Id Person) }
     deriving (Eq, Show, Data)
+
+data PhoneNumbersController
+    = PhoneNumbersAction
+    | NewPhoneNumberAction
+    | ShowPhoneNumberAction { phoneNumberId :: !(Id PhoneNumber) }
+    | CreatePhoneNumberAction
+    | EditPhoneNumberAction { phoneNumberId :: !(Id PhoneNumber) }
+    | UpdatePhoneNumberAction { phoneNumberId :: !(Id PhoneNumber) }
+    | DeletePhoneNumberAction { phoneNumberId :: !(Id PhoneNumber) }
+    deriving (Eq, Show, Data)
