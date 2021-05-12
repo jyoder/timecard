@@ -9,3 +9,5 @@ instance AutoRoute PersonsController
 instance AutoRoute PhoneNumbersController
 instance AutoRoute PhoneContactsController
 instance AutoRoute PhoneMessagesController
+instance AutoRoute CommunicationsController
+

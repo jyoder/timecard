@@ -48,3 +48,7 @@ data PhoneMessagesController
     | UpdatePhoneMessageAction { phoneMessageId :: !(Id PhoneMessage) }
     | DeletePhoneMessageAction { phoneMessageId :: !(Id PhoneMessage) }
     deriving (Eq, Show, Data)
+
+data CommunicationsController
+    = CommunicationsAction
+    deriving (Eq, Show, Data)
