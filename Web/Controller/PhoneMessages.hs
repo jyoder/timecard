@@ -52,5 +52,5 @@ instance Controller PhoneMessagesController where
         redirectTo PhoneMessagesAction
 
 buildPhoneMessage phoneMessage = phoneMessage
-    |> fill @["toId","fromId","body"]
+    |> fill @["toId","fromId", "sentAt", "body"]
     |> validateField #body nonEmpty

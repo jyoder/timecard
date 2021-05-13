@@ -5,6 +5,7 @@ CREATE TABLE phone_messages (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     to_id UUID DEFAULT uuid_generate_v4() NOT NULL,
     from_id UUID DEFAULT uuid_generate_v4() NOT NULL,
+    sent_at TIMESTAMP WITH TIME ZONE,
     body TEXT NOT NULL
 );
 CREATE TABLE persons (
@@ -25,7 +26,7 @@ CREATE TABLE phone_contacts (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-    person_id UUID NOT NULL,
+    person_id UUID NOT NULL UNIQUE,
     phone_number_id UUID NOT NULL UNIQUE
 );
 ALTER TABLE phone_contacts ADD CONSTRAINT phone_contacts_ref_person_id FOREIGN KEY (person_id) REFERENCES persons (id) ON DELETE NO ACTION;
