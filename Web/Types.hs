@@ -50,5 +50,6 @@ data PhoneMessagesController
     deriving (Eq, Show, Data)
 
 data CommunicationsController
-    = CommunicationsAction
+    = CommunicationsAction { selectedPersonId :: !(Id Person) }
+    | CommunicationsCreateMessageAction
     deriving (Eq, Show, Data)

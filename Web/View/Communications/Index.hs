@@ -1,37 +1,69 @@
 module Web.View.Communications.Index where
 import Web.View.Prelude
 
-data IndexView = IndexView
+data IndexView = IndexView { 
+    persons :: ![Person], 
+    communications :: ![Communication],
+    newMessage :: !PhoneMessage
+}
+
+data Communication = Communication { 
+      nameA :: Text
+    , nameB :: Text
+    , isFromPersonA :: Bool
+    , createdAt :: UTCTime
+    , sentAt :: Maybe UTCTime
+    , messageBody :: Text
+} deriving Show
 
 instance View IndexView where
-    html IndexView = [hsx|
-        <nav>
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item active"><a href={CommunicationsAction}>Communications</a></li>
-            </ol>
-        </nav>
-        <h1>Index</h1>
-        <div class="table-responsive">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Communication</th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>{forEach [] renderCommunication}</tbody>
-            </table>
+    html IndexView { .. } = [hsx|
+        <div class="d-flex flex-column p-3" style="width: 250px;">
+            <div class="d-flex align-items-center mb-3 mb-md-0 me-md-auto">
+                <div>
+                    {forEach persons renderPerson}
+                </div>
+            </div>
+        </div>
+        <div>
+            <div>
+                {forEach communications renderCommunication}
+            </div>
+        </div>
+        <div>
+            {renderSendMessageForm newMessage}
         </div>
     |]
 
+renderPerson person = [hsx|
+    <div>
+        <a href={CommunicationsAction $ get #id person}>
+            {get #firstName person} {get #lastName person}
+        </a>
+    </div>
+|]
 
 renderCommunication communication = [hsx|
-    <tr>
-        <td>communication</td>
-        <td><a href="#">Show</a></td>
-        <td><a href="#" class="text-muted">Edit</a></td>
-        <td><a href="#" class="js-delete text-muted">Delete</a></td>
-    </tr>
+    <div>
+        <div>
+            [{senderName communication} - {get #sentAt communication}]
+        </div>
+        <div>
+            {get #messageBody communication}
+        </div>
+    </div>
 |]
+
+renderSendMessageForm :: PhoneMessage -> Html
+renderSendMessageForm phoneMessage = 
+    formFor' phoneMessage (pathTo CommunicationsCreateMessageAction) [hsx|
+        {(hiddenField #toId)}
+        {(textField #body)}
+        {submitButton { label = "Send" } }
+    |]
+
+senderName :: Communication -> Text
+senderName communication = 
+    if get #isFromPersonA communication
+        then get #nameA communication
+        else get #nameB communication

@@ -19,6 +19,7 @@ renderForm :: PhoneMessage -> Html
 renderForm phoneMessage = formFor phoneMessage [hsx|
     {(textField #toId)}
     {(textField #fromId)}
+    {(dateTimeField #sentAt)}
     {(textField #body)}
-    {submitButton { label = "Save Phone Message"}}
+    {submitButton { label = "Save Phone Message"} }
 |]
