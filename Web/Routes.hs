@@ -1,6 +1,7 @@
 module Web.Routes where
-import IHP.RouterPrelude
+
 import Generated.Types
+import IHP.RouterPrelude
 import Web.Types
 
 -- Generator Marker
@@ -10,4 +11,3 @@ instance AutoRoute PhoneNumbersController
 instance AutoRoute PhoneContactsController
 instance AutoRoute PhoneMessagesController
 instance AutoRoute CommunicationsController
-

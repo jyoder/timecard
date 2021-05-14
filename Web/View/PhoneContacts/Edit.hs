@@ -1,10 +1,12 @@
 module Web.View.PhoneContacts.Edit where
+
 import Web.View.Prelude
 
-data EditView = EditView { phoneContact :: PhoneContact }
+data EditView = EditView {phoneContact :: PhoneContact}
 
 instance View EditView where
-    html EditView { .. } = [hsx|
+    html EditView {..} =
+        [hsx|
         <nav>
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href={PhoneContactsAction}>Phone Contacts</a></li>
@@ -16,7 +18,10 @@ instance View EditView where
     |]
 
 renderForm :: PhoneContact -> Html
-renderForm phoneContact = formFor phoneContact [hsx|
+renderForm phoneContact =
+    formFor
+        phoneContact
+        [hsx|
     {(textField #personId)}
     {(textField #phoneNumberId)}
     {submitButton { label = "Save Phone Contact"}}

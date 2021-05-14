@@ -1,26 +1,26 @@
 module Web.Controller.Communications where
 
+import Database.PostgreSQL.Simple (Query)
+import Database.PostgreSQL.Simple.FromRow (FromRow, field, fromRow)
+import Text.RawString.QQ (r)
 import Web.Controller.Prelude
 import Web.View.Communications.Index
-import Database.PostgreSQL.Simple.FromRow (FromRow, fromRow, field)
-import Database.PostgreSQL.Simple (Query)
-import Text.RawString.QQ (r)
 
-import Network.HTTP.Req
+import qualified Config
 import Data.Text.Encoding (encodeUtf8)
 import qualified IHP.Log as Log
-import qualified Config
+import Network.HTTP.Req
 
 instance Controller CommunicationsController where
-    action CommunicationsAction { .. } = autoRefresh do
+    action CommunicationsAction {..} = autoRefresh do
         botId <- fetchBotId
         persons <- fetchPersonsExcluding botId
         selectedPerson <- fetch selectedPersonId
         toPhoneNumber <- fetchPhoneNumberFor selectedPersonId
         communications <- fetchCommunicationsBetween botId selectedPersonId
         let newMessage = newRecord @PhoneMessage |> set #toId (get #id toPhoneNumber)
-        render IndexView { .. }
-
+        render IndexView {..}
+    --
     action CommunicationsCreateMessageAction = do
         let toPhoneNumberId = Id (paramUUID "toId")
         let body = paramText "body"
@@ -29,7 +29,7 @@ instance Controller CommunicationsController where
         fromPhoneNumber <- fetchPhoneNumberFor botId
         toPhoneNumber <- fetchOne toPhoneNumberId
         sendPhoneMessage Config.twilioAccountId Config.twilioAuthToken fromPhoneNumber toPhoneNumber body
-        now <- getCurrentTime 
+        now <- getCurrentTime
         newRecord @PhoneMessage
             |> set #fromId (get #id fromPhoneNumber)
             |> set #toId toPhoneNumberId
@@ -37,7 +37,7 @@ instance Controller CommunicationsController where
             |> set #body body
             |> createRecord
         redirectTo $ CommunicationsAction $ get #id toPerson
-
+    --
     action CommunicationsCreateMessageWebhook = do
         let fromNumber = paramText "From"
         let toNumber = paramText "To"
@@ -52,7 +52,7 @@ instance Controller CommunicationsController where
             |> set #body body
             |> createRecord
         renderPlain ""
-        
+
 fetchPersonsExcluding :: (?modelContext :: ModelContext) => Id Person -> IO [Person]
 fetchPersonsExcluding idToExclude = do
     persons <- query @Person |> orderByAsc #lastName |> fetch
@@ -60,16 +60,18 @@ fetchPersonsExcluding idToExclude = do
 
 fetchPhoneNumberFor :: (?modelContext :: ModelContext) => Id Person -> IO PhoneNumber
 fetchPhoneNumberFor personId = do
-    phoneContact <- query @PhoneContact 
-        |> filterWhere (#personId, personId)
-        |> fetchOne
+    phoneContact <-
+        query @PhoneContact
+            |> filterWhere (#personId, personId)
+            |> fetchOne
     fetchOne (get #phoneNumberId phoneContact)
 
 fetchPersonFor :: (?modelContext :: ModelContext) => Id PhoneNumber -> IO Person
 fetchPersonFor phoneNumberId = do
-    phoneContact <- query @PhoneContact
-        |> filterWhere (#phoneNumberId, phoneNumberId)
-        |> fetchOne
+    phoneContact <-
+        query @PhoneContact
+            |> filterWhere (#phoneNumberId, phoneNumberId)
+            |> fetchOne
     fetchOne (get #personId phoneContact)
 
 fetchBotId :: (?modelContext :: ModelContext) => IO (Id Person)
@@ -87,7 +89,8 @@ fetchCommunicationsBetween personIdA personIdB = do
     sqlQuery communicationsQuery (personIdA, personIdB)
 
 communicationsQuery :: Query
-communicationsQuery = [r|
+communicationsQuery =
+    [r|
 select
     persons_a.goes_by name_a,
     persons_b.goes_by name_b,
@@ -126,11 +129,12 @@ sendPhoneMessage :: (?context :: ControllerContext) => Text -> Text -> PhoneNumb
 sendPhoneMessage accountId authToken fromPhoneNumber toPhoneNumber messageBody = do
     Log.debug $ "Sending phone message to " <> get #number toPhoneNumber <> ": " <> messageBody
     runReq defaultHttpConfig $ do
-        let payload = 
+        let payload =
                 "From" =: get #number fromPhoneNumber
-                <> "To" =: get #number toPhoneNumber
-                <> "Body" =: messageBody
-        resp <- post
+                    <> "To" =: get #number toPhoneNumber
+                    <> "Body" =: messageBody
+        resp <-
+            post
                 accountId
                 authToken
                 (https "api.twilio.com" /: "2010-04-01" /: "Accounts" /: accountId /: "Messages.json")
@@ -139,10 +143,10 @@ sendPhoneMessage accountId authToken fromPhoneNumber toPhoneNumber messageBody =
 
 post :: MonadHttp m => HttpBody body => Text -> Text -> Url 'Https -> body -> m BsResponse
 post accountId authToken url body =
-  req
-    POST
-    url
-    body
-    bsResponse
-    ( Network.HTTP.Req.basicAuth (encodeUtf8 accountId) (encodeUtf8 authToken)
-    )
+    req
+        POST
+        url
+        body
+        bsResponse
+        ( Network.HTTP.Req.basicAuth (encodeUtf8 accountId) (encodeUtf8 authToken)
+        )

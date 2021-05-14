@@ -6,17 +6,17 @@ import Web.View.Layout (defaultLayout)
 
 -- Controller Imports
 import Web.Controller.Communications
-import Web.Controller.PhoneMessages
-import Web.Controller.PhoneContacts
-import Web.Controller.PhoneNumbers
 import Web.Controller.Persons
+import Web.Controller.PhoneContacts
+import Web.Controller.PhoneMessages
+import Web.Controller.PhoneNumbers
 import Web.Controller.Static
 
 instance FrontController WebApplication where
-    controllers = 
+    controllers =
         [ startPage WelcomeAction
-        -- Generator Marker
-        , parseRoute @CommunicationsController
+        , -- Generator Marker
+          parseRoute @CommunicationsController
         , parseRoute @PhoneMessagesController
         , parseRoute @PhoneContactsController
         , parseRoute @PhoneNumbersController

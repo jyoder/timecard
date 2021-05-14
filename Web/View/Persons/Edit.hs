@@ -1,10 +1,12 @@
 module Web.View.Persons.Edit where
+
 import Web.View.Prelude
 
-data EditView = EditView { person :: Person }
+data EditView = EditView {person :: Person}
 
 instance View EditView where
-    html EditView { .. } = [hsx|
+    html EditView {..} =
+        [hsx|
         <nav>
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href={PersonsAction}>Persons</a></li>
@@ -16,7 +18,10 @@ instance View EditView where
     |]
 
 renderForm :: Person -> Html
-renderForm person = formFor person [hsx|
+renderForm person =
+    formFor
+        person
+        [hsx|
     {textField #firstName}
     {textField #lastName}
     {textField #goesBy}

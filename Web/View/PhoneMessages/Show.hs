@@ -1,10 +1,12 @@
 module Web.View.PhoneMessages.Show where
+
 import Web.View.Prelude
 
-data ShowView = ShowView { phoneMessage :: PhoneMessage }
+data ShowView = ShowView {phoneMessage :: PhoneMessage}
 
 instance View ShowView where
-    html ShowView { .. } = [hsx|
+    html ShowView {..} =
+        [hsx|
         <nav>
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href={PhoneMessagesAction}>Phone Messages</a></li>

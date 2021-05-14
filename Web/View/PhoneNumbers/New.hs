@@ -1,10 +1,12 @@
 module Web.View.PhoneNumbers.New where
+
 import Web.View.Prelude
 
-data NewView = NewView { phoneNumber :: PhoneNumber }
+data NewView = NewView {phoneNumber :: PhoneNumber}
 
 instance View NewView where
-    html NewView { .. } = [hsx|
+    html NewView {..} =
+        [hsx|
         <nav>
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href={PhoneNumbersAction}>Phone Numbers</a></li>
@@ -16,7 +18,10 @@ instance View NewView where
     |]
 
 renderForm :: PhoneNumber -> Html
-renderForm phoneNumber = formFor phoneNumber [hsx|
+renderForm phoneNumber =
+    formFor
+        phoneNumber
+        [hsx|
     {(textField #number)}
     {submitButton  { label = "Create Phone Number"}}
 |]

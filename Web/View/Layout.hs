@@ -1,16 +1,18 @@
 module Web.View.Layout (defaultLayout, Html) where
 
-import IHP.ViewPrelude
-import IHP.Environment
-import qualified Text.Blaze.Html5            as H
-import qualified Text.Blaze.Html5.Attributes as A
 import Generated.Types
 import IHP.Controller.RequestContext
-import Web.Types
+import IHP.Environment
+import IHP.ViewPrelude
+import qualified Text.Blaze.Html5 as H
+import qualified Text.Blaze.Html5.Attributes as A
 import Web.Routes
+import Web.Types
 
 defaultLayout :: Html -> Html
-defaultLayout inner = H.docTypeHtml ! A.lang "en" $ [hsx|
+defaultLayout inner =
+    H.docTypeHtml ! A.lang "en" $
+        [hsx|
 <head>
     {metaTags}
 
@@ -28,14 +30,16 @@ defaultLayout inner = H.docTypeHtml ! A.lang "en" $ [hsx|
 |]
 
 stylesheets :: Html
-stylesheets = [hsx|
+stylesheets =
+    [hsx|
         <link rel="stylesheet" href="/vendor/bootstrap.min.css"/>
         <link rel="stylesheet" href="/vendor/flatpickr.min.css"/>
         <link rel="stylesheet" href="/app.css"/>
     |]
 
 scripts :: Html
-scripts = [hsx|
+scripts =
+    [hsx|
         <script id="livereload-script" src="/livereload.js"></script>
         <script src="/vendor/jquery-3.2.1.slim.min.js"></script>
         <script src="/vendor/timeago.js"></script>
@@ -51,7 +55,8 @@ scripts = [hsx|
     |]
 
 metaTags :: Html
-metaTags = [hsx|
+metaTags =
+    [hsx|
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
     <meta property="og:title" content="App"/>

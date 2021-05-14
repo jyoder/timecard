@@ -1,24 +1,27 @@
 module Web.View.Communications.Index where
+
 import Web.View.Prelude
 
-data IndexView = IndexView { 
-    persons :: ![Person],
-    selectedPerson :: !Person,
-    communications :: ![Communication],
-    newMessage :: !PhoneMessage
-}
+data IndexView = IndexView
+    { persons :: ![Person]
+    , selectedPerson :: !Person
+    , communications :: ![Communication]
+    , newMessage :: !PhoneMessage
+    }
 
-data Communication = Communication { 
-      nameA :: Text
+data Communication = Communication
+    { nameA :: Text
     , nameB :: Text
     , isFromPersonA :: Bool
     , createdAt :: UTCTime
     , sentAt :: Maybe UTCTime
     , messageBody :: Text
-} deriving Show
+    }
+    deriving (Show)
 
 instance View IndexView where
-    html IndexView { .. } = [hsx|
+    html IndexView {..} =
+        [hsx|
         <nav class="navbar navbar-light bg-light mb-5">
             <div class="container-fluid">
                 <span class="navbar-brand mb-0 h1">Timecard Communication Center</span>
@@ -48,21 +51,24 @@ renderPerson selectedPerson person =
         else renderNonSelectedPerson person
 
 renderNonSelectedPerson :: Person -> Html
-renderNonSelectedPerson person = [hsx|
+renderNonSelectedPerson person =
+    [hsx|
     <a href={CommunicationsAction $ get #id person} class="list-group-item">
         {get #firstName person} {get #lastName person}
     </a>
 |]
 
 renderSelectedPerson :: Person -> Html
-renderSelectedPerson person = [hsx|
+renderSelectedPerson person =
+    [hsx|
     <a href={CommunicationsAction $ get #id person} class="list-group-item active" aria-current="true">
         {get #firstName person} {get #lastName person}
     </a>
 |]
 
 renderCommunication :: Communication -> Html
-renderCommunication communication = [hsx|
+renderCommunication communication =
+    [hsx|
     <div class="mb-4">
         <div class="pb-1">
             <span class="message--sender pr-2">{senderName communication}</span> {renderSentAt communication}
@@ -74,8 +80,11 @@ renderCommunication communication = [hsx|
 |]
 
 renderSendMessageForm :: PhoneMessage -> Html
-renderSendMessageForm phoneMessage = 
-    formFor' phoneMessage (pathTo CommunicationsCreateMessageAction) [hsx|
+renderSendMessageForm phoneMessage =
+    formFor'
+        phoneMessage
+        (pathTo CommunicationsCreateMessageAction)
+        [hsx|
         {(hiddenField #toId)}
         {(textField #body) { fieldLabel = "" }}
         {submitButton { label = "Send" } }
@@ -84,15 +93,17 @@ renderSendMessageForm phoneMessage =
 renderSentAt :: Communication -> Html
 renderSentAt communication =
     case get #sentAt communication of
-        Just sentAt -> [hsx|
+        Just sentAt ->
+            [hsx|
             <time class="message--time date-time" datetime={show sentAt}>{show sentAt}</time>
         |]
-        Nothing -> [hsx|
+        Nothing ->
+            [hsx|
             <p>Sending...</p>
         |]
 
 senderName :: Communication -> Text
-senderName communication = 
+senderName communication =
     if get #isFromPersonA communication
         then get #nameA communication
         else get #nameB communication

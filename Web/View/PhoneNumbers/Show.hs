@@ -1,10 +1,12 @@
 module Web.View.PhoneNumbers.Show where
+
 import Web.View.Prelude
 
-data ShowView = ShowView { phoneNumber :: PhoneNumber }
+data ShowView = ShowView {phoneNumber :: PhoneNumber}
 
 instance View ShowView where
-    html ShowView { .. } = [hsx|
+    html ShowView {..} =
+        [hsx|
         <nav>
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href={PhoneNumbersAction}>PhoneNumbers</a></li>

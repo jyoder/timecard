@@ -1,56 +1,55 @@
 module Web.Types where
 
-import IHP.Prelude
-import IHP.ModelSupport
 import Generated.Types
+import IHP.ModelSupport
+import IHP.Prelude
 
 data WebApplication = WebApplication deriving (Eq, Show)
-
 
 data StaticController = WelcomeAction deriving (Eq, Show, Data)
 
 data PersonsController
     = PersonsAction
     | NewPersonAction
-    | ShowPersonAction { personId :: !(Id Person) }
+    | ShowPersonAction {personId :: !(Id Person)}
     | CreatePersonAction
-    | EditPersonAction { personId :: !(Id Person) }
-    | UpdatePersonAction { personId :: !(Id Person) }
-    | DeletePersonAction { personId :: !(Id Person) }
+    | EditPersonAction {personId :: !(Id Person)}
+    | UpdatePersonAction {personId :: !(Id Person)}
+    | DeletePersonAction {personId :: !(Id Person)}
     deriving (Eq, Show, Data)
 
 data PhoneNumbersController
     = PhoneNumbersAction
     | NewPhoneNumberAction
-    | ShowPhoneNumberAction { phoneNumberId :: !(Id PhoneNumber) }
+    | ShowPhoneNumberAction {phoneNumberId :: !(Id PhoneNumber)}
     | CreatePhoneNumberAction
-    | EditPhoneNumberAction { phoneNumberId :: !(Id PhoneNumber) }
-    | UpdatePhoneNumberAction { phoneNumberId :: !(Id PhoneNumber) }
-    | DeletePhoneNumberAction { phoneNumberId :: !(Id PhoneNumber) }
+    | EditPhoneNumberAction {phoneNumberId :: !(Id PhoneNumber)}
+    | UpdatePhoneNumberAction {phoneNumberId :: !(Id PhoneNumber)}
+    | DeletePhoneNumberAction {phoneNumberId :: !(Id PhoneNumber)}
     deriving (Eq, Show, Data)
 
 data PhoneContactsController
     = PhoneContactsAction
     | NewPhoneContactAction
-    | ShowPhoneContactAction { phoneContactId :: !(Id PhoneContact) }
+    | ShowPhoneContactAction {phoneContactId :: !(Id PhoneContact)}
     | CreatePhoneContactAction
-    | EditPhoneContactAction { phoneContactId :: !(Id PhoneContact) }
-    | UpdatePhoneContactAction { phoneContactId :: !(Id PhoneContact) }
-    | DeletePhoneContactAction { phoneContactId :: !(Id PhoneContact) }
+    | EditPhoneContactAction {phoneContactId :: !(Id PhoneContact)}
+    | UpdatePhoneContactAction {phoneContactId :: !(Id PhoneContact)}
+    | DeletePhoneContactAction {phoneContactId :: !(Id PhoneContact)}
     deriving (Eq, Show, Data)
 
 data PhoneMessagesController
     = PhoneMessagesAction
     | NewPhoneMessageAction
-    | ShowPhoneMessageAction { phoneMessageId :: !(Id PhoneMessage) }
+    | ShowPhoneMessageAction {phoneMessageId :: !(Id PhoneMessage)}
     | CreatePhoneMessageAction
-    | EditPhoneMessageAction { phoneMessageId :: !(Id PhoneMessage) }
-    | UpdatePhoneMessageAction { phoneMessageId :: !(Id PhoneMessage) }
-    | DeletePhoneMessageAction { phoneMessageId :: !(Id PhoneMessage) }
+    | EditPhoneMessageAction {phoneMessageId :: !(Id PhoneMessage)}
+    | UpdatePhoneMessageAction {phoneMessageId :: !(Id PhoneMessage)}
+    | DeletePhoneMessageAction {phoneMessageId :: !(Id PhoneMessage)}
     deriving (Eq, Show, Data)
 
 data CommunicationsController
-    = CommunicationsAction { selectedPersonId :: !(Id Person) }
+    = CommunicationsAction {selectedPersonId :: !(Id Person)}
     | CommunicationsCreateMessageAction
     | CommunicationsCreateMessageWebhook
     deriving (Eq, Show, Data)

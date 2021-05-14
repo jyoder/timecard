@@ -1,10 +1,12 @@
 module Web.View.PhoneContacts.Index where
+
 import Web.View.Prelude
 
-data IndexView = IndexView { phoneContacts :: [PhoneContact] }
+data IndexView = IndexView {phoneContacts :: [PhoneContact]}
 
 instance View IndexView where
-    html IndexView { .. } = [hsx|
+    html IndexView {..} =
+        [hsx|
         <nav>
             <ol class="breadcrumb">
                 <li class="breadcrumb-item active"><a href={PhoneContactsAction}>Phone Contacts</a></li>
@@ -26,8 +28,8 @@ instance View IndexView where
         </div>
     |]
 
-
-renderPhoneContact phoneContact = [hsx|
+renderPhoneContact phoneContact =
+    [hsx|
     <tr>
         <td>{phoneContact}</td>
         <td><a href={ShowPhoneContactAction (get #id phoneContact)}>Show</a></td>

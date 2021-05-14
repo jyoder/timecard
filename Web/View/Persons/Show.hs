@@ -1,10 +1,12 @@
 module Web.View.Persons.Show where
+
 import Web.View.Prelude
 
-data ShowView = ShowView { person :: Person }
+data ShowView = ShowView {person :: Person}
 
 instance View ShowView where
-    html ShowView { .. } = [hsx|
+    html ShowView {..} =
+        [hsx|
         <nav>
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href={PersonsAction}>Persons</a></li>

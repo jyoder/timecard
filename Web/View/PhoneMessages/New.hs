@@ -1,10 +1,12 @@
 module Web.View.PhoneMessages.New where
+
 import Web.View.Prelude
 
-data NewView = NewView { phoneMessage :: PhoneMessage }
+data NewView = NewView {phoneMessage :: PhoneMessage}
 
 instance View NewView where
-    html NewView { .. } = [hsx|
+    html NewView {..} =
+        [hsx|
         <nav>
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href={PhoneMessagesAction}>Phone Messages</a></li>
@@ -16,7 +18,10 @@ instance View NewView where
     |]
 
 renderForm :: PhoneMessage -> Html
-renderForm phoneMessage = formFor phoneMessage [hsx|
+renderForm phoneMessage =
+    formFor
+        phoneMessage
+        [hsx|
     {(textField #toId)}
     {(textField #fromId)}
     {(dateTimeField #sentAt)}

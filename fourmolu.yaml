@@ -1,0 +1,2 @@
+# rec {x = 1} vs. rec{x = 1}
+record-brace-space: true

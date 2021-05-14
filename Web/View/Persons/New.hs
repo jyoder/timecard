@@ -1,10 +1,12 @@
 module Web.View.Persons.New where
+
 import Web.View.Prelude
 
-data NewView = NewView { person :: Person }
+data NewView = NewView {person :: Person}
 
 instance View NewView where
-    html NewView { .. } = [hsx|
+    html NewView {..} =
+        [hsx|
         <nav>
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href={PersonsAction}>Persons</a></li>
@@ -16,7 +18,10 @@ instance View NewView where
     |]
 
 renderForm :: Person -> Html
-renderForm person = formFor person [hsx|
+renderForm person =
+    formFor
+        person
+        [hsx|
     {textField #firstName}
     {textField #lastName}
     {textField #goesBy}
