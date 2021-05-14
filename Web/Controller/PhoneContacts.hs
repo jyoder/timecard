@@ -51,6 +51,7 @@ instance Controller PhoneContactsController where
         setSuccessMessage "Phone Contact deleted"
         redirectTo PhoneContactsAction
 
+buildPhoneContact :: (?context :: ControllerContext) => PhoneContact -> PhoneContact
 buildPhoneContact phoneContact =
     phoneContact
         |> fill @["personId", "phoneNumberId"]

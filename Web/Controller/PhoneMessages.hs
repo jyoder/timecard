@@ -51,6 +51,7 @@ instance Controller PhoneMessagesController where
         setSuccessMessage "Phone Message deleted"
         redirectTo PhoneMessagesAction
 
+buildPhoneMessage :: (?context :: ControllerContext) => PhoneMessage -> PhoneMessage
 buildPhoneMessage phoneMessage =
     phoneMessage
         |> fill @["toId", "fromId", "sentAt", "body"]

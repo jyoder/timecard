@@ -51,6 +51,7 @@ instance Controller PhoneNumbersController where
         setSuccessMessage "Phone Number deleted"
         redirectTo PhoneNumbersAction
 
+buildPhoneNumber :: (?context :: ControllerContext) => PhoneNumber -> PhoneNumber
 buildPhoneNumber phoneNumber =
     phoneNumber
         |> fill @'["number"]

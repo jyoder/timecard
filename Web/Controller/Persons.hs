@@ -51,6 +51,7 @@ instance Controller PersonsController where
         setSuccessMessage "Person deleted"
         redirectTo PersonsAction
 
+buildPerson :: (?context :: ControllerContext) => Person -> Person
 buildPerson person =
     person
         |> fill @'["firstName", "lastName", "goesBy"]
