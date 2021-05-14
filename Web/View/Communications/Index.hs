@@ -2,7 +2,8 @@ module Web.View.Communications.Index where
 import Web.View.Prelude
 
 data IndexView = IndexView { 
-    persons :: ![Person], 
+    persons :: ![Person],
+    selectedPerson :: !Person,
     communications :: ![Communication],
     newMessage :: !PhoneMessage
 }
@@ -18,37 +19,55 @@ data Communication = Communication {
 
 instance View IndexView where
     html IndexView { .. } = [hsx|
-        <div class="d-flex flex-column p-3" style="width: 250px;">
-            <div class="d-flex align-items-center mb-3 mb-md-0 me-md-auto">
+        <nav class="navbar navbar-light bg-light mb-5">
+            <div class="container-fluid">
+                <span class="navbar-brand mb-0 h1">Timecard Communication Center</span>
+            </div>
+        </nav>
+        <div class="row align-items start">
+            <div class="col-3 pr-5">
+                <div class="list-group">
+                    {forEach persons (renderPerson selectedPerson)}
+                </div>
+            </div>
+            <div class="col-6">
                 <div>
-                    {forEach persons renderPerson}
+                    {forEach communications renderCommunication}
+                </div>
+                <div>
+                    {renderSendMessageForm newMessage}
                 </div>
             </div>
         </div>
-        <div>
-            <div>
-                {forEach communications renderCommunication}
-            </div>
-        </div>
-        <div>
-            {renderSendMessageForm newMessage}
-        </div>
     |]
 
-renderPerson person = [hsx|
-    <div>
-        <a href={CommunicationsAction $ get #id person}>
-            {get #firstName person} {get #lastName person}
-        </a>
-    </div>
+renderPerson :: Person -> Person -> Html
+renderPerson selectedPerson person =
+    if get #id person == get #id selectedPerson
+        then renderSelectedPerson person
+        else renderNonSelectedPerson person
+
+renderNonSelectedPerson :: Person -> Html
+renderNonSelectedPerson person = [hsx|
+    <a href={CommunicationsAction $ get #id person} class="list-group-item">
+        {get #firstName person} {get #lastName person}
+    </a>
 |]
 
+renderSelectedPerson :: Person -> Html
+renderSelectedPerson person = [hsx|
+    <a href={CommunicationsAction $ get #id person} class="list-group-item active" aria-current="true">
+        {get #firstName person} {get #lastName person}
+    </a>
+|]
+
+renderCommunication :: Communication -> Html
 renderCommunication communication = [hsx|
-    <div>
-        <div>
-            [{senderName communication} - {get #sentAt communication}]
+    <div class="mb-4">
+        <div class="pb-1">
+            <span class="message--sender pr-2">{senderName communication}</span> {renderSentAt communication}
         </div>
-        <div>
+        <div class="message--body">
             {get #messageBody communication}
         </div>
     </div>
@@ -58,9 +77,19 @@ renderSendMessageForm :: PhoneMessage -> Html
 renderSendMessageForm phoneMessage = 
     formFor' phoneMessage (pathTo CommunicationsCreateMessageAction) [hsx|
         {(hiddenField #toId)}
-        {(textField #body)}
+        {(textField #body) { fieldLabel = "" }}
         {submitButton { label = "Send" } }
     |]
+
+renderSentAt :: Communication -> Html
+renderSentAt communication =
+    case get #sentAt communication of
+        Just sentAt -> [hsx|
+            <time class="message--time date-time" datetime={show sentAt}>{show sentAt}</time>
+        |]
+        Nothing -> [hsx|
+            <p>Sending...</p>
+        |]
 
 senderName :: Communication -> Text
 senderName communication = 

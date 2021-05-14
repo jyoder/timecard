@@ -6,10 +6,16 @@ import Database.PostgreSQL.Simple.FromRow (FromRow, fromRow, field)
 import Database.PostgreSQL.Simple (Query)
 import Text.RawString.QQ (r)
 
+import Network.HTTP.Req
+import Data.Text.Encoding (encodeUtf8)
+import qualified IHP.Log as Log
+import qualified Config
+
 instance Controller CommunicationsController where
-    action CommunicationsAction { .. } = do
+    action CommunicationsAction { .. } = autoRefresh do
         botId <- fetchBotId
         persons <- fetchPersonsExcluding botId
+        selectedPerson <- fetch selectedPersonId
         toPhoneNumber <- fetchPhoneNumberFor selectedPersonId
         communications <- fetchCommunicationsBetween botId selectedPersonId
         let newMessage = newRecord @PhoneMessage |> set #toId (get #id toPhoneNumber)
@@ -21,6 +27,8 @@ instance Controller CommunicationsController where
         botId <- fetchBotId
         toPerson <- fetchPersonFor toPhoneNumberId
         fromPhoneNumber <- fetchPhoneNumberFor botId
+        toPhoneNumber <- fetchOne toPhoneNumberId
+        sendPhoneMessage Config.twilioAccountId Config.twilioAuthToken fromPhoneNumber toPhoneNumber body
         now <- getCurrentTime 
         newRecord @PhoneMessage
             |> set #fromId (get #id fromPhoneNumber)
@@ -29,10 +37,25 @@ instance Controller CommunicationsController where
             |> set #body body
             |> createRecord
         redirectTo $ CommunicationsAction $ get #id toPerson
+
+    action CommunicationsCreateMessageWebhook = do
+        let fromNumber = paramText "From"
+        let toNumber = paramText "To"
+        let body = paramText "Body"
+        fromPhoneNumber <- query @PhoneNumber |> filterWhere (#number, fromNumber) |> fetchOne
+        toPhoneNumber <- query @PhoneNumber |> filterWhere (#number, toNumber) |> fetchOne
+        now <- getCurrentTime
+        newRecord @PhoneMessage
+            |> set #fromId (get #id fromPhoneNumber)
+            |> set #toId (get #id toPhoneNumber)
+            |> setJust #sentAt now
+            |> set #body body
+            |> createRecord
+        renderPlain ""
         
 fetchPersonsExcluding :: (?modelContext :: ModelContext) => Id Person -> IO [Person]
 fetchPersonsExcluding idToExclude = do
-    persons <- query @Person |> fetch
+    persons <- query @Person |> orderByAsc #lastName |> fetch
     filter (\person -> get #id person /= idToExclude) persons |> pure
 
 fetchPhoneNumberFor :: (?modelContext :: ModelContext) => Id Person -> IO PhoneNumber
@@ -59,7 +82,9 @@ botName :: Text
 botName = "Tim the Bot"
 
 fetchCommunicationsBetween :: (?modelContext :: ModelContext) => Id Person -> Id Person -> IO [Communication]
-fetchCommunicationsBetween personIdA personIdB = sqlQuery communicationsQuery (personIdA, personIdB)
+fetchCommunicationsBetween personIdA personIdB = do
+    trackTableRead "phone_messages"
+    sqlQuery communicationsQuery (personIdA, personIdB)
 
 communicationsQuery :: Query
 communicationsQuery = [r|
@@ -96,3 +121,28 @@ order by
 
 instance FromRow Communication where
     fromRow = Communication <$> field <*> field <*> field <*> field <*> field <*> field
+
+sendPhoneMessage :: (?context :: ControllerContext) => Text -> Text -> PhoneNumber -> PhoneNumber -> Text -> IO ()
+sendPhoneMessage accountId authToken fromPhoneNumber toPhoneNumber messageBody = do
+    Log.debug $ "Sending phone message to " <> get #number toPhoneNumber <> ": " <> messageBody
+    runReq defaultHttpConfig $ do
+        let payload = 
+                "From" =: get #number fromPhoneNumber
+                <> "To" =: get #number toPhoneNumber
+                <> "Body" =: messageBody
+        resp <- post
+                accountId
+                authToken
+                (https "api.twilio.com" /: "2010-04-01" /: "Accounts" /: accountId /: "Messages.json")
+                (ReqBodyUrlEnc payload)
+        liftIO $ Log.debug $ "Send finished with: " <> show resp
+
+post :: MonadHttp m => HttpBody body => Text -> Text -> Url 'Https -> body -> m BsResponse
+post accountId authToken url body =
+  req
+    POST
+    url
+    body
+    bsResponse
+    ( Network.HTTP.Req.basicAuth (encodeUtf8 accountId) (encodeUtf8 authToken)
+    )

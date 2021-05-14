@@ -13,6 +13,7 @@ let
             hlint
             p.ihp
             raw-strings-qq
+            req
         ];
         otherDeps = p: with p; [
             # Native dependencies, e.g. imagemagick

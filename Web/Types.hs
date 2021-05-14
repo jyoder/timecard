@@ -52,4 +52,5 @@ data PhoneMessagesController
 data CommunicationsController
     = CommunicationsAction { selectedPersonId :: !(Id Person) }
     | CommunicationsCreateMessageAction
+    | CommunicationsCreateMessageWebhook
     deriving (Eq, Show, Data)
