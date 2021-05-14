@@ -39,18 +39,24 @@ instance Controller CommunicationsController where
         redirectTo $ CommunicationsAction $ get #id toPerson
     --
     action CommunicationsCreateMessageWebhook = do
-        let fromNumber = paramText "From"
-        let toNumber = paramText "To"
-        let body = paramText "Body"
+        let messageDetail = buildTwilioMessageDetail newRecord
+        let fromNumber = get #fromNumber messageDetail
+        let toNumber = get #toNumber messageDetail
+        let body = get #body messageDetail
         fromPhoneNumber <- query @PhoneNumber |> filterWhere (#number, fromNumber) |> fetchOne
         toPhoneNumber <- query @PhoneNumber |> filterWhere (#number, toNumber) |> fetchOne
         now <- getCurrentTime
-        newRecord @PhoneMessage
-            |> set #fromId (get #id fromPhoneNumber)
-            |> set #toId (get #id toPhoneNumber)
-            |> setJust #sentAt now
-            |> set #body body
-            |> createRecord
+        withTransaction do
+            phoneMessage <-
+                newRecord @PhoneMessage
+                    |> set #fromId (get #id fromPhoneNumber)
+                    |> set #toId (get #id toPhoneNumber)
+                    |> setJust #sentAt now
+                    |> set #body body
+                    |> createRecord
+            messageDetail
+                |> set #phoneMessageId (get #id phoneMessage)
+                |> createRecord
         renderPlain ""
 
 fetchPersonsExcluding :: (?modelContext :: ModelContext) => Id Person -> IO [Person]
@@ -150,3 +156,27 @@ post accountId authToken url body =
         bsResponse
         ( Network.HTTP.Req.basicAuth (encodeUtf8 accountId) (encodeUtf8 authToken)
         )
+
+buildTwilioMessageDetail ::
+    (?context :: ControllerContext) =>
+    TwilioMessageDetail ->
+    TwilioMessageDetail
+buildTwilioMessageDetail twilioMessageDetail =
+    twilioMessageDetail
+        |> set #apiVersion (param "ApiVersion")
+        |> set #messageSid (param "MessageSid")
+        |> set #accountSid (param "AccountSid")
+        |> set #messagingServiceSid (paramOrNothing "MessagingServiceSid")
+        |> set #messageStatus (paramOrNothing "MessageStatus")
+        |> set #fromNumber (param "From")
+        |> set #toNumber (param "To")
+        |> set #body (param "Body")
+        |> set #numMedia (param "NumMedia")
+        |> set #fromCity (paramOrNothing "FromCity")
+        |> set #fromState (paramOrNothing "FromState")
+        |> set #fromZip (paramOrNothing "FromZip")
+        |> set #fromCountry (paramOrNothing "FromCountry")
+        |> set #toCity (paramOrNothing "ToCity")
+        |> set #toState (paramOrNothing "ToState")
+        |> set #toZip (paramOrNothing "ToZip")
+        |> set #toCountry (paramOrNothing "ToCountry")
