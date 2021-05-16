@@ -83,7 +83,7 @@ renderSendMessageForm :: PhoneMessage -> Html
 renderSendMessageForm phoneMessage =
     formFor'
         phoneMessage
-        (pathTo CommunicationsCreateMessageAction)
+        (pathTo CreateOutgoingPhoneMessageAction)
         [hsx|
         {(hiddenField #toId)}
         {(textField #body) { fieldLabel = "" }}

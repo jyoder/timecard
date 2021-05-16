@@ -1,15 +1,19 @@
+{-# LANGUAGE PackageImports #-}
+
 module Web.Controller.Communications where
 
+import qualified Application.Service.Twilio as Twilio
+import qualified Data.ByteString.Char8 as BS8
+import qualified Data.TMap as TMap
+import Data.Text.Encoding (encodeUtf8)
 import Database.PostgreSQL.Simple (Query)
 import Database.PostgreSQL.Simple.FromRow (FromRow, field, fromRow)
+import qualified IHP.Log as Log
+import Network.HTTP.Types (hContentType, status400)
+import Network.Wai (responseLBS)
 import Text.RawString.QQ (r)
 import Web.Controller.Prelude
 import Web.View.Communications.Index
-
-import qualified Config
-import Data.Text.Encoding (encodeUtf8)
-import qualified IHP.Log as Log
-import Network.HTTP.Req
 
 instance Controller CommunicationsController where
     action CommunicationsAction {..} = autoRefresh do
@@ -21,28 +25,40 @@ instance Controller CommunicationsController where
         let newMessage = newRecord @PhoneMessage |> set #toId (get #id toPhoneNumber)
         render IndexView {..}
     --
-    action CommunicationsCreateMessageAction = do
-        let toPhoneNumberId = Id (paramUUID "toId")
-        let body = paramText "body"
+    action CreateOutgoingPhoneMessageAction = do
+        let toPhoneNumberId = Id (param "toId")
+        let body = param "body"
         botId <- fetchBotId
         toPerson <- fetchPersonFor toPhoneNumberId
         fromPhoneNumber <- fetchPhoneNumberFor botId
         toPhoneNumber <- fetchOne toPhoneNumberId
-        sendPhoneMessage Config.twilioAccountId Config.twilioAuthToken fromPhoneNumber toPhoneNumber body
+        Twilio.sendPhoneMessage
+            twilioAccountId
+            twilioAuthToken
+            twilioStatusCallbackUrl
+            (get #number fromPhoneNumber)
+            (get #number toPhoneNumber)
+            body
         now <- getCurrentTime
-        newRecord @PhoneMessage
-            |> set #fromId (get #id fromPhoneNumber)
-            |> set #toId toPhoneNumberId
-            |> setJust #sentAt now
-            |> set #body body
-            |> createRecord
+        withTransaction do
+            newRecord @PhoneMessage
+                |> set #fromId (get #id fromPhoneNumber)
+                |> set #toId toPhoneNumberId
+                |> setJust #sentAt now
+                |> set #body body
+                |> createRecord
         redirectTo $ CommunicationsAction $ get #id toPerson
     --
-    action CommunicationsCreateMessageWebhook = do
-        let messageDetail = buildTwilioMessageDetail newRecord
-        let fromNumber = get #fromNumber messageDetail
-        let toNumber = get #toNumber messageDetail
-        let body = get #body messageDetail
+    action UpdateOutgoingPhoneMessageAction = do
+        validateCallbackSignature
+        renderPlain ""
+    --
+    action CreateIncomingPhoneMessageAction = do
+        validateCallbackSignature
+        let twilioMessage = buildIncomingTwilioMessage newRecord
+        let fromNumber = get #fromNumber twilioMessage
+        let toNumber = get #toNumber twilioMessage
+        let body = get #body twilioMessage
         fromPhoneNumber <- query @PhoneNumber |> filterWhere (#number, fromNumber) |> fetchOne
         toPhoneNumber <- query @PhoneNumber |> filterWhere (#number, toNumber) |> fetchOne
         now <- getCurrentTime
@@ -54,7 +70,7 @@ instance Controller CommunicationsController where
                     |> setJust #sentAt now
                     |> set #body body
                     |> createRecord
-            messageDetail
+            twilioMessage
                 |> set #phoneMessageId (get #id phoneMessage)
                 |> createRecord
         renderPlain ""
@@ -94,6 +110,62 @@ fetchCommunicationsBetween personIdA personIdB = do
     trackTableRead "phone_messages"
     sqlQuery communicationsQuery (personIdA, personIdB)
 
+validateCallbackSignature :: (?context :: ControllerContext) => IO ()
+validateCallbackSignature = do
+    case (getHeader "Host", getHeader "X-Twilio-Signature") of
+        (Just host, Just receivedSignature) -> do
+            let requestUrl = "https://" <> host <> getRequestPath
+            let authToken = (\(Twilio.AuthToken token) -> encodeUtf8 token) twilioAuthToken
+            let computedSignature = Twilio.callbackSignature authToken requestUrl allParams
+            if receivedSignature == computedSignature
+                then pure ()
+                else do
+                    Log.error $ "Invalid Twilio signature: " <> show receivedSignature <> " \\= " <> show computedSignature
+                    respondAndExit $ responseLBS status400 [(hContentType, "text/plain")] "Bad Request"
+        _ -> do
+            Log.info ("Twilio callback is missing Host or X-Twilio-Signature headers" :: Text)
+            respondAndExit $ responseLBS status400 [(hContentType, "text/plain")] "Bad Request"
+
+twilioAccountId :: (?context :: ControllerContext) => Twilio.AccountId
+twilioAccountId =
+    ?context
+        |> getFrameworkConfig
+        |> get #appConfig
+        |> TMap.lookup @Twilio.AccountId
+        |> fromMaybe (error "Could not find Twilio.AccountId in config")
+
+twilioAuthToken :: (?context :: ControllerContext) => Twilio.AuthToken
+twilioAuthToken =
+    ?context
+        |> getFrameworkConfig
+        |> get #appConfig
+        |> TMap.lookup @Twilio.AuthToken
+        |> fromMaybe (error "Could not find Twilio.AuthToken in config")
+
+twilioStatusCallbackUrl :: (?context :: ControllerContext) => Twilio.StatusCallbackUrl
+twilioStatusCallbackUrl =
+    ?context
+        |> getFrameworkConfig
+        |> get #appConfig
+        |> TMap.lookup @Twilio.StatusCallbackUrl
+        |> fromMaybe (error "Could not find Twilio.StatusCallbackUrl in config")
+
+buildIncomingTwilioMessage ::
+    (?context :: ControllerContext) =>
+    TwilioMessage ->
+    TwilioMessage
+buildIncomingTwilioMessage twilioMessage =
+    twilioMessage
+        |> set #apiVersion (param "ApiVersion")
+        |> set #messageSid (param "MessageSid")
+        |> set #accountSid (param "AccountSid")
+        |> set #messagingServiceSid (paramOrNothing "MessagingServiceSid")
+        |> set #messageStatus (paramOrNothing "MessageStatus")
+        |> set #fromNumber (param "From")
+        |> set #toNumber (param "To")
+        |> set #body (param "Body")
+        |> set #numMedia (param "NumMedia")
+
 communicationsQuery :: Query
 communicationsQuery =
     [r|
@@ -130,53 +202,3 @@ order by
 
 instance FromRow Communication where
     fromRow = Communication <$> field <*> field <*> field <*> field <*> field <*> field
-
-sendPhoneMessage :: (?context :: ControllerContext) => Text -> Text -> PhoneNumber -> PhoneNumber -> Text -> IO ()
-sendPhoneMessage accountId authToken fromPhoneNumber toPhoneNumber messageBody = do
-    Log.debug $ "Sending phone message to " <> get #number toPhoneNumber <> ": " <> messageBody
-    runReq defaultHttpConfig $ do
-        let payload =
-                "From" =: get #number fromPhoneNumber
-                    <> "To" =: get #number toPhoneNumber
-                    <> "Body" =: messageBody
-        resp <-
-            post
-                accountId
-                authToken
-                (https "api.twilio.com" /: "2010-04-01" /: "Accounts" /: accountId /: "Messages.json")
-                (ReqBodyUrlEnc payload)
-        liftIO $ Log.debug $ "Send finished with: " <> show resp
-
-post :: MonadHttp m => HttpBody body => Text -> Text -> Url 'Https -> body -> m BsResponse
-post accountId authToken url body =
-    req
-        POST
-        url
-        body
-        bsResponse
-        ( Network.HTTP.Req.basicAuth (encodeUtf8 accountId) (encodeUtf8 authToken)
-        )
-
-buildTwilioMessageDetail ::
-    (?context :: ControllerContext) =>
-    TwilioMessageDetail ->
-    TwilioMessageDetail
-buildTwilioMessageDetail twilioMessageDetail =
-    twilioMessageDetail
-        |> set #apiVersion (param "ApiVersion")
-        |> set #messageSid (param "MessageSid")
-        |> set #accountSid (param "AccountSid")
-        |> set #messagingServiceSid (paramOrNothing "MessagingServiceSid")
-        |> set #messageStatus (paramOrNothing "MessageStatus")
-        |> set #fromNumber (param "From")
-        |> set #toNumber (param "To")
-        |> set #body (param "Body")
-        |> set #numMedia (param "NumMedia")
-        |> set #fromCity (paramOrNothing "FromCity")
-        |> set #fromState (paramOrNothing "FromState")
-        |> set #fromZip (paramOrNothing "FromZip")
-        |> set #fromCountry (paramOrNothing "FromCountry")
-        |> set #toCity (paramOrNothing "ToCity")
-        |> set #toState (paramOrNothing "ToState")
-        |> set #toZip (paramOrNothing "ToZip")
-        |> set #toCountry (paramOrNothing "ToCountry")

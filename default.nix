@@ -1,7 +1,7 @@
 let
     ihp = builtins.fetchGit {
         url = "https://github.com/digitallyinduced/ihp.git";
-        ref = "refs/tags/v0.9.0";
+        ref = "2915d025bb2724b1ce34219f95dd76f244635f58";
     };
     haskellEnv = import "${ihp}/NixSupport/default.nix" {
         ihp = ihp;
@@ -14,6 +14,10 @@ let
             p.ihp
             raw-strings-qq
             req
+            aeson
+            cryptonite
+            memory
+            base64-bytestring
         ];
         otherDeps = p: with p; [
             # Native dependencies, e.g. imagemagick

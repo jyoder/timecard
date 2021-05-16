@@ -29,7 +29,7 @@ CREATE TABLE phone_contacts (
     person_id UUID NOT NULL UNIQUE,
     phone_number_id UUID NOT NULL UNIQUE
 );
-CREATE TABLE twilio_message_details (
+CREATE TABLE twilio_messages (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
@@ -42,7 +42,13 @@ CREATE TABLE twilio_message_details (
     from_number TEXT NOT NULL,
     to_number TEXT NOT NULL,
     body TEXT NOT NULL,
-    num_media INT NOT NULL,
+    num_media INT NOT NULL
+);
+CREATE TABLE twilio_geo_message_details (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    twilio_message_id UUID NOT NULL UNIQUE,
     from_city TEXT DEFAULT NULL,
     from_state TEXT DEFAULT NULL,
     from_zip TEXT DEFAULT NULL,
@@ -56,4 +62,4 @@ ALTER TABLE phone_contacts ADD CONSTRAINT phone_contacts_ref_person_id FOREIGN K
 ALTER TABLE phone_contacts ADD CONSTRAINT phone_contacts_ref_phone_number_id FOREIGN KEY (phone_number_id) REFERENCES phone_numbers (id) ON DELETE NO ACTION;
 ALTER TABLE phone_messages ADD CONSTRAINT phone_messages_ref_from_id FOREIGN KEY (from_id) REFERENCES phone_numbers (id) ON DELETE NO ACTION;
 ALTER TABLE phone_messages ADD CONSTRAINT phone_messages_ref_to_id FOREIGN KEY (to_id) REFERENCES phone_numbers (id) ON DELETE NO ACTION;
-ALTER TABLE twilio_message_details ADD CONSTRAINT twilio_message_details_ref_phone_message_id FOREIGN KEY (phone_message_id) REFERENCES phone_messages (id) ON DELETE NO ACTION;
+ALTER TABLE twilio_messages ADD CONSTRAINT twilio_messages_ref_phone_message_id FOREIGN KEY (phone_message_id) REFERENCES phone_messages (id) ON DELETE NO ACTION;

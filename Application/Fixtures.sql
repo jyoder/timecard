@@ -52,23 +52,21 @@ ALTER TABLE public.phone_contacts ENABLE TRIGGER ALL;
 
 ALTER TABLE public.phone_messages DISABLE TRIGGER ALL;
 
-INSERT INTO public.phone_messages (id, created_at, updated_at, to_id, from_id, sent_at, body) VALUES ('65e42a88-81f5-49f5-8599-5f6f9dacca07', '2021-05-11 23:01:17.697949-07', '2021-05-11 23:01:17.697949-07', 'a3067783-ada9-4f3d-988b-9ec0c89f959e', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', '2021-05-12 12:00:00-07', 'Hello World!');
-INSERT INTO public.phone_messages (id, created_at, updated_at, to_id, from_id, sent_at, body) VALUES ('f9d46a72-719d-4d66-b617-72326a633fdf', '2021-05-13 09:21:48.804906-07', '2021-05-13 09:21:48.804906-07', 'a3067783-ada9-4f3d-988b-9ec0c89f959e', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', '2021-05-13 09:21:48.804795-07', 'Yay!');
-INSERT INTO public.phone_messages (id, created_at, updated_at, to_id, from_id, sent_at, body) VALUES ('f692ce86-3b9c-4ed5-bbf5-39aa7ec5b50e', '2021-05-13 09:22:00.934593-07', '2021-05-13 09:22:00.934593-07', 'a3067783-ada9-4f3d-988b-9ec0c89f959e', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', '2021-05-13 09:22:00.934485-07', 'I love life!');
-INSERT INTO public.phone_messages (id, created_at, updated_at, to_id, from_id, sent_at, body) VALUES ('a5774377-6711-47bb-9f4c-78f3e280574b', '2021-05-13 09:25:05.357207-07', '2021-05-13 09:25:05.357207-07', '6b261276-1ccf-4683-83a9-eda6a4e28b90', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', '2021-05-13 09:25:05.357132-07', 'Hi there!');
-INSERT INTO public.phone_messages (id, created_at, updated_at, to_id, from_id, sent_at, body) VALUES ('06722d6f-f1f5-4c8e-9a32-4c6140c4cc9a', '2021-05-14 14:16:00.274166-07', '2021-05-14 14:16:00.274166-07', 'c1375981-0102-4132-8799-54f4fe3e0fbd', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', '2021-05-14 14:16:00.273881-07', 'Hello World!');
-INSERT INTO public.phone_messages (id, created_at, updated_at, to_id, from_id, sent_at, body) VALUES ('609c1387-93d1-4233-baad-98638fbe9cb1', '2021-05-14 14:16:48.665288-07', '2021-05-14 14:16:48.665288-07', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'c1375981-0102-4132-8799-54f4fe3e0fbd', '2021-05-14 14:16:48.665214-07', 'Hi!');
-INSERT INTO public.phone_messages (id, created_at, updated_at, to_id, from_id, sent_at, body) VALUES ('591234e8-539d-4da9-8d74-7545febf1325', '2021-05-14 14:19:31.186492-07', '2021-05-14 14:19:31.186492-07', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'c1375981-0102-4132-8799-54f4fe3e0fbd', '2021-05-14 14:19:31.186313-07', 'Go');
-INSERT INTO public.phone_messages (id, created_at, updated_at, to_id, from_id, sent_at, body) VALUES ('85f4f662-2490-4924-8423-91f15a6773af', '2021-05-14 14:23:49.025118-07', '2021-05-14 14:23:49.025118-07', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'c1375981-0102-4132-8799-54f4fe3e0fbd', '2021-05-14 14:23:49.024994-07', 'John');
-
 
 ALTER TABLE public.phone_messages ENABLE TRIGGER ALL;
 
 
-ALTER TABLE public.twilio_message_details DISABLE TRIGGER ALL;
+ALTER TABLE public.twilio_geo_message_details DISABLE TRIGGER ALL;
 
 
 
-ALTER TABLE public.twilio_message_details ENABLE TRIGGER ALL;
+ALTER TABLE public.twilio_geo_message_details ENABLE TRIGGER ALL;
+
+
+ALTER TABLE public.twilio_messages DISABLE TRIGGER ALL;
+
+
+
+ALTER TABLE public.twilio_messages ENABLE TRIGGER ALL;
 
 

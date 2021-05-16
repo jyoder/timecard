@@ -50,6 +50,17 @@ data PhoneMessagesController
 
 data CommunicationsController
     = CommunicationsAction {selectedPersonId :: !(Id Person)}
-    | CommunicationsCreateMessageAction
-    | CommunicationsCreateMessageWebhook
+    | CreateOutgoingPhoneMessageAction
+    | UpdateOutgoingPhoneMessageAction
+    | CreateIncomingPhoneMessageAction
+    deriving (Eq, Show, Data)
+
+data TwilioMessagesController
+    = TwilioMessagesAction
+    | NewTwilioMessageAction
+    | ShowTwilioMessageAction {twilioMessageId :: !(Id TwilioMessage)}
+    | CreateTwilioMessageAction
+    | EditTwilioMessageAction {twilioMessageId :: !(Id TwilioMessage)}
+    | UpdateTwilioMessageAction {twilioMessageId :: !(Id TwilioMessage)}
+    | DeleteTwilioMessageAction {twilioMessageId :: !(Id TwilioMessage)}
     deriving (Eq, Show, Data)

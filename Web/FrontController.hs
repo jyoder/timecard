@@ -5,6 +5,8 @@ import Web.Controller.Prelude
 import Web.View.Layout (defaultLayout)
 
 -- Controller Imports
+import Web.Controller.TwilioMessages
+
 import Web.Controller.Communications
 import Web.Controller.Persons
 import Web.Controller.PhoneContacts
@@ -16,7 +18,8 @@ instance FrontController WebApplication where
     controllers =
         [ startPage WelcomeAction
         , -- Generator Marker
-          parseRoute @CommunicationsController
+          parseRoute @TwilioMessagesController
+        , parseRoute @CommunicationsController
         , parseRoute @PhoneMessagesController
         , parseRoute @PhoneContactsController
         , parseRoute @PhoneNumbersController
