@@ -22,7 +22,7 @@ instance Controller CommunicationsController where
         selectedPerson <- fetch selectedPersonId
         toPhoneNumber <- fetchPhoneNumberFor selectedPersonId
         communications <- fetchCommunicationsBetween botId selectedPersonId
-        let newMessage = newRecord @PhoneMessage |> set #toId (get #id toPhoneNumber)
+        let newMessage = newRecord @TwilioMessage |> set #toId (get #id toPhoneNumber)
         render IndexView {..}
     --
     action CreateOutgoingPhoneMessageAction = do
@@ -32,47 +32,56 @@ instance Controller CommunicationsController where
         toPerson <- fetchPersonFor toPhoneNumberId
         fromPhoneNumber <- fetchPhoneNumberFor botId
         toPhoneNumber <- fetchOne toPhoneNumberId
-        Twilio.sendPhoneMessage
-            twilioAccountId
-            twilioAuthToken
-            twilioStatusCallbackUrl
-            (get #number fromPhoneNumber)
-            (get #number toPhoneNumber)
-            body
-        now <- getCurrentTime
-        withTransaction do
-            newRecord @PhoneMessage
-                |> set #fromId (get #id fromPhoneNumber)
-                |> set #toId toPhoneNumberId
-                |> setJust #sentAt now
-                |> set #body body
-                |> createRecord
+        Twilio.Response {apiVersion, messageSid, accountSid, status, body, numMedia} <-
+            Twilio.sendPhoneMessage
+                twilioAccountId
+                twilioAuthToken
+                twilioStatusCallbackUrl
+                (get #number fromPhoneNumber)
+                (get #number toPhoneNumber)
+                body
+        newRecord @TwilioMessage
+            |> set #apiVersion apiVersion
+            |> set #messageSid messageSid
+            |> set #accountSid accountSid
+            |> set #fromId (get #id fromPhoneNumber)
+            |> set #toId toPhoneNumberId
+            |> set #status status
+            |> set #body body
+            |> set #numMedia numMedia
+            |> createRecord
         redirectTo $ CommunicationsAction $ get #id toPerson
     --
     action UpdateOutgoingPhoneMessageAction = do
         validateCallbackSignature
+        let messageSid = param @Text "MessageSid"
+        let messageStatus = param @Text "MessageStatus"
+        twilioMessage <-
+            query @TwilioMessage
+                |> filterWhere (#messageSid, messageSid)
+                |> fetchOne
+        twilioMessage
+            |> set #status messageStatus
+            |> updateRecord
         renderPlain ""
     --
     action CreateIncomingPhoneMessageAction = do
         validateCallbackSignature
         let twilioMessage = buildIncomingTwilioMessage newRecord
-        let fromNumber = get #fromNumber twilioMessage
-        let toNumber = get #toNumber twilioMessage
-        let body = get #body twilioMessage
-        fromPhoneNumber <- query @PhoneNumber |> filterWhere (#number, fromNumber) |> fetchOne
-        toPhoneNumber <- query @PhoneNumber |> filterWhere (#number, toNumber) |> fetchOne
-        now <- getCurrentTime
-        withTransaction do
-            phoneMessage <-
-                newRecord @PhoneMessage
-                    |> set #fromId (get #id fromPhoneNumber)
-                    |> set #toId (get #id toPhoneNumber)
-                    |> setJust #sentAt now
-                    |> set #body body
-                    |> createRecord
-            twilioMessage
-                |> set #phoneMessageId (get #id phoneMessage)
-                |> createRecord
+        let fromNumber = param "From"
+        let toNumber = param "To"
+        fromPhoneNumber <-
+            query @PhoneNumber
+                |> filterWhere (#number, fromNumber)
+                |> fetchOne
+        toPhoneNumber <-
+            query @PhoneNumber
+                |> filterWhere (#number, toNumber)
+                |> fetchOne
+        twilioMessage
+            |> set #fromId (get #id fromPhoneNumber)
+            |> set #toId (get #id toPhoneNumber)
+            |> createRecord
         renderPlain ""
 
 fetchPersonsExcluding :: (?modelContext :: ModelContext) => Id Person -> IO [Person]
@@ -107,7 +116,7 @@ botName = "Tim the Bot"
 
 fetchCommunicationsBetween :: (?modelContext :: ModelContext) => Id Person -> Id Person -> IO [Communication]
 fetchCommunicationsBetween personIdA personIdB = do
-    trackTableRead "phone_messages"
+    trackTableRead "twilio_messages"
     sqlQuery communicationsQuery (personIdA, personIdB)
 
 validateCallbackSignature :: (?context :: ControllerContext) => IO ()
@@ -160,9 +169,7 @@ buildIncomingTwilioMessage twilioMessage =
         |> set #messageSid (param "MessageSid")
         |> set #accountSid (param "AccountSid")
         |> set #messagingServiceSid (paramOrNothing "MessagingServiceSid")
-        |> set #messageStatus (paramOrNothing "MessageStatus")
-        |> set #fromNumber (param "From")
-        |> set #toNumber (param "To")
+        |> set #status (param "SmsStatus")
         |> set #body (param "Body")
         |> set #numMedia (param "NumMedia")
 
@@ -170,12 +177,13 @@ communicationsQuery :: Query
 communicationsQuery =
     [r|
 select
+    twilio_messages.id,
     persons_a.goes_by name_a,
     persons_b.goes_by name_b,
-    (phone_messages.from_id = phone_numbers_a.id) is_from_person_a,
-    phone_messages.created_at,
-    phone_messages.sent_at,
-    phone_messages.body
+    (twilio_messages.from_id = phone_numbers_a.id) is_from_person_a,
+    twilio_messages.created_at,
+    (twilio_messages.status = 'delivered' or twilio_messages.status = 'received') was_delivered,
+    twilio_messages.body
 from
     persons persons_a,
     phone_contacts phone_contacts_a,
@@ -183,7 +191,7 @@ from
     persons persons_b,
     phone_contacts phone_contacts_b,
     phone_numbers phone_numbers_b,
-    phone_messages
+    twilio_messages
 where
     persons_a.id = ?
     and phone_contacts_a.person_id = persons_a.id 
@@ -191,14 +199,22 @@ where
     and persons_b.id = ?
     and phone_contacts_b.person_id = persons_b.id 
     and phone_contacts_b.phone_number_id = phone_numbers_b.id 
-    and ((phone_messages.from_id = phone_numbers_a.id 
-          and phone_messages.to_id = phone_numbers_b.id)
+    and ((twilio_messages.from_id = phone_numbers_a.id 
+          and twilio_messages.to_id = phone_numbers_b.id)
           or
-          (phone_messages.from_id = phone_numbers_b.id 
-           and phone_messages.to_id = phone_numbers_a.id))
+          (twilio_messages.from_id = phone_numbers_b.id 
+           and twilio_messages.to_id = phone_numbers_a.id))
 order by
-    phone_messages.created_at asc;
+    twilio_messages.created_at asc;
 |]
 
 instance FromRow Communication where
-    fromRow = Communication <$> field <*> field <*> field <*> field <*> field <*> field
+    fromRow =
+        Communication
+            <$> field
+            <*> field
+            <*> field
+            <*> field
+            <*> field
+            <*> field
+            <*> field

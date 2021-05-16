@@ -14,7 +14,7 @@ let
             p.ihp
             raw-strings-qq
             req
-            aeson
+            lens-aeson
             cryptonite
             memory
             base64-bytestring

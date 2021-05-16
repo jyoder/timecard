@@ -50,19 +50,6 @@ INSERT INTO public.phone_contacts (id, created_at, updated_at, person_id, phone_
 ALTER TABLE public.phone_contacts ENABLE TRIGGER ALL;
 
 
-ALTER TABLE public.phone_messages DISABLE TRIGGER ALL;
-
-
-ALTER TABLE public.phone_messages ENABLE TRIGGER ALL;
-
-
-ALTER TABLE public.twilio_geo_message_details DISABLE TRIGGER ALL;
-
-
-
-ALTER TABLE public.twilio_geo_message_details ENABLE TRIGGER ALL;
-
-
 ALTER TABLE public.twilio_messages DISABLE TRIGGER ALL;
 
 

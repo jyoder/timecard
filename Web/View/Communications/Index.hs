@@ -6,15 +6,16 @@ data IndexView = IndexView
     { persons :: ![Person]
     , selectedPerson :: !Person
     , communications :: ![Communication]
-    , newMessage :: !PhoneMessage
+    , newMessage :: !TwilioMessage
     }
 
 data Communication = Communication
-    { nameA :: Text
+    { messageId :: UUID
+    , nameA :: Text
     , nameB :: Text
     , isFromPersonA :: Bool
     , createdAt :: UTCTime
-    , sentAt :: Maybe UTCTime
+    , wasDelivered :: Bool
     , messageBody :: Text
     }
     deriving (Show)
@@ -71,15 +72,17 @@ renderCommunication communication =
     [hsx|
     <div class="mb-4">
         <div class="pb-1">
-            <span class="message--sender pr-2">{senderName communication}</span> {renderSentAt communication}
+            <span class="message--sender pr-2">{senderName communication}</span>
+            {renderSentAt communication}
+            <span class="message--delivery-status">{deliveryStatus communication}</span>
         </div>
-        <div class="message--body">
+        <div class="message--body ">
             {get #messageBody communication}
         </div>
     </div>
 |]
 
-renderSendMessageForm :: PhoneMessage -> Html
+renderSendMessageForm :: TwilioMessage -> Html
 renderSendMessageForm phoneMessage =
     formFor'
         phoneMessage
@@ -92,15 +95,18 @@ renderSendMessageForm phoneMessage =
 
 renderSentAt :: Communication -> Html
 renderSentAt communication =
-    case get #sentAt communication of
-        Just sentAt ->
-            [hsx|
-            <time class="message--time date-time" datetime={show sentAt}>{show sentAt}</time>
+    let sentAt = get #createdAt communication
+     in [hsx|
+            <time class="message--sent-at date-time pr-2" datetime={show sentAt}>
+                {show sentAt}
+            </time>
         |]
-        Nothing ->
-            [hsx|
-            <p>Sending...</p>
-        |]
+
+deliveryStatus :: Communication -> Text
+deliveryStatus communication =
+    if get #wasDelivered communication
+        then "delivered"
+        else "sending"
 
 senderName :: Communication -> Text
 senderName communication =

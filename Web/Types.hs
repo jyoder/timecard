@@ -38,16 +38,6 @@ data PhoneContactsController
     | DeletePhoneContactAction {phoneContactId :: !(Id PhoneContact)}
     deriving (Eq, Show, Data)
 
-data PhoneMessagesController
-    = PhoneMessagesAction
-    | NewPhoneMessageAction
-    | ShowPhoneMessageAction {phoneMessageId :: !(Id PhoneMessage)}
-    | CreatePhoneMessageAction
-    | EditPhoneMessageAction {phoneMessageId :: !(Id PhoneMessage)}
-    | UpdatePhoneMessageAction {phoneMessageId :: !(Id PhoneMessage)}
-    | DeletePhoneMessageAction {phoneMessageId :: !(Id PhoneMessage)}
-    deriving (Eq, Show, Data)
-
 data CommunicationsController
     = CommunicationsAction {selectedPersonId :: !(Id Person)}
     | CreateOutgoingPhoneMessageAction

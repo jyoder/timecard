@@ -4,10 +4,13 @@ module Application.Service.Twilio (
     AccountId (..),
     AuthToken (..),
     StatusCallbackUrl (..),
+    Response (..),
 ) where
 
+import Control.Lens ((^?))
 import Crypto.Hash.Algorithms (SHA1)
 import "cryptonite" Crypto.MAC.HMAC (HMAC (hmacGetDigest), hmac)
+import Data.Aeson.Lens (key, values, _Integer, _String)
 import Data.ByteArray (convert)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Base64 as B64
@@ -19,7 +22,24 @@ newtype AccountId = AccountId Text
 newtype AuthToken = AuthToken Text
 newtype StatusCallbackUrl = StatusCallbackUrl Text
 
-sendPhoneMessage :: AccountId -> AuthToken -> StatusCallbackUrl -> Text -> Text -> Text -> IO ()
+data Response = Response
+    { apiVersion :: Text
+    , messageSid :: Text
+    , accountSid :: Text
+    , status :: Text
+    , body :: Text
+    , numMedia :: Int
+    }
+    deriving (Show)
+
+sendPhoneMessage ::
+    AccountId ->
+    AuthToken ->
+    StatusCallbackUrl ->
+    Text ->
+    Text ->
+    Text ->
+    IO Response
 sendPhoneMessage
     (AccountId accountId)
     (AuthToken authToken)
@@ -27,19 +47,39 @@ sendPhoneMessage
     fromPhoneNumber
     toPhoneNumber
     messageBody = do
-        runReq defaultHttpConfig $ do
+        httpResponse <- runReq defaultHttpConfig $ do
             post
                 accountId
                 authToken
                 (twilioEndpoint accountId)
                 (ReqBodyUrlEnc payload)
-            pure ()
+        case parseResponse httpResponse of
+            Just response -> pure response
+            Nothing -> error $ "Failed to parse Twilio response: " <> show httpResponse
       where
         payload =
             "From" =: fromPhoneNumber
                 <> "To" =: toPhoneNumber
                 <> "Body" =: messageBody
                 <> "StatusCallback" =: statusCallbackUrl
+
+parseResponse :: BsResponse -> Maybe Response
+parseResponse httpResponse =
+    Response
+        <$> apiVersion body
+        <*> messageSid body
+        <*> accountSid body
+        <*> messageStatus body
+        <*> mBody body
+        <*> numMedia body
+  where
+    body = responseBody httpResponse
+    apiVersion body = body ^? key "api_version" . _String
+    messageSid body = body ^? key "sid" . _String
+    accountSid body = body ^? key "account_sid" . _String
+    messageStatus body = body ^? key "status" . _String
+    mBody body = body ^? key "body" . _String
+    numMedia body = Just 0 -- For now we don't handle media
 
 callbackSignature :: ByteString -> ByteString -> [(ByteString, Maybe ByteString)] -> ByteString
 callbackSignature authToken url postParams =
