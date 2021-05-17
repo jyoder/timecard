@@ -4,6 +4,10 @@ a:visited { text-decoration: none; }
 a:hover { text-decoration: none; }
 a:active { text-decoration: none; }
 
+.message:hover {
+    background-color: rgb(245, 246, 248);
+}
+
 .message--sender {
     font-weight: bold;
 }
@@ -13,7 +17,22 @@ a:active { text-decoration: none; }
     color: darkgray;
 }
 
-.message--delivery-status {
+.message--status.delivered {
+    font-size: 80%;
+    color: green;
+}
+
+.message--status.received {
+    font-size: 80%;
+    color: rgb(26, 124, 236);
+}
+
+.message--status.failed {
+    font-size: 80%;
+    color: red;
+}
+
+.message--status.sending {
     font-size: 80%;
     color: darkgray;
 }

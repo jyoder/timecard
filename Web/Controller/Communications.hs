@@ -182,7 +182,7 @@ select
     persons_b.goes_by name_b,
     (twilio_messages.from_id = phone_numbers_a.id) is_from_person_a,
     twilio_messages.created_at,
-    (twilio_messages.status = 'delivered' or twilio_messages.status = 'received') was_delivered,
+    twilio_messages.status,
     twilio_messages.body
 from
     persons persons_a,

@@ -15,7 +15,7 @@ data Communication = Communication
     , nameB :: Text
     , isFromPersonA :: Bool
     , createdAt :: UTCTime
-    , wasDelivered :: Bool
+    , status :: Text
     , messageBody :: Text
     }
     deriving (Show)
@@ -70,11 +70,13 @@ renderSelectedPerson person =
 renderCommunication :: Communication -> Html
 renderCommunication communication =
     [hsx|
-    <div class="mb-4">
+    <div class="message mb-4">
         <div class="pb-1">
             <span class="message--sender pr-2">{senderName communication}</span>
             {renderSentAt communication}
-            <span class="message--delivery-status">{deliveryStatus communication}</span>
+            <span class={deliveryStatusClass communication}>
+                {get #status communication}
+            </span>
         </div>
         <div class="message--body ">
             {get #messageBody communication}
@@ -102,11 +104,13 @@ renderSentAt communication =
             </time>
         |]
 
-deliveryStatus :: Communication -> Text
-deliveryStatus communication =
-    if get #wasDelivered communication
-        then "delivered"
-        else "sending"
+deliveryStatusClass :: Communication -> Text
+deliveryStatusClass communication =
+    case get #status communication of
+        "delivered" -> "message--status delivered"
+        "received" -> "message--status received"
+        "failed" -> "message---status failed"
+        _ -> "message--status sending"
 
 senderName :: Communication -> Text
 senderName communication =
