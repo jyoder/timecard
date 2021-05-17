@@ -35,7 +35,7 @@ instance View IndexView where
                 </div>
             </div>
             <div class="col-6">
-                <div>
+                <div class="list-group">
                     {forEach communications renderCommunication}
                 </div>
                 <div>
@@ -62,7 +62,7 @@ renderNonSelectedPerson person =
 renderSelectedPerson :: Person -> Html
 renderSelectedPerson person =
     [hsx|
-    <a href={CommunicationsAction $ get #id person} class="list-group-item active" aria-current="true">
+    <a href={CommunicationsAction $ get #id person} class="list-group-item border-active" aria-current="true">
         {get #firstName person} {get #lastName person}
     </a>
 |]
@@ -70,18 +70,16 @@ renderSelectedPerson person =
 renderCommunication :: Communication -> Html
 renderCommunication communication =
     [hsx|
-    <div class="message mb-4">
-        <div class="pb-1">
-            <span class="message--sender pr-2">{senderName communication}</span>
-            {renderSentAt communication}
-            <span class={deliveryStatusClass communication}>
-                {get #status communication}
-            </span>
+    <a href="#" class="list-group-item list-group-item-action flex-column align-items-start border-0">
+        <div class="d-flex w-100 justify-content-between">
+            <h5 class="mb-1">{senderName communication}</h5>
+            <small>{renderSentAt communication}</small>
         </div>
-        <div class="message--body ">
-            {get #messageBody communication}
-        </div>
-    </div>
+        <p class="mb-1">{get #messageBody communication}</p>
+        <small class={deliveryStatusClass communication}>
+            {get #status communication}
+        </small>
+    </a>
 |]
 
 renderSendMessageForm :: TwilioMessage -> Html
@@ -99,7 +97,7 @@ renderSentAt :: Communication -> Html
 renderSentAt communication =
     let sentAt = get #createdAt communication
      in [hsx|
-            <time class="message--sent-at date-time pr-2" datetime={show sentAt}>
+            <time class="date-time pr-2" datetime={show sentAt}>
                 {show sentAt}
             </time>
         |]
@@ -107,10 +105,10 @@ renderSentAt communication =
 deliveryStatusClass :: Communication -> Text
 deliveryStatusClass communication =
     case get #status communication of
-        "delivered" -> "message--status delivered"
-        "received" -> "message--status received"
-        "failed" -> "message---status failed"
-        _ -> "message--status sending"
+        "delivered" -> "message-status delivered"
+        "received" -> "message-status received"
+        "failed" -> "message-status failed"
+        _ -> "message-status sending"
 
 senderName :: Communication -> Text
 senderName communication =

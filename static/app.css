@@ -8,35 +8,22 @@ a:active { text-decoration: none; }
     background-color: rgb(245, 246, 248);
 }
 
-.message--sender {
-    font-weight: bold;
-}
-
-.message--sent-at {
-    font-size: 80%;
-    color: darkgray;
-}
-
-.message--status.delivered {
+.message-status.delivered {
     font-size: 80%;
     color: green;
 }
 
-.message--status.received {
+.message-status.received {
     font-size: 80%;
     color: rgb(26, 124, 236);
 }
 
-.message--status.failed {
+.message-status.failed {
     font-size: 80%;
     color: red;
 }
 
-.message--status.sending {
+.message-status.sending {
     font-size: 80%;
     color: darkgray;
-}
-
-.message--body {
-    font-size: 90%;
 }
