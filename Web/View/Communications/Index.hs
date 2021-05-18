@@ -5,13 +5,13 @@ import Web.View.Prelude
 
 data IndexView = IndexView
     { persons :: ![Person]
-    , selectedPerson :: !Person
+    , selectedPerson :: !(Maybe Person)
     , communications :: ![Communication]
-    , newMessage :: !TwilioMessage
+    , newMessage :: !(Maybe TwilioMessage)
     }
 
 instance View IndexView where
-    html IndexView {..} =
+    html view =
         [hsx|
         <nav class="navbar navbar-light bg-light mb-5">
             <div class="container-fluid">
@@ -19,11 +19,26 @@ instance View IndexView where
             </div>
         </nav>
         <div class="row align-items start">
-            <div class="col-3 pr-5">
-                <div class="list-group">
-                    {forEach persons (renderPerson selectedPerson)}
-                </div>
-            </div>
+            {renderPersons view}
+            {renderCommunications view}
+        </div>
+    |]
+
+renderPersons :: IndexView -> Html
+renderPersons IndexView {..} =
+    [hsx|
+    <div class="col-3 pr-5">
+        <div class="list-group">
+            {forEach persons (renderPerson selectedPerson)}
+        </div>
+    </div>
+|]
+
+renderCommunications :: IndexView -> Html
+renderCommunications IndexView {..} =
+    case newMessage of
+        Just newMessage ->
+            [hsx|
             <div class="col-6">
                 <div class="list-group">
                     {forEach communications (renderCommunication_)}
@@ -32,19 +47,22 @@ instance View IndexView where
                     {renderSendMessageForm newMessage}
                 </div>
             </div>
-        </div>
-    |]
+        |]
+        Nothing -> [hsx||]
 
-renderPerson :: Person -> Person -> Html
+renderPerson :: Maybe Person -> Person -> Html
 renderPerson selectedPerson person =
-    if get #id person == get #id selectedPerson
-        then renderSelectedPerson person
-        else renderNonSelectedPerson person
+    case selectedPerson of
+        Just selectedPerson ->
+            if get #id person == get #id selectedPerson
+                then renderSelectedPerson person
+                else renderNonSelectedPerson person
+        Nothing -> renderNonSelectedPerson person
 
 renderNonSelectedPerson :: Person -> Html
 renderNonSelectedPerson person =
     [hsx|
-    <a href={CommunicationsAction $ get #id person} class="list-group-item">
+    <a href={CommunicationsForAction $ get #id person} class="list-group-item">
         {get #firstName person} {get #lastName person}
     </a>
 |]
@@ -52,7 +70,7 @@ renderNonSelectedPerson person =
 renderSelectedPerson :: Person -> Html
 renderSelectedPerson person =
     [hsx|
-    <a href={CommunicationsAction $ get #id person} class="list-group-item active" aria-current="true">
+    <a href={CommunicationsForAction $ get #id person} class="list-group-item active" aria-current="true">
         {get #firstName person} {get #lastName person}
     </a>
 |]

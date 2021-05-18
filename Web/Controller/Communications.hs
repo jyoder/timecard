@@ -17,13 +17,21 @@ import Web.View.Communications.Communication
 import Web.View.Communications.Index
 
 instance Controller CommunicationsController where
-    action CommunicationsAction {..} = autoRefresh do
+    action CommunicationsAction = do
         botId <- fetchBotId
         persons <- fetchPersonsExcluding botId
-        selectedPerson <- fetch selectedPersonId
+        let selectedPerson = Nothing
+        let communications = []
+        let newMessage = Nothing
+        render IndexView {..}
+    --
+    action CommunicationsForAction {..} = autoRefresh do
+        botId <- fetchBotId
+        persons <- fetchPersonsExcluding botId
+        selectedPerson <- Just <$> fetch selectedPersonId
         toPhoneNumber <- fetchPhoneNumberFor selectedPersonId
         communications <- fetchCommunicationsBetween botId selectedPersonId
-        let newMessage = newRecord @TwilioMessage |> set #toId (get #id toPhoneNumber)
+        let newMessage = newRecord @TwilioMessage |> set #toId (get #id toPhoneNumber) |> Just
         render IndexView {..}
     --
     action CreateOutgoingPhoneMessageAction = do
@@ -51,7 +59,7 @@ instance Controller CommunicationsController where
             |> set #body body
             |> set #numMedia numMedia
             |> createRecord
-        redirectTo $ CommunicationsAction $ get #id toPerson
+        redirectTo $ CommunicationsForAction $ get #id toPerson
     --
     action UpdateOutgoingPhoneMessageAction = do
         validateCallbackSignature

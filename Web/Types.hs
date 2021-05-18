@@ -39,7 +39,8 @@ data PhoneContactsController
     deriving (Eq, Show, Data)
 
 data CommunicationsController
-    = CommunicationsAction {selectedPersonId :: !(Id Person)}
+    = CommunicationsAction
+    | CommunicationsForAction {selectedPersonId :: !(Id Person)}
     | ClickCommunicationAction {messageId :: !(Id TwilioMessage), isSelected :: !Text}
     | CreateOutgoingPhoneMessageAction
     | UpdateOutgoingPhoneMessageAction
