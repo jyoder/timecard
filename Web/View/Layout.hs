@@ -22,7 +22,7 @@ defaultLayout inner =
     <title>App</title>
 </head>
 <body>
-    <div class="container mt-4">
+    <div class="content container-fluid">
         {renderFlashMessages}
         {inner}
     </div>
@@ -53,14 +53,7 @@ scripts =
         <script src="/helpers.js"></script>
         <script src="/ihp-auto-refresh.js"></script>
         <script src="https://unpkg.com/htmx.org@1.3.3"></script>
-        <script>
-            // Initialize HTMX any time Turbolinks changes pages
-            document.addEventListener('turbolinks:load', () => {
-                htmx.process(document.body);
-            });
-            // Reformat time values if content on page changes dynamically
-            window.addEventListener("htmx:afterOnLoad", initTime);
-        </script>
+        <script src="app.js"></script>
     |]
 
 metaTags :: Html

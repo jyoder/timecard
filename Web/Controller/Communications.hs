@@ -13,7 +13,6 @@ import Network.HTTP.Types (hContentType, status400)
 import Network.Wai (responseLBS)
 import Text.RawString.QQ (r)
 import Web.Controller.Prelude
-import Web.View.Communications.Communication
 import Web.View.Communications.Index
 
 instance Controller CommunicationsController where
@@ -22,6 +21,7 @@ instance Controller CommunicationsController where
         persons <- fetchPersonsExcluding botId
         let selectedPerson = Nothing
         let communications = []
+        let selectedCommunicationIds = []
         let newMessage = Nothing
         render IndexView {..}
     --
@@ -31,6 +31,7 @@ instance Controller CommunicationsController where
         selectedPerson <- Just <$> fetch selectedPersonId
         toPhoneNumber <- fetchPhoneNumberFor selectedPersonId
         communications <- fetchCommunicationsBetween botId selectedPersonId
+        let selectedCommunicationIds = paramOrDefault @[Id TwilioMessage] [] "selectedCommunicationIds"
         let newMessage = newRecord @TwilioMessage |> set #toId (get #id toPhoneNumber) |> Just
         render IndexView {..}
     --
@@ -59,7 +60,7 @@ instance Controller CommunicationsController where
             |> set #body body
             |> set #numMedia numMedia
             |> createRecord
-        redirectTo $ CommunicationsForAction $ get #id toPerson
+        redirectTo $ CommunicationsForAction (get #id toPerson) []
     --
     action UpdateOutgoingPhoneMessageAction = do
         validateCallbackSignature
@@ -92,13 +93,6 @@ instance Controller CommunicationsController where
             |> set #toId (get #id toPhoneNumber)
             |> createRecord
         renderPlain ""
-    --
-    action ClickCommunicationAction {..} = do
-        let isSelected = paramOrNothing @Text "isSelected" |> fromMaybe "False" == "True"
-        maybeCommunication <- listToMaybe <$> sqlQuery communicationQuery (Only messageId)
-        case maybeCommunication of
-            Just communication -> render CommunicationView {..}
-            Nothing -> error "Could not find communication"
 
 fetchPersonsExcluding :: (?modelContext :: ModelContext) => Id Person -> IO [Person]
 fetchPersonsExcluding idToExclude = do

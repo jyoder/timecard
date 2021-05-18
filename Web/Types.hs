@@ -40,8 +40,7 @@ data PhoneContactsController
 
 data CommunicationsController
     = CommunicationsAction
-    | CommunicationsForAction {selectedPersonId :: !(Id Person)}
-    | ClickCommunicationAction {messageId :: !(Id TwilioMessage), isSelected :: !Text}
+    | CommunicationsForAction {selectedPersonId :: !(Id Person), selectedCommunicationIds :: ![Text]}
     | CreateOutgoingPhoneMessageAction
     | UpdateOutgoingPhoneMessageAction
     | CreateIncomingPhoneMessageAction

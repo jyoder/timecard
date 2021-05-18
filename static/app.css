@@ -4,26 +4,11 @@ a:visited { text-decoration: none; }
 a:hover { text-decoration: none; }
 a:active { text-decoration: none; }
 
-.message:hover {
-    background-color: rgb(245, 246, 248);
+.content {
+    height: 100vh;
 }
 
-.message-status.delivered {
-    font-size: 80%;
-    color: green;
-}
-
-.message-status.received {
-    font-size: 80%;
-    color: rgb(26, 124, 236);
-}
-
-.message-status.failed {
-    font-size: 80%;
-    color: red;
-}
-
-.message-status.sending {
-    font-size: 80%;
-    color: darkgray;
+.navbar {
+    height: 100px;
+    margin: 10px 0px 40px 0px;
 }
