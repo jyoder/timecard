@@ -52,6 +52,15 @@ scripts =
         <script src="/vendor/turbolinksMorphdom.js"></script>
         <script src="/helpers.js"></script>
         <script src="/ihp-auto-refresh.js"></script>
+        <script src="https://unpkg.com/htmx.org@1.3.3"></script>
+        <script>
+            // Initialize HTMX any time Turbolinks changes pages
+            document.addEventListener('turbolinks:load', () => {
+                htmx.process(document.body);
+            });
+            // Reformat time values if content on page changes dynamically
+            window.addEventListener("htmx:afterOnLoad", initTime);
+        </script>
     |]
 
 metaTags :: Html

@@ -13,6 +13,7 @@ import Network.HTTP.Types (hContentType, status400)
 import Network.Wai (responseLBS)
 import Text.RawString.QQ (r)
 import Web.Controller.Prelude
+import Web.View.Communications.Communication
 import Web.View.Communications.Index
 
 instance Controller CommunicationsController where
@@ -83,6 +84,13 @@ instance Controller CommunicationsController where
             |> set #toId (get #id toPhoneNumber)
             |> createRecord
         renderPlain ""
+    --
+    action ClickCommunicationAction {..} = do
+        let isSelected = paramOrNothing @Text "isSelected" |> fromMaybe "False" == "True"
+        maybeCommunication <- listToMaybe <$> sqlQuery communicationQuery (Only messageId)
+        case maybeCommunication of
+            Just communication -> render CommunicationView {..}
+            Nothing -> error "Could not find communication"
 
 fetchPersonsExcluding :: (?modelContext :: ModelContext) => Id Person -> IO [Person]
 fetchPersonsExcluding idToExclude = do
@@ -206,6 +214,35 @@ where
            and twilio_messages.to_id = phone_numbers_a.id))
 order by
     twilio_messages.created_at asc;
+|]
+
+communicationQuery :: Query
+communicationQuery =
+    [r|
+select
+    twilio_messages.id,
+    persons_from.goes_by name_from,
+    persons_to.goes_by name_to,
+    (twilio_messages.from_id = phone_numbers_from.id) is_from_person_a,
+    twilio_messages.created_at,
+    twilio_messages.status,
+    twilio_messages.body
+from
+    persons persons_from,
+    phone_contacts phone_contacts_from,
+    phone_numbers phone_numbers_from,
+    persons persons_to,
+    phone_contacts phone_contacts_to,
+    phone_numbers phone_numbers_to,
+    twilio_messages
+where
+    twilio_messages.id = ?
+    and phone_contacts_from.person_id = persons_from.id
+    and phone_contacts_from.phone_number_id = phone_numbers_from.id
+    and twilio_messages.from_id = phone_numbers_from.id
+    and phone_contacts_to.person_id = persons_to.id
+    and phone_contacts_to.phone_number_id = phone_numbers_to.id
+    and twilio_messages.to_id = phone_numbers_to.id
 |]
 
 instance FromRow Communication where
