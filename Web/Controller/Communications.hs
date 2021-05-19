@@ -21,8 +21,9 @@ instance Controller CommunicationsController where
         persons <- fetchPersonsExcluding botId
         let selectedPerson = Nothing
         let communications = []
-        let selectedCommunicationIds = []
+        let selectedCommunications = []
         let newMessage = Nothing
+        let newTimecardJobEntry = Nothing
         render IndexView {..}
     --
     action CommunicationsForAction {..} = autoRefresh do
@@ -32,7 +33,14 @@ instance Controller CommunicationsController where
         toPhoneNumber <- fetchPhoneNumberFor selectedPersonId
         communications <- fetchCommunicationsBetween botId selectedPersonId
         let selectedCommunicationIds = paramOrDefault @[Id TwilioMessage] [] "selectedCommunicationIds"
+        let selectedCommunications = catMaybes $ (\s -> find (\c -> get #messageId c == s) communications) <$> selectedCommunicationIds
         let newMessage = newRecord @TwilioMessage |> set #toId (get #id toPhoneNumber) |> Just
+        let newTimecardJobEntry = case listToMaybe $ reverse selectedCommunicationIds of
+                Just messageId ->
+                    case find (\c -> get #messageId c == messageId) communications of
+                        Just c -> Just $ newRecord @TimecardJobEntry |> set #date (get #createdAt c)
+                        Nothing -> Nothing
+                Nothing -> Nothing
         render IndexView {..}
     --
     action CreateOutgoingPhoneMessageAction = do

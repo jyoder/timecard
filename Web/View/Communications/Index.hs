@@ -6,18 +6,19 @@ data IndexView = IndexView
     { persons :: ![Person]
     , selectedPerson :: !(Maybe Person)
     , communications :: ![Communication]
-    , selectedCommunicationIds :: ![Id TwilioMessage]
+    , selectedCommunications :: ![Communication]
     , newMessage :: !(Maybe TwilioMessage)
+    , newTimecardJobEntry :: !(Maybe TimecardJobEntry)
     }
 
 data Communication = Communication
     { messageId :: !(Id TwilioMessage)
-    , nameA :: Text
-    , nameB :: Text
-    , isFromPersonA :: Bool
-    , createdAt :: UTCTime
-    , status :: Text
-    , messageBody :: Text
+    , nameA :: !Text
+    , nameB :: !Text
+    , isFromPersonA :: !Bool
+    , createdAt :: !UTCTime
+    , status :: !Text
+    , messageBody :: !Text
     }
     deriving (Show, Eq)
 
@@ -32,7 +33,9 @@ instance View IndexView where
         <div class="row align-items start">
             {renderPersons view}
             {renderCommunications view}
-            {renderTimecard view}
+            <div class="timecard col-4">
+                {renderTimecard view}
+            </div>
         </div>
         {styles}
     |]
@@ -54,7 +57,7 @@ renderCommunications IndexView {..} =
             [hsx|
             <div class="col-6">
                 <div class="communications-history list-group">
-                    {forEach communications (renderCommunication selectedPerson selectedCommunicationIds)}
+                    {forEach communications (renderCommunication selectedPerson selectedCommunications)}
                     <div class="scroll-pinned"></div>
                 </div>
                 <div class="communications-composer">
@@ -66,11 +69,37 @@ renderCommunications IndexView {..} =
 
 renderTimecard :: IndexView -> Html
 renderTimecard IndexView {..} =
-    [hsx|
-    <div class="timecard col-3">
-        <p>Timecard</p>
-    </div>
-|]
+    case newTimecardJobEntry of
+        Just newTimecardJobEntry ->
+            formForWithOptions
+                newTimecardJobEntry
+                timecardJobEntryFormOptions
+                [hsx|
+                {(dateTimeField #date)}
+                {(textField #jobName)}
+                {(numberField #hoursWorked)}
+                
+                <div id="form-group-work-done" class="form-group">
+                    <label for="work-done" name="workDone">Work Done</label>
+                    <textarea id="work-done" class="form-control">
+                        {forEach sortedCommunications tcText}
+                    </textarea>
+                </div>
+
+                <div id="form-group-invoice-translation" class="form-group">
+                    <label for="invoice-translation" name="invoiceTranslation">Invoice Translation</label>
+                    <textarea id="invoice-translation" class="form-control">
+                        {forEach sortedCommunications tcText}
+                    </textarea>
+                </div>
+                {submitButton { label = "Create" } }
+            |]
+        Nothing -> [hsx||]
+  where
+    sortedCommunications = sortBy (\a b -> get #createdAt a `compare` get #createdAt b) selectedCommunications
+
+tcText :: Communication -> Html
+tcText c = [hsx| {get #messageBody c <> "\n\n"} |]
 
 renderPerson :: Maybe Person -> Person -> Html
 renderPerson selectedPerson person =
@@ -97,8 +126,8 @@ renderSelectedPerson person =
     </a>
 |]
 
-renderCommunication :: Person -> [Id TwilioMessage] -> Communication -> Html
-renderCommunication selectedPerson selectedCommunicationIds communication =
+renderCommunication :: Person -> [Communication] -> Communication -> Html
+renderCommunication selectedPerson selectedCommunications communication =
     [hsx|
     <a
         hx-get={CommunicationsForAction selectedPersonId toggledCommunicationIds}
@@ -108,7 +137,7 @@ renderCommunication selectedPerson selectedCommunicationIds communication =
             <h5 class="mb-1">{senderName communication}</h5>
             <small>{renderSentAt communication}</small>
         </div>
-        <p class="mb-1">{get #messageBody communication}</p>
+        <p class="communication-body mb-1">{get #messageBody communication}</p>
         <small class={deliveryStatusClass communication}>
             {get #status communication}
         </small>
@@ -116,15 +145,15 @@ renderCommunication selectedPerson selectedCommunicationIds communication =
 |]
   where
     selectedPersonId = get #id selectedPerson
-    isSelected = isCommunicationSelected selectedCommunicationIds communication
-    toggledCommunicationIds = communicationIds $ toggleCommunicationSelected selectedCommunicationIds communication
+    isSelected = isCommunicationSelected selectedCommunications communication
+    toggledCommunicationIds = communicationIds $ toggleCommunicationSelected selectedCommunications communication
     active = activeClass isSelected
 
 renderSendMessageForm :: TwilioMessage -> Html
 renderSendMessageForm phoneMessage =
-    formFor'
+    formForWithOptions
         phoneMessage
-        (pathTo CreateOutgoingPhoneMessageAction)
+        sendMessageFormOptions
         [hsx|
         {(hiddenField #toId)}
         {(textField #body) { fieldLabel = "" }}
@@ -154,21 +183,33 @@ senderName communication =
         then get #nameA communication
         else get #nameB communication
 
-isCommunicationSelected :: [Id TwilioMessage] -> Communication -> Bool
+isCommunicationSelected :: [Communication] -> Communication -> Bool
 isCommunicationSelected selected communication =
-    get #messageId communication `elem` selected
+    get #messageId communication `elem` (get #messageId <$> selected)
 
-toggleCommunicationSelected :: [Id TwilioMessage] -> Communication -> [Id TwilioMessage]
+toggleCommunicationSelected :: [Communication] -> Communication -> [Communication]
 toggleCommunicationSelected selected communication =
     if isCommunicationSelected selected communication
-        then filter (\s -> s /= get #messageId communication) selected
-        else get #messageId communication : selected
+        then filter (/= communication) selected
+        else communication : selected
 
-communicationIds :: [Id TwilioMessage] -> [Text]
-communicationIds ids = show <$> ids
+communicationIds :: [Communication] -> [Text]
+communicationIds communications =
+    show . get #messageId <$> communications
 
 activeClass :: Bool -> Text
 activeClass isSelected = if isSelected then "active" else ""
+
+sendMessageFormOptions :: FormContext TwilioMessage -> FormContext TwilioMessage
+sendMessageFormOptions formContext =
+    formContext
+        |> set #formId "send-message-form"
+        |> set #formAction (pathTo CreateOutgoingPhoneMessageAction)
+
+timecardJobEntryFormOptions :: FormContext TimecardJobEntry -> FormContext TimecardJobEntry
+timecardJobEntryFormOptions formContext =
+    formContext
+        |> set #formId "timecard-form"
 
 styles :: Html
 styles =
@@ -208,6 +249,23 @@ styles =
             height: 100px;
             padding: 0px;
             margin: 0px;
+        }
+
+        .communication-body {
+            white-space: pre-line;
+        }
+
+        .timecard {
+            height: calc(100vh - 150px);
+            overflow-y: scroll;
+        }
+
+        #work-done {
+            height: 150px;
+        }
+
+        #invoice-translation {
+            height: 150px;
         }
 
         /* Remove the scrollbar from Chrome, Safari, Edge and IEw */
