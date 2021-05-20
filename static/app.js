@@ -7,7 +7,9 @@ function scrollToPinned() {
 
 function initFlatPickr() {
     flatpickr("input[type='datetime-local']", {
+        allowInput: true,
         enableTime: false,
+        dateFormat: 'Z',
         altInput: true,
         altFormat: 'm/d/Y',
     });

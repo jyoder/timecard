@@ -5,6 +5,7 @@ module Web.Controller.Communications where
 import qualified Application.Service.Twilio as Twilio
 import qualified Data.ByteString.Char8 as BS8
 import qualified Data.TMap as TMap
+import Data.Text (strip)
 import Data.Text.Encoding (encodeUtf8)
 import Database.PostgreSQL.Simple (Query)
 import Database.PostgreSQL.Simple.FromRow (FromRow, field, fromRow)
@@ -22,8 +23,9 @@ instance Controller CommunicationsController where
         let selectedPerson = Nothing
         let communications = []
         let selectedCommunications = []
+        let timecardEntries = []
         let newMessage = Nothing
-        let newTimecardJobEntry = Nothing
+        let newTimecardEntry = Nothing
         render IndexView {..}
     --
     action CommunicationsForAction {..} = autoRefresh do
@@ -34,22 +36,64 @@ instance Controller CommunicationsController where
         communications <- fetchCommunicationsBetween botId selectedPersonId
         let selectedCommunicationIds = paramOrDefault @[Id TwilioMessage] [] "selectedCommunicationIds"
         let selectedCommunications = catMaybes $ (\s -> find (\c -> get #messageId c == s) communications) <$> selectedCommunicationIds
+        timecardEntries <- query @TimecardEntry |> filterWhere (#personId, selectedPersonId) |> orderByDesc #date |> fetch
+        Log.debug $ show timecardEntries
         let newMessage = newRecord @TwilioMessage |> set #toId (get #id toPhoneNumber) |> Just
-        let newTimecardJobEntry = case listToMaybe $ reverse selectedCommunicationIds of
+        let newTimecardEntry = case listToMaybe $ reverse selectedCommunicationIds of
                 Just messageId ->
                     case find (\c -> get #messageId c == messageId) communications of
-                        Just c -> Just $ newRecord @TimecardJobEntry |> set #date (get #createdAt c)
+                        Just c -> Just $ newRecord @TimecardEntry |> set #date (get #createdAt c) |> set #hoursWorked 8.0
                         Nothing -> Nothing
                 Nothing -> Nothing
         render IndexView {..}
     --
+    action CreateTimecardEntry = do
+        botId <- fetchBotId
+        persons <- fetchPersonsExcluding botId
+        let selectedPersonId = param @(Id Person) "selectedPersonId"
+        selectedPerson <- Just <$> fetch selectedPersonId
+        communications <- fetchCommunicationsBetween botId selectedPersonId
+        let messageIds = param @[Text] "linkedMessageIds"
+        let selectedMessageIds = param @[Id TwilioMessage] "linkedMessageIds"
+        let selectedCommunications = catMaybes $ (\s -> find (\c -> get #messageId c == s) communications) <$> param @[Id TwilioMessage] "linkedMessageIds"
+        let timecardEntries = []
+        let newMessage = Just $ newRecord @TwilioMessage
+        case listToMaybe messageIds of
+            Just messageId -> do
+                newRecord @TimecardEntry
+                    |> buildTimecardEntry
+                    |> set #personId selectedPersonId
+                    |> ifValid \case
+                        Left newTimecardEntry -> do
+                            render IndexView {newTimecardEntry = Just newTimecardEntry, ..}
+                        Right newTimecardEntry -> do
+                            setSuccessMessage "Created timecard entry"
+                            nte <- createRecord newTimecardEntry
+                            forEach
+                                selectedMessageIds
+                                ( \mid -> do
+                                    newRecord @TimecardEntryMessage
+                                        |> set #twilioMessageId mid
+                                        |> set #timecardEntryId (get #id nte)
+                                        |> createRecord
+                                    pure ()
+                                )
+                            redirectTo $ CommunicationsForAction {selectedPersonId, selectedCommunicationIds = []}
+            Nothing -> do
+                setErrorMessage "No selected messages"
+                redirectTo CommunicationsAction
+
+    --
     action CreateOutgoingPhoneMessageAction = do
         let toPhoneNumberId = Id (param "toId")
-        let body = param "body"
+        let body = strip $ param "body"
         botId <- fetchBotId
         toPerson <- fetchPersonFor toPhoneNumberId
         fromPhoneNumber <- fetchPhoneNumberFor botId
         toPhoneNumber <- fetchOne toPhoneNumberId
+        if body == ""
+            then redirectTo $ CommunicationsForAction (get #id toPerson) []
+            else pure ()
         Twilio.Response {apiVersion, messageSid, accountSid, status, body, numMedia} <-
             Twilio.sendPhoneMessage
                 twilioAccountId
@@ -190,6 +234,18 @@ buildIncomingTwilioMessage twilioMessage =
         |> set #status (param "SmsStatus")
         |> set #body (param "Body")
         |> set #numMedia (param "NumMedia")
+
+buildTimecardEntry ::
+    (?context :: ControllerContext) =>
+    TimecardEntry ->
+    TimecardEntry
+buildTimecardEntry timecardEntry = do
+    timecardEntry
+        |> fill @["date", "jobName", "hoursWorked", "workDone", "invoiceTranslation"]
+        |> validateField #jobName nonEmpty
+        |> validateField #hoursWorked (validateAny [isInList [0.0], isGreaterThan 0.0])
+        |> validateField #workDone nonEmpty
+        |> validateField #invoiceTranslation nonEmpty
 
 communicationsQuery :: Query
 communicationsQuery =

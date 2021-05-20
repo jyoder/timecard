@@ -1,5 +1,6 @@
 module Web.View.Communications.Index where
 
+import IHP.View.TimeAgo as TO
 import Web.View.Prelude
 
 data IndexView = IndexView
@@ -7,8 +8,9 @@ data IndexView = IndexView
     , selectedPerson :: !(Maybe Person)
     , communications :: ![Communication]
     , selectedCommunications :: ![Communication]
+    , timecardEntries :: ![TimecardEntry]
     , newMessage :: !(Maybe TwilioMessage)
-    , newTimecardJobEntry :: !(Maybe TimecardJobEntry)
+    , newTimecardEntry :: !(Maybe TimecardEntry)
     }
 
 data Communication = Communication
@@ -68,38 +70,93 @@ renderCommunications IndexView {..} =
         _ -> [hsx||]
 
 renderTimecard :: IndexView -> Html
-renderTimecard IndexView {..} =
-    case newTimecardJobEntry of
-        Just newTimecardJobEntry ->
+renderTimecard view =
+    if null $ selectedCommunications view
+        then renderTimecardEntries view
+        else renderTimecardForm view
+
+renderTimecardEntries :: IndexView -> Html
+renderTimecardEntries IndexView {..} =
+    [hsx|
+        <ul class="list-group">
+            {forEach timecardEntries renderTimecardEntry}
+        </ul>
+    |]
+
+renderTimecardEntry :: TimecardEntry -> Html
+renderTimecardEntry timecardEntry =
+    [hsx|
+<div class="card mb-4">
+  <h5 class="card-header">{TO.date (get #date timecardEntry)}</h5>
+  <div class="card-body">
+    <h5 class="card-title">{get #jobName timecardEntry}</h5>
+    <p class="card-text">{get #invoiceTranslation timecardEntry}</p>
+    <a href="#" class="btn btn-primary">Edit</a>
+  </div>
+</div>
+    |]
+
+renderTimecardForm :: IndexView -> Html
+renderTimecardForm IndexView {..} =
+    case newTimecardEntry of
+        Just newTimecardEntry ->
             formForWithOptions
-                newTimecardJobEntry
-                timecardJobEntryFormOptions
+                newTimecardEntry
+                timecardEntryFormOptions
                 [hsx|
+                
                 {(dateTimeField #date)}
                 {(textField #jobName)}
                 {(numberField #hoursWorked)}
-                
-                <div id="form-group-work-done" class="form-group">
-                    <label for="work-done" name="workDone">Work Done</label>
-                    <textarea id="work-done" class="form-control">
-                        {forEach sortedCommunications tcText}
+
+                <div id="form-group-timecardEntry_workDone" class="form-group">
+                    <label for="timecardEntry_workDone">Work Done</label>
+                    <textarea id="timecardEntry_workDone" name="workDone" class="form-control">
+                        {textareaContent (get #workDone newTimecardEntry) sortedCommunications}
                     </textarea>
                 </div>
 
-                <div id="form-group-invoice-translation" class="form-group">
-                    <label for="invoice-translation" name="invoiceTranslation">Invoice Translation</label>
-                    <textarea id="invoice-translation" class="form-control">
-                        {forEach sortedCommunications tcText}
+                <div id="form-group-timecardEntry_invoiceTranslation" class="form-group">
+                    <label for="timecardEntry_invoiceTranslation">Invoice Translation</label>
+                    <textarea id="timecardEntry_invoiceTranslation" name="invoiceTranslation" class="form-control">
+                        {textareaContent (get #invoiceTranslation newTimecardEntry) sortedCommunications}
                     </textarea>
                 </div>
+
+                <input 
+                    type="hidden"
+                    name="linkedMessageIds"
+                    id="linkedMessageIds"
+                    class="form-control"
+                    value={linkedMessages sortedCommunications}
+                />
+
+                <input
+                    type="hidden"
+                    name="selectedPersonId"
+                    id="selectedPersonId"
+                    class="form-control"
+                    value={fromMaybe "" (show . (get #id) <$> selectedPerson)}
+                />
+
                 {submitButton { label = "Create" } }
             |]
         Nothing -> [hsx||]
   where
     sortedCommunications = sortBy (\a b -> get #createdAt a `compare` get #createdAt b) selectedCommunications
 
+textareaContent :: Text -> [Communication] -> Html
+textareaContent text communications =
+    if text == ""
+        then forEach communications tcText
+        else [hsx| {text} |]
+
 tcText :: Communication -> Html
 tcText c = [hsx| {get #messageBody c <> "\n\n"} |]
+
+linkedMessages :: [Communication] -> Text
+linkedMessages communications =
+    intercalate "," (show . get #messageId <$> communications)
 
 renderPerson :: Maybe Person -> Person -> Html
 renderPerson selectedPerson person =
@@ -206,8 +263,8 @@ sendMessageFormOptions formContext =
         |> set #formId "send-message-form"
         |> set #formAction (pathTo CreateOutgoingPhoneMessageAction)
 
-timecardJobEntryFormOptions :: FormContext TimecardJobEntry -> FormContext TimecardJobEntry
-timecardJobEntryFormOptions formContext =
+timecardEntryFormOptions :: FormContext TimecardEntry -> FormContext TimecardEntry
+timecardEntryFormOptions formContext =
     formContext
         |> set #formId "timecard-form"
 
@@ -260,12 +317,12 @@ styles =
             overflow-y: scroll;
         }
 
-        #work-done {
-            height: 150px;
+        #timecardEntry_workDone {
+            height: 123px;
         }
 
-        #invoice-translation {
-            height: 150px;
+        #timecardEntry_invoiceTranslation {
+            height: 123px;
         }
 
         /* Remove the scrollbar from Chrome, Safari, Edge and IEw */

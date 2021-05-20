@@ -50,11 +50,11 @@ INSERT INTO public.phone_contacts (id, created_at, updated_at, person_id, phone_
 ALTER TABLE public.phone_contacts ENABLE TRIGGER ALL;
 
 
-ALTER TABLE public.timecard_day_entries DISABLE TRIGGER ALL;
+ALTER TABLE public.timecard_entries DISABLE TRIGGER ALL;
 
 
 
-ALTER TABLE public.timecard_day_entries ENABLE TRIGGER ALL;
+ALTER TABLE public.timecard_entries ENABLE TRIGGER ALL;
 
 
 ALTER TABLE public.twilio_messages DISABLE TRIGGER ALL;
@@ -105,6 +105,9 @@ INSERT INTO public.twilio_messages (id, created_at, updated_at, api_version, mes
 INSERT INTO public.twilio_messages (id, created_at, updated_at, api_version, message_sid, account_sid, messaging_service_sid, to_id, from_id, status, body, num_media) VALUES ('54cfcf5c-7ba9-43f6-8f31-fef126d846f1', '2021-05-18 18:44:40.959584-07', '2021-05-18 18:44:40.959584-07', '2010-04-01', 'SMb9cffd1a9f8b539dba32f773c553924f', 'AC828cf7fa609e74ef78861e56ad166f42', NULL, 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'c1375981-0102-4132-8799-54f4fe3e0fbd', 'received', 'Boogers
 Hamburgers
 Pickles', 0);
+INSERT INTO public.twilio_messages (id, created_at, updated_at, api_version, message_sid, account_sid, messaging_service_sid, to_id, from_id, status, body, num_media) VALUES ('cf1516a6-25ac-4bb7-b7fb-81ebfed528a0', '2021-05-18 22:30:28.265057-07', '2021-05-18 22:30:28.265057-07', '2010-04-01', 'SM351c3d37000c4ba3bef8e276c9b883a7', 'AC828cf7fa609e74ef78861e56ad166f42', NULL, 'aae83fea-7dd3-44eb-b51e-dbaf9a813db0', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'delivered', 'Sent from your Twilio trial account - Thank you', 0);
+INSERT INTO public.twilio_messages (id, created_at, updated_at, api_version, message_sid, account_sid, messaging_service_sid, to_id, from_id, status, body, num_media) VALUES ('53d88b58-2440-404e-988c-5000ec8729cd', '2021-05-19 16:14:26.072438-07', '2021-05-19 16:14:26.072438-07', '2010-04-01', 'SM4bf39463981745c6884588fbd0ed78b8', 'AC828cf7fa609e74ef78861e56ad166f42', NULL, 'c1375981-0102-4132-8799-54f4fe3e0fbd', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'delivered', 'Sent from your Twilio trial account - <b>Hello world</b>', 0);
+INSERT INTO public.twilio_messages (id, created_at, updated_at, api_version, message_sid, account_sid, messaging_service_sid, to_id, from_id, status, body, num_media) VALUES ('33607a17-9ed7-4210-a104-6902bc719d63', '2021-05-19 16:15:00.355047-07', '2021-05-19 16:15:00.355047-07', '2010-04-01', 'SMb2a59ce963f5413ca04318570098c8ca', 'AC828cf7fa609e74ef78861e56ad166f42', NULL, 'c1375981-0102-4132-8799-54f4fe3e0fbd', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'delivered', 'Sent from your Twilio trial account - </textarea> <p>Another hello</p>', 0);
 
 
 ALTER TABLE public.twilio_messages ENABLE TRIGGER ALL;
@@ -115,12 +118,5 @@ ALTER TABLE public.timecard_entry_messages DISABLE TRIGGER ALL;
 
 
 ALTER TABLE public.timecard_entry_messages ENABLE TRIGGER ALL;
-
-
-ALTER TABLE public.timecard_job_entries DISABLE TRIGGER ALL;
-
-
-
-ALTER TABLE public.timecard_job_entries ENABLE TRIGGER ALL;
 
 
