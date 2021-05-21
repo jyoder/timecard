@@ -8,22 +8,27 @@ import Web.View.PhoneNumbers.Show
 
 instance Controller PhoneNumbersController where
     action PhoneNumbersAction = do
+        ensureIsUser
         phoneNumbers <- query @PhoneNumber |> fetch
         render IndexView {..}
     --
     action NewPhoneNumberAction = do
+        ensureIsUser
         let phoneNumber = newRecord
         render NewView {..}
     --
     action ShowPhoneNumberAction {phoneNumberId} = do
+        ensureIsUser
         phoneNumber <- fetch phoneNumberId
         render ShowView {..}
     --
     action EditPhoneNumberAction {phoneNumberId} = do
+        ensureIsUser
         phoneNumber <- fetch phoneNumberId
         render EditView {..}
     --
     action UpdatePhoneNumberAction {phoneNumberId} = do
+        ensureIsUser
         phoneNumber <- fetch phoneNumberId
         phoneNumber
             |> buildPhoneNumber
@@ -35,6 +40,7 @@ instance Controller PhoneNumbersController where
                     redirectTo EditPhoneNumberAction {..}
     --
     action CreatePhoneNumberAction = do
+        ensureIsUser
         let phoneNumber = newRecord @PhoneNumber
         phoneNumber
             |> buildPhoneNumber
@@ -46,6 +52,7 @@ instance Controller PhoneNumbersController where
                     redirectTo PhoneNumbersAction
     --
     action DeletePhoneNumberAction {phoneNumberId} = do
+        ensureIsUser
         phoneNumber <- fetch phoneNumberId
         deleteRecord phoneNumber
         setSuccessMessage "Phone Number deleted"

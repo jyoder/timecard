@@ -8,22 +8,27 @@ import Web.View.Persons.Show
 
 instance Controller PersonsController where
     action PersonsAction = do
+        ensureIsUser
         persons <- query @Person |> fetch
         render IndexView {..}
     --
     action NewPersonAction = do
+        ensureIsUser
         let person = newRecord
         render NewView {..}
     --
     action ShowPersonAction {personId} = do
+        ensureIsUser
         person <- fetch personId
         render ShowView {..}
     --
     action EditPersonAction {personId} = do
+        ensureIsUser
         person <- fetch personId
         render EditView {..}
     --
     action UpdatePersonAction {personId} = do
+        ensureIsUser
         person <- fetch personId
         person
             |> buildPerson
@@ -35,6 +40,7 @@ instance Controller PersonsController where
                     redirectTo EditPersonAction {..}
     --
     action CreatePersonAction = do
+        ensureIsUser
         let person = newRecord @Person
         person
             |> buildPerson
@@ -46,6 +52,7 @@ instance Controller PersonsController where
                     redirectTo PersonsAction
     --
     action DeletePersonAction {personId} = do
+        ensureIsUser
         person <- fetch personId
         deleteRecord person
         setSuccessMessage "Person deleted"

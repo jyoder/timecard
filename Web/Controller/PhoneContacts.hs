@@ -8,22 +8,27 @@ import Web.View.PhoneContacts.Show
 
 instance Controller PhoneContactsController where
     action PhoneContactsAction = do
+        ensureIsUser
         phoneContacts <- query @PhoneContact |> fetch
         render IndexView {..}
     --
     action NewPhoneContactAction = do
+        ensureIsUser
         let phoneContact = newRecord
         render NewView {..}
     --
     action ShowPhoneContactAction {phoneContactId} = do
+        ensureIsUser
         phoneContact <- fetch phoneContactId
         render ShowView {..}
     --
     action EditPhoneContactAction {phoneContactId} = do
+        ensureIsUser
         phoneContact <- fetch phoneContactId
         render EditView {..}
     --
     action UpdatePhoneContactAction {phoneContactId} = do
+        ensureIsUser
         phoneContact <- fetch phoneContactId
         phoneContact
             |> buildPhoneContact
@@ -35,6 +40,7 @@ instance Controller PhoneContactsController where
                     redirectTo EditPhoneContactAction {..}
     --
     action CreatePhoneContactAction = do
+        ensureIsUser
         let phoneContact = newRecord @PhoneContact
         phoneContact
             |> buildPhoneContact
@@ -46,6 +52,7 @@ instance Controller PhoneContactsController where
                     redirectTo PhoneContactsAction
     --
     action DeletePhoneContactAction {phoneContactId} = do
+        ensureIsUser
         phoneContact <- fetch phoneContactId
         deleteRecord phoneContact
         setSuccessMessage "Phone Contact deleted"
