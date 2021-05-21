@@ -225,7 +225,7 @@ renderSendMessageForm phoneMessage =
             <div class="input-group mb-3">
                 <input type="text" name="body" id="twilioMessage_body" class="form-control">
                 <div class="input-group-append">
-                    <span class="btn btn-primary">Send</span>
+                    <button class="btn btn-primary">Send</button>
                 </div>
             </div>
         </form>
