@@ -9,7 +9,7 @@ instance View (NewView User) where
         <div class="h-100" id="sessions-new">
             <div class="d-flex align-items-center">
                 <div class="w-100">
-                    <div style="max-width: 400px" class="mx-auto mb-5">
+                    <div style="max-width: 400px; height: 100vh;" class="d-flex flex-column justify-content-center mx-auto">
                         <h5>Please login</h5>
                         {renderForm user}
                     </div>
