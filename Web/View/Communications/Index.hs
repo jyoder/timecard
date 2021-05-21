@@ -11,6 +11,7 @@ data IndexView = IndexView
     , timecardEntries :: ![TimecardEntry]
     , newMessage :: !(Maybe TwilioMessage)
     , newTimecardEntry :: !(Maybe TimecardEntry)
+    , editingTimecard :: Bool
     }
 
 data Communication = Communication
@@ -59,7 +60,7 @@ renderCommunications IndexView {..} =
             [hsx|
             <div class="col-6">
                 <div class="communications-history list-group">
-                    {forEach communications (renderCommunication selectedPerson selectedCommunications)}
+                    {forEach communications (renderCommunication selectedPerson selectedCommunications newTimecardEntry editingTimecard)}
                     <div class="scroll-pinned"></div>
                 </div>
                 <div class="communications-composer">
@@ -91,7 +92,7 @@ renderTimecardEntry timecardEntry =
   <div class="card-body">
     <h5 class="card-title">{get #jobName timecardEntry}</h5>
     <p class="card-text">{get #invoiceTranslation timecardEntry}</p>
-    <a href="#" class="btn btn-primary">Edit</a>
+    <a href={EditTimecardEntry (get #id timecardEntry) [] "True"} class="btn btn-primary">Edit</a>
   </div>
 </div>
     |]
@@ -104,8 +105,7 @@ renderTimecardForm IndexView {..} =
                 newTimecardEntry
                 timecardEntryFormOptions
                 [hsx|
-                
-                {(dateTimeField #date)}
+                {(dateTimeField #date) { fieldClass = "date-time-field"}}
                 {(textField #jobName)}
                 {(numberField #hoursWorked)}
 
@@ -139,11 +139,16 @@ renderTimecardForm IndexView {..} =
                     value={fromMaybe "" (show . (get #id) <$> selectedPerson)}
                 />
 
-                {submitButton { label = "Create" } }
+                {submitButton { label = submitLabel } }
+                <a href={cancelAction} class="btn btn-secondary ml-2" role="button">Cancel</a>
             |]
         Nothing -> [hsx||]
   where
     sortedCommunications = sortBy (\a b -> get #createdAt a `compare` get #createdAt b) selectedCommunications
+    submitLabel = if editingTimecard then "Update" else "Create"
+    cancelAction = case selectedPerson of
+        Just selectedPerson -> CommunicationsForAction (get #id selectedPerson) []
+        Nothing -> CommunicationsAction
 
 textareaContent :: Text -> [Communication] -> Html
 textareaContent text communications =
@@ -183,11 +188,11 @@ renderSelectedPerson person =
     </a>
 |]
 
-renderCommunication :: Person -> [Communication] -> Communication -> Html
-renderCommunication selectedPerson selectedCommunications communication =
+renderCommunication :: Person -> [Communication] -> Maybe TimecardEntry -> Bool -> Communication -> Html
+renderCommunication selectedPerson selectedCommunications timecardEntry editingTimecard communication =
     [hsx|
     <a
-        hx-get={CommunicationsForAction selectedPersonId toggledCommunicationIds}
+        hx-get={nextAction}
         hx-target="body"
         class={"list-group-item list-group-item-action flex-column align-items-start border-0 " <> active}>
         <div class="d-flex w-100 justify-content-between">
@@ -205,16 +210,24 @@ renderCommunication selectedPerson selectedCommunications communication =
     isSelected = isCommunicationSelected selectedCommunications communication
     toggledCommunicationIds = communicationIds $ toggleCommunicationSelected selectedCommunications communication
     active = activeClass isSelected
+    nextAction = case (editingTimecard, timecardEntry) of
+        (True, Just timecardEntry) -> EditTimecardEntry (get #id timecardEntry) toggledCommunicationIds "False"
+        (_, _) -> CommunicationsForAction selectedPersonId toggledCommunicationIds
 
 renderSendMessageForm :: TwilioMessage -> Html
 renderSendMessageForm phoneMessage =
-    formForWithOptions
-        phoneMessage
-        sendMessageFormOptions
-        [hsx|
-        {(hiddenField #toId)}
-        {(textField #body) { fieldLabel = "" }}
-        {submitButton { label = "Send" } }
+    [hsx|
+        <form method="POST" action="/CreateOutgoingPhoneMessage" id="send-message-form" class="new-form" data-disable-javascript-submission="false">
+            <div class="form-group" id="form-group-twilioMessage_toId">
+                <input type="hidden" name="toId" placeholder="" id="twilioMessage_toId" class="form-control" value={show $ get #toId phoneMessage}>
+            </div>
+            <div class="input-group mb-3">
+                <input type="text" name="body" id="twilioMessage_body" class="form-control">
+                <div class="input-group-append">
+                    <span class="btn btn-primary">Send</span>
+                </div>
+            </div>
+        </form>
     |]
 
 renderSentAt :: Communication -> Html

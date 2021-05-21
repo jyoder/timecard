@@ -6,7 +6,7 @@ function scrollToPinned() {
 }
 
 function initFlatPickr() {
-    flatpickr("input[type='datetime-local']", {
+    let flat = flatpickr(".date-time-field", {
         allowInput: true,
         enableTime: false,
         dateFormat: 'Z',

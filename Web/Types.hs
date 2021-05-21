@@ -42,6 +42,8 @@ data CommunicationsController
     = CommunicationsAction
     | CommunicationsForAction {selectedPersonId :: !(Id Person), selectedCommunicationIds :: ![Text]}
     | CreateTimecardEntry
+    | EditTimecardEntry {selectedTimecardEntryId :: !(Id TimecardEntry), selectedCommunicationIds :: ![Text], showExistingMessages :: Text}
+    | UpdateTimecardEntry
     | CreateOutgoingPhoneMessageAction
     | UpdateOutgoingPhoneMessageAction
     | CreateIncomingPhoneMessageAction

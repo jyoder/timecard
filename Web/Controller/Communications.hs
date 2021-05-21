@@ -26,6 +26,7 @@ instance Controller CommunicationsController where
         let timecardEntries = []
         let newMessage = Nothing
         let newTimecardEntry = Nothing
+        let editingTimecard = False
         render IndexView {..}
     --
     action CommunicationsForAction {..} = autoRefresh do
@@ -37,7 +38,7 @@ instance Controller CommunicationsController where
         let selectedCommunicationIds = paramOrDefault @[Id TwilioMessage] [] "selectedCommunicationIds"
         let selectedCommunications = catMaybes $ (\s -> find (\c -> get #messageId c == s) communications) <$> selectedCommunicationIds
         timecardEntries <- query @TimecardEntry |> filterWhere (#personId, selectedPersonId) |> orderByDesc #date |> fetch
-        Log.debug $ show timecardEntries
+        let editingTimecard = False
         let newMessage = newRecord @TwilioMessage |> set #toId (get #id toPhoneNumber) |> Just
         let newTimecardEntry = case listToMaybe $ reverse selectedCommunicationIds of
                 Just messageId ->
@@ -58,6 +59,7 @@ instance Controller CommunicationsController where
         let selectedCommunications = catMaybes $ (\s -> find (\c -> get #messageId c == s) communications) <$> param @[Id TwilioMessage] "linkedMessageIds"
         let timecardEntries = []
         let newMessage = Just $ newRecord @TwilioMessage
+        let editingTimecard = False
         case listToMaybe messageIds of
             Just messageId -> do
                 newRecord @TimecardEntry
@@ -82,7 +84,68 @@ instance Controller CommunicationsController where
             Nothing -> do
                 setErrorMessage "No selected messages"
                 redirectTo CommunicationsAction
-
+    --
+    action UpdateTimecardEntry = do
+        botId <- fetchBotId
+        persons <- fetchPersonsExcluding botId
+        let selectedPersonId = param @(Id Person) "selectedPersonId"
+        selectedPerson <- Just <$> fetch selectedPersonId
+        communications <- fetchCommunicationsBetween botId selectedPersonId
+        let messageIds = param @[Text] "linkedMessageIds"
+        let selectedMessageIds = param @[Id TwilioMessage] "linkedMessageIds"
+        let selectedCommunications = catMaybes $ (\s -> find (\c -> get #messageId c == s) communications) <$> param @[Id TwilioMessage] "linkedMessageIds"
+        let timecardEntries = []
+        let newMessage = Just $ newRecord @TwilioMessage
+        timecardEntry <- fetch (param @(Id TimecardEntry) "timecardEntryId")
+        let editingTimecard = False
+        case listToMaybe messageIds of
+            Just messageId -> do
+                timecardEntry
+                    |> buildTimecardEntry
+                    |> set #personId selectedPersonId
+                    |> ifValid \case
+                        Left newTimecardEntry -> do
+                            render IndexView {newTimecardEntry = Just newTimecardEntry, ..}
+                        Right newTimecardEntry -> do
+                            setSuccessMessage "Updated timecard entry"
+                            withTransaction do
+                                nte <- updateRecord newTimecardEntry
+                                timecardEntryMessages <- query @TimecardEntryMessage |> filterWhere (#timecardEntryId, get #id nte) |> fetch
+                                timecardEntryMessages |> deleteRecords
+                                forEach
+                                    selectedMessageIds
+                                    ( \mid -> do
+                                        newRecord @TimecardEntryMessage
+                                            |> set #twilioMessageId mid
+                                            |> set #timecardEntryId (get #id nte)
+                                            |> createRecord
+                                        pure ()
+                                    )
+                            redirectTo $ CommunicationsForAction {selectedPersonId, selectedCommunicationIds = []}
+            Nothing -> do
+                setErrorMessage "No selected messages"
+                redirectTo CommunicationsAction
+    --
+    action EditTimecardEntry {..} = do
+        botId <- fetchBotId
+        persons <- fetchPersonsExcluding botId
+        timecardEntry <- fetch selectedTimecardEntryId
+        let newTimecardEntry = Just timecardEntry
+        let selectedPersonId = get #personId timecardEntry
+        selectedPerson <- Just <$> fetch selectedPersonId
+        communications <- fetchCommunicationsBetween botId selectedPersonId
+        timecardEntryMessages <- query @TimecardEntryMessage |> filterWhere (#timecardEntryId, get #id timecardEntry) |> fetch
+        let selectedTwilioMessageIds = fromMaybe [] $ paramOrNothing @[Id TwilioMessage] "selectedCommunicationIds"
+        selectedMessages <-
+            if showExistingMessages == "True"
+                then mapM (fetch . get #twilioMessageId) timecardEntryMessages
+                else fetch selectedTwilioMessageIds
+        let selectedCommunicationIds = map (get #id) selectedMessages
+        let selectedCommunications = catMaybes $ (\s -> find (\c -> get #messageId c == s) communications) <$> selectedCommunicationIds
+        let timecardEntries = []
+        let newMessage = Just $ newRecord @TwilioMessage
+        let editingTimecard = True
+        render IndexView {..}
     --
     action CreateOutgoingPhoneMessageAction = do
         let toPhoneNumberId = Id (param "toId")
@@ -280,35 +343,6 @@ where
            and twilio_messages.to_id = phone_numbers_a.id))
 order by
     twilio_messages.created_at asc;
-|]
-
-communicationQuery :: Query
-communicationQuery =
-    [r|
-select
-    twilio_messages.id,
-    persons_from.goes_by name_from,
-    persons_to.goes_by name_to,
-    (twilio_messages.from_id = phone_numbers_from.id) is_from_person_a,
-    twilio_messages.created_at,
-    twilio_messages.status,
-    twilio_messages.body
-from
-    persons persons_from,
-    phone_contacts phone_contacts_from,
-    phone_numbers phone_numbers_from,
-    persons persons_to,
-    phone_contacts phone_contacts_to,
-    phone_numbers phone_numbers_to,
-    twilio_messages
-where
-    twilio_messages.id = ?
-    and phone_contacts_from.person_id = persons_from.id
-    and phone_contacts_from.phone_number_id = phone_numbers_from.id
-    and twilio_messages.from_id = phone_numbers_from.id
-    and phone_contacts_to.person_id = persons_to.id
-    and phone_contacts_to.phone_number_id = phone_numbers_to.id
-    and twilio_messages.to_id = phone_numbers_to.id
 |]
 
 instance FromRow Communication where
