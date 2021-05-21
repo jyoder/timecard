@@ -18,6 +18,7 @@ import Web.View.Communications.Index
 
 instance Controller CommunicationsController where
     action CommunicationsAction = do
+        ensureIsUser
         botId <- fetchBotId
         persons <- fetchPersonsExcluding botId
         let selectedPerson = Nothing
@@ -30,6 +31,7 @@ instance Controller CommunicationsController where
         render IndexView {..}
     --
     action CommunicationsForAction {..} = autoRefresh do
+        ensureIsUser
         botId <- fetchBotId
         persons <- fetchPersonsExcluding botId
         selectedPerson <- Just <$> fetch selectedPersonId
@@ -49,6 +51,7 @@ instance Controller CommunicationsController where
         render IndexView {..}
     --
     action CreateTimecardEntry = do
+        ensureIsUser
         botId <- fetchBotId
         persons <- fetchPersonsExcluding botId
         let selectedPersonId = param @(Id Person) "selectedPersonId"
@@ -86,6 +89,7 @@ instance Controller CommunicationsController where
                 redirectTo CommunicationsAction
     --
     action UpdateTimecardEntry = do
+        ensureIsUser
         botId <- fetchBotId
         persons <- fetchPersonsExcluding botId
         let selectedPersonId = param @(Id Person) "selectedPersonId"
@@ -127,6 +131,7 @@ instance Controller CommunicationsController where
                 redirectTo CommunicationsAction
     --
     action EditTimecardEntry {..} = do
+        ensureIsUser
         botId <- fetchBotId
         persons <- fetchPersonsExcluding botId
         timecardEntry <- fetch selectedTimecardEntryId
@@ -148,6 +153,7 @@ instance Controller CommunicationsController where
         render IndexView {..}
     --
     action CreateOutgoingPhoneMessageAction = do
+        ensureIsUser
         let toPhoneNumberId = Id (param "toId")
         let body = strip $ param "body"
         botId <- fetchBotId

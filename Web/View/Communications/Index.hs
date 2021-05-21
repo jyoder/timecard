@@ -31,6 +31,7 @@ instance View IndexView where
         <nav class="navbar navbar-light bg-light">
             <div class="container-fluid">
                 <span class="navbar-brand mb-0 h1">Timecard Communication</span>
+                <a href={DeleteSessionAction} class="btn btn-outline-primary js-delete js-delete-no-confirm">Logout</a>
             </div>
         </nav>
         <div class="row align-items start">
@@ -192,8 +193,8 @@ renderCommunication :: Person -> [Communication] -> Maybe TimecardEntry -> Bool 
 renderCommunication selectedPerson selectedCommunications timecardEntry editingTimecard communication =
     [hsx|
     <a
-        hx-get={nextAction}
-        hx-target="body"
+        href={nextAction}
+        data-turbolinks="false"
         class={"list-group-item list-group-item-action flex-column align-items-start border-0 " <> active}>
         <div class="d-flex w-100 justify-content-between">
             <h5 class="mb-1">{senderName communication}</h5>

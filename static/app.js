@@ -5,8 +5,14 @@ function scrollToPinned() {
     }
 }
 
-function initFlatPickr() {
-    let flat = flatpickr(".date-time-field", {
+function initDatePicker() {
+    if (!('flatpickr' in window)) {
+        return;
+    }
+    flatpickr("input[type='date']", {
+        altFormat: 'd.m.y',
+    });
+    flatpickr("input[type='datetime-local']", {
         allowInput: true,
         enableTime: false,
         dateFormat: 'Z',
@@ -20,8 +26,6 @@ function initApp() {
     htmx.process(document.body);
     // Reformat time elements based on locale whenever page changes occur
     initTime();
-    // Configure the data picker to be consistent across all pages
-    initFlatPickr();
     // For anything marked as 'scroll-pinned', scroll to it on page load
     scrollToPinned();
 }
