@@ -1,12 +1,19 @@
 module Web.Types where
 
 import Generated.Types
+import IHP.LoginSupport.Types
 import IHP.ModelSupport
 import IHP.Prelude
 
 data WebApplication = WebApplication deriving (Eq, Show)
 
 data StaticController = WelcomeAction deriving (Eq, Show, Data)
+
+data SessionsController
+    = NewSessionAction
+    | CreateSessionAction
+    | DeleteSessionAction
+    deriving (Eq, Show, Data)
 
 data PersonsController
     = PersonsAction
@@ -58,3 +65,8 @@ data TwilioMessagesController
     | UpdateTwilioMessageAction {twilioMessageId :: !(Id TwilioMessage)}
     | DeleteTwilioMessageAction {twilioMessageId :: !(Id TwilioMessage)}
     deriving (Eq, Show, Data)
+
+instance HasNewSessionUrl User where
+    newSessionUrl _ = "/NewSession"
+
+type instance CurrentUserRecord = User
