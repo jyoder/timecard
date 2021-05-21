@@ -4,7 +4,7 @@ import IHP.View.TimeAgo as TO
 import Web.View.Prelude
 
 data IndexView = IndexView
-    { persons :: ![Person]
+    { people :: ![Person]
     , selectedPerson :: !(Maybe Person)
     , communications :: ![Communication]
     , selectedCommunications :: ![Communication]
@@ -35,7 +35,7 @@ instance View IndexView where
             </div>
         </nav>
         <div class="row align-items start">
-            {renderPersons view}
+            {renderPeople view}
             {renderCommunications view}
             <div class="timecard col-4">
                 {renderTimecard view}
@@ -44,12 +44,12 @@ instance View IndexView where
         {styles}
     |]
 
-renderPersons :: IndexView -> Html
-renderPersons IndexView {..} =
+renderPeople :: IndexView -> Html
+renderPeople IndexView {..} =
     [hsx|
     <div class="person-selector col-2">
         <div class="list-group">
-            {forEach persons (renderPerson selectedPerson)}
+            {forEach people (renderPerson selectedPerson)}
         </div>
     </div>
 |]

@@ -14,16 +14,16 @@ SET row_security = off;
 
 SET SESSION AUTHORIZATION DEFAULT;
 
-ALTER TABLE public.persons DISABLE TRIGGER ALL;
+ALTER TABLE public.people DISABLE TRIGGER ALL;
 
-INSERT INTO public.persons (id, created_at, updated_at, first_name, last_name, goes_by) VALUES ('5419fec4-1380-475b-a6e7-87f1ea8870a6', '2021-05-11 22:58:57.614427-07', '2021-05-11 22:58:57.614427-07', 'Tim', 'Eckard', 'Tim the Bot');
-INSERT INTO public.persons (id, created_at, updated_at, first_name, last_name, goes_by) VALUES ('4383aa8e-d200-45cb-9c8e-0090f14457ef', '2021-05-11 22:07:30.127923-07', '2021-05-11 22:07:30.127923-07', 'Emma', 'Nazim', 'Emma');
-INSERT INTO public.persons (id, created_at, updated_at, first_name, last_name, goes_by) VALUES ('cfce1f7b-7617-4c5d-8349-e6640378e01e', '2021-05-12 23:36:10.535243-07', '2021-05-12 23:36:10.535243-07', 'Molly', 'Abbott', 'Molly');
-INSERT INTO public.persons (id, created_at, updated_at, first_name, last_name, goes_by) VALUES ('c8a20c60-1c95-4a9e-bb6a-57ca2670115d', '2021-05-14 14:09:54.579756-07', '2021-05-14 14:09:54.579756-07', 'John', 'Yoder', 'John');
-INSERT INTO public.persons (id, created_at, updated_at, first_name, last_name, goes_by) VALUES ('6e41e1a0-7f59-4195-ad39-546fcf1e6b79', '2021-05-14 14:10:03.581771-07', '2021-05-14 14:10:03.581771-07', 'Hillary', 'Yoder', 'Hillary');
+INSERT INTO public.people (id, created_at, updated_at, first_name, last_name, goes_by) VALUES ('5419fec4-1380-475b-a6e7-87f1ea8870a6', '2021-05-11 22:58:57.614427-07', '2021-05-11 22:58:57.614427-07', 'Tim', 'Eckard', 'Tim the Bot');
+INSERT INTO public.people (id, created_at, updated_at, first_name, last_name, goes_by) VALUES ('4383aa8e-d200-45cb-9c8e-0090f14457ef', '2021-05-11 22:07:30.127923-07', '2021-05-11 22:07:30.127923-07', 'Emma', 'Nazim', 'Emma');
+INSERT INTO public.people (id, created_at, updated_at, first_name, last_name, goes_by) VALUES ('cfce1f7b-7617-4c5d-8349-e6640378e01e', '2021-05-12 23:36:10.535243-07', '2021-05-12 23:36:10.535243-07', 'Molly', 'Abbott', 'Molly');
+INSERT INTO public.people (id, created_at, updated_at, first_name, last_name, goes_by) VALUES ('c8a20c60-1c95-4a9e-bb6a-57ca2670115d', '2021-05-14 14:09:54.579756-07', '2021-05-14 14:09:54.579756-07', 'John', 'Yoder', 'John');
+INSERT INTO public.people (id, created_at, updated_at, first_name, last_name, goes_by) VALUES ('6e41e1a0-7f59-4195-ad39-546fcf1e6b79', '2021-05-14 14:10:03.581771-07', '2021-05-14 14:10:03.581771-07', 'Hillary', 'Yoder', 'Hillary');
 
 
-ALTER TABLE public.persons ENABLE TRIGGER ALL;
+ALTER TABLE public.people ENABLE TRIGGER ALL;
 
 
 ALTER TABLE public.phone_numbers DISABLE TRIGGER ALL;
@@ -95,11 +95,6 @@ INSERT INTO public.timecard_entries (id, created_at, updated_at, person_id, date
 ', 'Sent from your Twilio trial account - </textarea> <p>Another hello</p>
 
 ');
-INSERT INTO public.timecard_entries (id, created_at, updated_at, person_id, date, job_name, hours_worked, work_done, invoice_translation) VALUES ('56dfe4db-8680-45ad-9c45-5831f1680921', '2021-05-20 18:42:11.02942-07', '2021-05-20 18:42:11.02942-07', 'c8a20c60-1c95-4a9e-bb6a-57ca2670115d', '2021-05-19 23:27:12.673-07', 'Booger2', 8, 'Sent from your Twilio trial account - Goober
-
-', 'Sent from your Twilio trial account - Goober
-
-');
 INSERT INTO public.timecard_entries (id, created_at, updated_at, person_id, date, job_name, hours_worked, work_done, invoice_translation) VALUES ('156a3dc5-3212-471f-8e5e-db27e08fe635', '2021-05-20 22:18:47.725184-07', '2021-05-20 22:18:47.725184-07', 'c8a20c60-1c95-4a9e-bb6a-57ca2670115d', '2021-05-19 23:27:12-07', 'Barfy', 8, 'Sent from your Twilio trial account - Goober
 
 ', 'Sent from your Twilio trial account - Goober
@@ -113,6 +108,11 @@ INSERT INTO public.timecard_entries (id, created_at, updated_at, person_id, date
 INSERT INTO public.timecard_entries (id, created_at, updated_at, person_id, date, job_name, hours_worked, work_done, invoice_translation) VALUES ('670ee52b-d425-4d9f-977a-135508ae1a9d', '2021-05-20 18:41:40.505548-07', '2021-05-20 18:41:40.505548-07', 'c8a20c60-1c95-4a9e-bb6a-57ca2670115d', '2021-05-19 00:00:00-07', 'Big', 8, 'Sent from your Twilio trial account - <b>Hello world</b>
 
 ', 'Sent from your Twilio trial account - <b>Hello world</b>
+
+');
+INSERT INTO public.timecard_entries (id, created_at, updated_at, person_id, date, job_name, hours_worked, work_done, invoice_translation) VALUES ('56dfe4db-8680-45ad-9c45-5831f1680921', '2021-05-20 18:42:11.02942-07', '2021-05-20 18:42:11.02942-07', 'c8a20c60-1c95-4a9e-bb6a-57ca2670115d', '2021-06-16 00:00:00-07', 'Booger2', 8, 'Sent from your Twilio trial account - Goober
+
+', 'Sent from your Twilio trial account - Goober
 
 ');
 
@@ -188,12 +188,21 @@ INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard
 INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('481987fe-5996-4c0b-ac34-dacff92e1f73', '2021-05-20 18:14:46.263546-07', '2021-05-20 18:14:46.263546-07', '56258462-4a18-4783-8b64-55fce59a152b', 'a1a39f21-d311-4d1e-86aa-da23d178a893');
 INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('d59ad1c2-34a7-4c97-9c90-b808849164f0', '2021-05-20 18:28:18.02847-07', '2021-05-20 18:28:18.02847-07', '6b02eac6-1d5d-48d5-af42-57a4bac10783', '33607a17-9ed7-4210-a104-6902bc719d63');
 INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('68ab9eb0-69cf-4365-9c8d-793e1099f15b', '2021-05-20 18:41:53.117893-07', '2021-05-20 18:41:53.117893-07', '982481a3-9a45-4b6b-b733-ce6d4a9f0b86', '33607a17-9ed7-4210-a104-6902bc719d63');
-INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('251d0319-443a-454a-b4fe-bcfd5f51dd5d', '2021-05-20 18:42:11.031816-07', '2021-05-20 18:42:11.031816-07', '56dfe4db-8680-45ad-9c45-5831f1680921', 'a1a39f21-d311-4d1e-86aa-da23d178a893');
 INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('1c8407ab-de94-4f0a-93d7-0e4d618bb084', '2021-05-20 22:18:47.735371-07', '2021-05-20 22:18:47.735371-07', '156a3dc5-3212-471f-8e5e-db27e08fe635', 'a1a39f21-d311-4d1e-86aa-da23d178a893');
 INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('df7ec4fd-83d4-4ade-afea-f780c35282fc', '2021-05-20 23:00:57.223565-07', '2021-05-20 23:00:57.223565-07', 'a80fe09c-71a0-4e2a-9d4d-10cbda000780', 'a1a39f21-d311-4d1e-86aa-da23d178a893');
 INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('25b069c6-f0d2-4092-adb1-f6f7b05c4166', '2021-05-20 23:19:21.524854-07', '2021-05-20 23:19:21.524854-07', '670ee52b-d425-4d9f-977a-135508ae1a9d', 'a1a39f21-d311-4d1e-86aa-da23d178a893');
+INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('3e124d61-ff76-4aec-ac50-98ee74a04947', '2021-05-21 11:58:35.342225-07', '2021-05-21 11:58:35.342225-07', '56dfe4db-8680-45ad-9c45-5831f1680921', '33607a17-9ed7-4210-a104-6902bc719d63');
+INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('61733f79-7c87-4995-b815-f58ac7be55a9', '2021-05-21 11:58:35.342225-07', '2021-05-21 11:58:35.342225-07', '56dfe4db-8680-45ad-9c45-5831f1680921', 'a1dafd50-dc45-4a35-a7cc-713043c36b5f');
 
 
 ALTER TABLE public.timecard_entry_messages ENABLE TRIGGER ALL;
+
+
+ALTER TABLE public.users DISABLE TRIGGER ALL;
+
+INSERT INTO public.users (id, email, password_hash, locked_at, failed_login_attempts) VALUES ('aa267118-f73f-45ab-9644-5705f21070e7', 'jcyoder@gmail.com', 'sha256|17|HB8SiTu4PmdweFIdJFyAZQ==|5yzOUQv/5U5G0afEYgNWeDZPcBoiSxQ+cbZp7ELqbaQ=', NULL, 0);
+
+
+ALTER TABLE public.users ENABLE TRIGGER ALL;
 
 

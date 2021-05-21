@@ -1,15 +1,15 @@
-module Web.Controller.Persons where
+module Web.Controller.People where
 
 import Web.Controller.Prelude
-import Web.View.Persons.Edit
-import Web.View.Persons.Index
-import Web.View.Persons.New
-import Web.View.Persons.Show
+import Web.View.People.Edit
+import Web.View.People.Index
+import Web.View.People.New
+import Web.View.People.Show
 
-instance Controller PersonsController where
-    action PersonsAction = do
+instance Controller PeopleController where
+    action PeopleAction = do
         ensureIsUser
-        persons <- query @Person |> fetch
+        people <- query @Person |> fetch
         render IndexView {..}
     --
     action NewPersonAction = do
@@ -49,14 +49,14 @@ instance Controller PersonsController where
                 Right person -> do
                     person <- person |> createRecord
                     setSuccessMessage "Person created"
-                    redirectTo PersonsAction
+                    redirectTo PeopleAction
     --
     action DeletePersonAction {personId} = do
         ensureIsUser
         person <- fetch personId
         deleteRecord person
         setSuccessMessage "Person deleted"
-        redirectTo PersonsAction
+        redirectTo PeopleAction
 
 buildPerson :: (?context :: ControllerContext) => Person -> Person
 buildPerson person =

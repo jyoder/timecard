@@ -8,7 +8,7 @@ import Web.View.Layout (defaultLayout)
 
 import IHP.LoginSupport.Middleware
 import Web.Controller.Communications
-import Web.Controller.Persons
+import Web.Controller.People
 import Web.Controller.PhoneContacts
 import Web.Controller.PhoneNumbers
 import Web.Controller.Sessions
@@ -22,7 +22,7 @@ instance FrontController WebApplication where
           parseRoute @CommunicationsController
         , parseRoute @PhoneContactsController
         , parseRoute @PhoneNumbersController
-        , parseRoute @PersonsController
+        , parseRoute @PeopleController
         ]
 
 instance InitControllerContext WebApplication where

@@ -6,7 +6,7 @@ CREATE TABLE users (
     locked_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
     failed_login_attempts INT DEFAULT 0 NOT NULL
 );
-CREATE TABLE persons (
+CREATE TABLE people (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
@@ -67,9 +67,9 @@ CREATE INDEX timecard_entry_messages_timecard_entry_id_index ON timecard_entry_m
 CREATE INDEX timecard_entry_messages_twilio_message_id_index ON timecard_entry_messages (twilio_message_id);
 CREATE INDEX twilio_messages_from_id_index ON twilio_messages (from_id);
 CREATE INDEX twilio_messages_to_id_index ON twilio_messages (to_id);
-ALTER TABLE phone_contacts ADD CONSTRAINT phone_contacts_ref_person_id FOREIGN KEY (person_id) REFERENCES persons (id) ON DELETE NO ACTION;
+ALTER TABLE phone_contacts ADD CONSTRAINT phone_contacts_ref_person_id FOREIGN KEY (person_id) REFERENCES people (id) ON DELETE NO ACTION;
 ALTER TABLE phone_contacts ADD CONSTRAINT phone_contacts_ref_phone_number_id FOREIGN KEY (phone_number_id) REFERENCES phone_numbers (id) ON DELETE NO ACTION;
-ALTER TABLE timecard_entries ADD CONSTRAINT timecard_entries_ref_person_id FOREIGN KEY (person_id) REFERENCES persons (id) ON DELETE NO ACTION;
+ALTER TABLE timecard_entries ADD CONSTRAINT timecard_entries_ref_person_id FOREIGN KEY (person_id) REFERENCES people (id) ON DELETE NO ACTION;
 ALTER TABLE timecard_entry_messages ADD CONSTRAINT timecard_entry_messages_ref_timecard_entry_id FOREIGN KEY (timecard_entry_id) REFERENCES timecard_entries (id) ON DELETE NO ACTION;
 ALTER TABLE timecard_entry_messages ADD CONSTRAINT timecard_entry_messages_ref_twilio_message_id FOREIGN KEY (twilio_message_id) REFERENCES twilio_messages (id) ON DELETE NO ACTION;
 ALTER TABLE twilio_messages ADD CONSTRAINT twilio_messages_ref_from_id FOREIGN KEY (from_id) REFERENCES phone_numbers (id) ON DELETE NO ACTION;

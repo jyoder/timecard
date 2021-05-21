@@ -1,15 +1,15 @@
-module Web.View.Persons.Index where
+module Web.View.People.Index where
 
 import Web.View.Prelude
 
-data IndexView = IndexView {persons :: [Person]}
+data IndexView = IndexView {people :: [Person]}
 
 instance View IndexView where
     html IndexView {..} =
         [hsx|
         <nav>
             <ol class="breadcrumb">
-                <li class="breadcrumb-item active"><a href={PersonsAction}>Persons</a></li>
+                <li class="breadcrumb-item active"><a href={PeopleAction}>People</a></li>
             </ol>
         </nav>
         <h1>Index <a href={pathTo NewPersonAction} class="btn btn-primary ml-4">+ New</a></h1>
@@ -23,7 +23,7 @@ instance View IndexView where
                         <th></th>
                     </tr>
                 </thead>
-                <tbody>{forEach persons renderPerson}</tbody>
+                <tbody>{forEach people renderPerson}</tbody>
             </table>
         </div>
     |]

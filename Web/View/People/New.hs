@@ -1,4 +1,4 @@
-module Web.View.Persons.New where
+module Web.View.People.New where
 
 import Web.View.Prelude
 
@@ -9,7 +9,7 @@ instance View NewView where
         [hsx|
         <nav>
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href={PersonsAction}>Persons</a></li>
+                <li class="breadcrumb-item"><a href={PeopleAction}>People</a></li>
                 <li class="breadcrumb-item active">New Person</li>
             </ol>
         </nav>

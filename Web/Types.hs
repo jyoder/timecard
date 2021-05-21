@@ -15,8 +15,8 @@ data SessionsController
     | DeleteSessionAction
     deriving (Eq, Show, Data)
 
-data PersonsController
-    = PersonsAction
+data PeopleController
+    = PeopleAction
     | NewPersonAction
     | ShowPersonAction {personId :: !(Id Person)}
     | CreatePersonAction

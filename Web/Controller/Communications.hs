@@ -20,7 +20,7 @@ instance Controller CommunicationsController where
     action CommunicationsAction = do
         ensureIsUser
         botId <- fetchBotId
-        persons <- fetchPersonsExcluding botId
+        people <- fetchPeopleExcluding botId
         let selectedPerson = Nothing
         let communications = []
         let selectedCommunications = []
@@ -33,7 +33,7 @@ instance Controller CommunicationsController where
     action CommunicationsForAction {..} = autoRefresh do
         ensureIsUser
         botId <- fetchBotId
-        persons <- fetchPersonsExcluding botId
+        people <- fetchPeopleExcluding botId
         selectedPerson <- Just <$> fetch selectedPersonId
         toPhoneNumber <- fetchPhoneNumberFor selectedPersonId
         communications <- fetchCommunicationsBetween botId selectedPersonId
@@ -53,7 +53,7 @@ instance Controller CommunicationsController where
     action CreateTimecardEntry = do
         ensureIsUser
         botId <- fetchBotId
-        persons <- fetchPersonsExcluding botId
+        people <- fetchPeopleExcluding botId
         let selectedPersonId = param @(Id Person) "selectedPersonId"
         selectedPerson <- Just <$> fetch selectedPersonId
         communications <- fetchCommunicationsBetween botId selectedPersonId
@@ -91,7 +91,7 @@ instance Controller CommunicationsController where
     action UpdateTimecardEntry = do
         ensureIsUser
         botId <- fetchBotId
-        persons <- fetchPersonsExcluding botId
+        people <- fetchPeopleExcluding botId
         let selectedPersonId = param @(Id Person) "selectedPersonId"
         selectedPerson <- Just <$> fetch selectedPersonId
         communications <- fetchCommunicationsBetween botId selectedPersonId
@@ -133,7 +133,7 @@ instance Controller CommunicationsController where
     action EditTimecardEntry {..} = do
         ensureIsUser
         botId <- fetchBotId
-        persons <- fetchPersonsExcluding botId
+        people <- fetchPeopleExcluding botId
         timecardEntry <- fetch selectedTimecardEntryId
         let newTimecardEntry = Just timecardEntry
         let selectedPersonId = get #personId timecardEntry
@@ -215,10 +215,10 @@ instance Controller CommunicationsController where
             |> createRecord
         renderPlain ""
 
-fetchPersonsExcluding :: (?modelContext :: ModelContext) => Id Person -> IO [Person]
-fetchPersonsExcluding idToExclude = do
-    persons <- query @Person |> orderByAsc #lastName |> fetch
-    filter (\person -> get #id person /= idToExclude) persons |> pure
+fetchPeopleExcluding :: (?modelContext :: ModelContext) => Id Person -> IO [Person]
+fetchPeopleExcluding idToExclude = do
+    people <- query @Person |> orderByAsc #lastName |> fetch
+    filter (\person -> get #id person /= idToExclude) people |> pure
 
 fetchPhoneNumberFor :: (?modelContext :: ModelContext) => Id Person -> IO PhoneNumber
 fetchPhoneNumberFor personId = do
@@ -321,26 +321,26 @@ communicationsQuery =
     [r|
 select
     twilio_messages.id,
-    persons_a.goes_by name_a,
-    persons_b.goes_by name_b,
+    people_a.goes_by name_a,
+    people_b.goes_by name_b,
     (twilio_messages.from_id = phone_numbers_a.id) is_from_person_a,
     twilio_messages.created_at,
     twilio_messages.status,
     twilio_messages.body
 from
-    persons persons_a,
+    people people_a,
     phone_contacts phone_contacts_a,
     phone_numbers phone_numbers_a,
-    persons persons_b,
+    people people_b,
     phone_contacts phone_contacts_b,
     phone_numbers phone_numbers_b,
     twilio_messages
 where
-    persons_a.id = ?
-    and phone_contacts_a.person_id = persons_a.id 
+    people_a.id = ?
+    and phone_contacts_a.person_id = people_a.id 
     and phone_contacts_a.phone_number_id = phone_numbers_a.id 
-    and persons_b.id = ?
-    and phone_contacts_b.person_id = persons_b.id 
+    and people_b.id = ?
+    and phone_contacts_b.person_id = people_b.id 
     and phone_contacts_b.phone_number_id = phone_numbers_b.id 
     and ((twilio_messages.from_id = phone_numbers_a.id 
           and twilio_messages.to_id = phone_numbers_b.id)
