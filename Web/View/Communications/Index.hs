@@ -54,6 +54,7 @@ renderPeople IndexView {..} =
     </div>
 |]
 
+--
 renderCommunications :: IndexView -> Html
 renderCommunications IndexView {..} =
     case (selectedPerson, newMessage) of
