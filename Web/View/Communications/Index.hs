@@ -193,25 +193,32 @@ renderSelectedPerson person =
 renderCommunication :: Person -> [Communication] -> Maybe TimecardEntry -> Bool -> Communication -> Html
 renderCommunication selectedPerson selectedCommunications timecardEntry editingTimecard communication =
     [hsx|
-    <a
-        href={nextAction}
-        data-turbolinks="false"
-        class={"list-group-item list-group-item-action flex-column align-items-start border-0 " <> active}>
+    <div
+        class="list-group-item flex-column align-items-start border-0">
         <div class="d-flex w-100 justify-content-between">
             <h5 class="mb-1">{senderName communication}</h5>
             <small>{renderSentAt communication}</small>
         </div>
         <p class="communication-body mb-1">{get #messageBody communication}</p>
-        <small class={deliveryStatusClass communication}>
-            {get #status communication}
-        </small>
-    </a>
+
+        <div class="d-flex w-100 justify-content-between">
+            <small class={deliveryStatusClass communication}>
+                {get #status communication}
+            </small>
+        
+            <a href={nextAction}
+               data-turbolinks="false">
+                <button class={"btn btn-outline-primary btn-sm " <> active}>{activeText}</button>
+            </a>
+        </div>
+    </div>
 |]
   where
     selectedPersonId = get #id selectedPerson
     isSelected = isCommunicationSelected selectedCommunications communication
     toggledCommunicationIds = communicationIds $ toggleCommunicationSelected selectedCommunications communication
     active = activeClass isSelected
+    activeText = if isSelected then "Unlink" else "Link" :: Text
     nextAction = case (editingTimecard, timecardEntry) of
         (True, Just timecardEntry) -> EditTimecardEntry (get #id timecardEntry) toggledCommunicationIds "False"
         (_, _) -> CommunicationsForAction selectedPersonId toggledCommunicationIds
