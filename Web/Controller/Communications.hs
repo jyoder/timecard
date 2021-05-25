@@ -191,9 +191,13 @@ instance Controller CommunicationsController where
             query @TwilioMessage
                 |> filterWhere (#messageSid, messageSid)
                 |> fetchOne
-        twilioMessage
-            |> set #status messageStatus
-            |> updateRecord
+        if get #status twilioMessage /= "delivered"
+            then do
+                twilioMessage
+                    |> set #status messageStatus
+                    |> updateRecord
+                pure ()
+            else pure ()
         renderPlain ""
     --
     action CreateIncomingPhoneMessageAction = do
