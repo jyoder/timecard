@@ -223,8 +223,8 @@ renderSendMessageForm phoneMessage =
             <div class="form-group" id="form-group-twilioMessage_toId">
                 <input type="hidden" name="toId" placeholder="" id="twilioMessage_toId" class="form-control" value={show $ get #toId phoneMessage}>
             </div>
-            <div class="input-group mb-3">
-                <input type="text" name="body" id="twilioMessage_body" class="form-control">
+            <div class="input-group">
+                <textarea class="form-control" id="twilioMessage_body" name="body" rows="2"></textarea>
                 <div class="input-group-append">
                     <button class="btn btn-primary">Send</button>
                 </div>
@@ -330,6 +330,10 @@ styles =
         .timecard {
             height: calc(100vh - 150px);
             overflow-y: scroll;
+        }
+
+        #twilioMessage_body {
+            resize: none;
         }
 
         #timecardEntry_workDone {
