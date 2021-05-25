@@ -1,6 +1,9 @@
 module Web.View.Communications.Index where
 
+import Data.Time.Format.ISO8601 (iso8601Show)
 import IHP.View.TimeAgo as TO
+import qualified Text.Blaze.Html5 as H
+import qualified Text.Blaze.Html5.Attributes as A
 import Web.View.Prelude
 
 data IndexView = IndexView
@@ -90,7 +93,8 @@ renderTimecardEntry :: TimecardEntry -> Html
 renderTimecardEntry timecardEntry =
     [hsx|
 <div class="card mb-4">
-  <h5 class="card-header">{TO.date (get #date timecardEntry)}</h5>
+  <h5 class="card-header">{weekday (get #date timecardEntry)} - {TO.date (get #date timecardEntry)}</h5>
+
   <div class="card-body">
     <h5 class="card-title">{get #jobName timecardEntry}</h5>
     <p class="card-text">{get #invoiceTranslation timecardEntry}</p>
@@ -98,6 +102,15 @@ renderTimecardEntry timecardEntry =
   </div>
 </div>
     |]
+
+weekday :: UTCTime -> Html
+weekday = timeElement "weekday"
+
+timeElement :: Text -> UTCTime -> Html
+timeElement className dateTime = H.time ! A.class_ (cs className) ! A.datetime (cs $ iso8601Show dateTime) $ cs (beautifyUtcTime dateTime)
+
+beautifyUtcTime :: UTCTime -> String
+beautifyUtcTime = formatTime defaultTimeLocale "%d.%m.%Y, %H:%M"
 
 renderTimecardForm :: IndexView -> Html
 renderTimecardForm IndexView {..} =

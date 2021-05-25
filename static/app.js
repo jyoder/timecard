@@ -21,11 +21,19 @@ function initDatePicker() {
     });
 }
 
+function initCustomTime() {
+    document.querySelectorAll('.weekday').forEach(function (elem) {
+        var date = new Date(elem.dateTime);
+        elem.innerHTML = date.toLocaleDateString([], { weekday: 'long' });
+    });
+}
+
 function initApp() {
     // Initialize htmx whenever Turbolinks loads a new page
     htmx.process(document.body);
     // Reformat time elements based on locale whenever page changes occur
     initTime();
+    initCustomTime();
     // For anything marked as 'scroll-pinned', scroll to it on page load
     scrollToPinned();
 }
