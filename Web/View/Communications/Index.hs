@@ -61,7 +61,7 @@ renderCommunications IndexView {..} =
         (Just selectedPerson, Just newMessage) ->
             [hsx|
             <div class="col-6">
-                <div class="communications-history list-group">
+                <div class="communications-history list-group-flush">
                     {forEach communications (renderCommunication selectedPerson selectedCommunications newTimecardEntry editingTimecard)}
                     <div class="scroll-pinned"></div>
                 </div>
@@ -194,7 +194,7 @@ renderCommunication :: Person -> [Communication] -> Maybe TimecardEntry -> Bool 
 renderCommunication selectedPerson selectedCommunications timecardEntry editingTimecard communication =
     [hsx|
     <div
-        class="list-group-item flex-column align-items-start border-0">
+        class="list-group-item flex-column align-items-start">
         <div class="d-flex w-100 justify-content-between">
             <h5 class="mb-1">{senderName communication}</h5>
             <small>{renderSentAt communication}</small>
@@ -205,10 +205,10 @@ renderCommunication selectedPerson selectedCommunications timecardEntry editingT
             <small class={deliveryStatusClass communication}>
                 {get #status communication}
             </small>
-        
             <a href={nextAction}
-               data-turbolinks="false">
-                <button class={"btn btn-outline-primary btn-sm " <> active}>{activeText}</button>
+               data-turbolinks="false"
+               class={"btn btn-outline-primary btn-sm " <> active}>
+                {activeText}
             </a>
         </div>
     </div>
