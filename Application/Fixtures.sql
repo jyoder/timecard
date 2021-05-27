@@ -200,7 +200,7 @@ ALTER TABLE public.timecard_entry_messages ENABLE TRIGGER ALL;
 
 ALTER TABLE public.users DISABLE TRIGGER ALL;
 
-INSERT INTO public.users (id, email, password_hash, locked_at, failed_login_attempts) VALUES ('aa267118-f73f-45ab-9644-5705f21070e7', 'jcyoder@gmail.com', 'sha256|17|HB8SiTu4PmdweFIdJFyAZQ==|5yzOUQv/5U5G0afEYgNWeDZPcBoiSxQ+cbZp7ELqbaQ=', NULL, 0);
+INSERT INTO public.users (id, email, password_hash, locked_at, failed_login_attempts) VALUES ('aa267118-f73f-45ab-9644-5705f21070e7', 'test@company.com', 'sha256|17|V6JGPzE2wOfao5X6hI+QPA==|5/99LLTnfGArcvfziM8eIvlOMN/syoKpKvvW3NaRBvM=', NULL, 0);
 
 
 ALTER TABLE public.users ENABLE TRIGGER ALL;
