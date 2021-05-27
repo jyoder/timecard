@@ -122,7 +122,7 @@ renderTimecardForm IndexView {..} =
                 [hsx|
                 {(dateTimeField #date) { fieldClass = "date-time-field"}}
                 {(textField #jobName)}
-                {(numberField #hoursWorked)}
+                {(textField #hoursWorked)}
 
                 <div id="form-group-timecardEntry_workDone" class="form-group">
                     <label for="timecardEntry_workDone">Work Done</label>
