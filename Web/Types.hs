@@ -47,10 +47,24 @@ data PhoneContactsController
 
 data CommunicationsController
     = CommunicationsAction
-    | CommunicationsForAction {selectedPersonId :: !(Id Person), selectedCommunicationIds :: ![Text]}
-    | CreateTimecardEntry
-    | EditTimecardEntry {selectedTimecardEntryId :: !(Id TimecardEntry), selectedCommunicationIds :: ![Text], showExistingMessages :: Text}
-    | UpdateTimecardEntry
+    | PersonSelectionAction
+        { selectedPersonId :: !(Id Person)
+        }
+    | NewTimecardEntryAction
+        { selectedPersonId :: !(Id Person)
+        , selectedMessageIds :: ![Text]
+        }
+    | EditTimecardEntryAction
+        { selectedPersonId :: !(Id Person)
+        , timecardEntryId :: !(Id TimecardEntry)
+        }
+    | EditModifiedTimecardEntryAction
+        { selectedPersonId :: !(Id Person)
+        , timecardEntryId :: !(Id TimecardEntry)
+        , selectedMessageIds :: ![Text]
+        }
+    | CreateTimecardEntryAction
+    | UpdateTimecardEntryAction
     | CreateOutgoingPhoneMessageAction
     | UpdateOutgoingPhoneMessageAction
     | CreateIncomingPhoneMessageAction

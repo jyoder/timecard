@@ -4,10 +4,12 @@ module Web.Controller.Communications where
 
 import qualified Application.Service.Twilio as Twilio
 import qualified Data.ByteString.Char8 as BS8
+import Data.ByteString.UTF8 (toString)
 import qualified Data.TMap as TMap
 import Data.Text (strip)
 import Data.Text.Encoding (encodeUtf8)
 import Database.PostgreSQL.Simple (Query)
+import Database.PostgreSQL.Simple.FromField (FromField, ResultError (..), fromField, returnError)
 import Database.PostgreSQL.Simple.FromRow (FromRow, field, fromRow)
 import qualified IHP.Log as Log
 import Network.HTTP.Types (hContentType, status400)
@@ -17,140 +19,147 @@ import Web.Controller.Prelude
 import Web.View.Communications.Index
 
 instance Controller CommunicationsController where
-    action CommunicationsAction = do
+    action CommunicationsAction = autoRefresh do
         ensureIsUser
         botId <- fetchBotId
         people <- fetchPeopleExcluding botId
-        let selectedPerson = Nothing
-        let communications = []
-        let selectedCommunications = []
-        let timecardEntries = []
-        let newMessage = Nothing
-        let newTimecardEntry = Nothing
-        let editingTimecard = False
-        render IndexView {..}
+        let personSelection = NoPersonSelected
+        render IndexView {people, personSelection}
     --
-    action CommunicationsForAction {..} = autoRefresh do
+    action PersonSelectionAction {..} = autoRefresh do
         ensureIsUser
         botId <- fetchBotId
         people <- fetchPeopleExcluding botId
-        selectedPerson <- Just <$> fetch selectedPersonId
-        toPhoneNumber <- fetchPhoneNumberFor selectedPersonId
-        communications <- fetchCommunicationsBetween botId selectedPersonId
-        let selectedCommunicationIds = paramOrDefault @[Id TwilioMessage] [] "selectedCommunicationIds"
-        let selectedCommunications = catMaybes $ (\s -> find (\c -> get #messageId c == s) communications) <$> selectedCommunicationIds
-        timecardEntries <- query @TimecardEntry |> filterWhere (#personId, selectedPersonId) |> orderByDesc #date |> fetch
-        let editingTimecard = False
-        let newMessage = newRecord @TwilioMessage |> set #toId (get #id toPhoneNumber) |> Just
-        let newTimecardEntry = case listToMaybe $ reverse selectedCommunicationIds of
-                Just messageId ->
-                    case find (\c -> get #messageId c == messageId) communications of
-                        Just c -> Just $ newRecord @TimecardEntry |> set #date (get #createdAt c) |> set #hoursWorked 8.0
-                        Nothing -> Nothing
-                Nothing -> Nothing
-        render IndexView {..}
+        selectedPerson <- fetch selectedPersonId
+        messages <- fetchMessagesBetween botId selectedPersonId
+        toPhoneNumberId <- get #phoneNumberId <$> query @PhoneContact |> filterWhere (#personId, selectedPersonId) |> fetchOne
+        toPhoneNumber <- fetch toPhoneNumberId
+        timecardEntries <- query @TimecardEntry |> filterWhere (#personId, get #id selectedPerson) |> fetch
+        let newMessage = newRecord @TwilioMessage
+        let personActivity = SendingMessage {timecardEntries}
+        let personSelection = PersonSelected {selectedPerson, messages, toPhoneNumber, newMessage, personActivity}
+        render IndexView {people, personSelection}
     --
-    action CreateTimecardEntry = do
+    action NewTimecardEntryAction {..} = autoRefresh do
         ensureIsUser
         botId <- fetchBotId
         people <- fetchPeopleExcluding botId
-        let selectedPersonId = param @(Id Person) "selectedPersonId"
-        selectedPerson <- Just <$> fetch selectedPersonId
-        communications <- fetchCommunicationsBetween botId selectedPersonId
-        let messageIds = param @[Text] "linkedMessageIds"
-        let selectedMessageIds = param @[Id TwilioMessage] "linkedMessageIds"
-        let selectedCommunications = catMaybes $ (\s -> find (\c -> get #messageId c == s) communications) <$> param @[Id TwilioMessage] "linkedMessageIds"
-        let timecardEntries = []
-        let newMessage = Just $ newRecord @TwilioMessage
-        let editingTimecard = False
-        case listToMaybe messageIds of
-            Just messageId -> do
-                newRecord @TimecardEntry
-                    |> buildTimecardEntry
-                    |> set #personId selectedPersonId
-                    |> ifValid \case
-                        Left newTimecardEntry -> do
-                            render IndexView {newTimecardEntry = Just newTimecardEntry, ..}
-                        Right newTimecardEntry -> do
-                            setSuccessMessage "Created timecard entry"
-                            nte <- createRecord newTimecardEntry
-                            forEach
-                                selectedMessageIds
-                                ( \mid -> do
-                                    newRecord @TimecardEntryMessage
-                                        |> set #twilioMessageId mid
-                                        |> set #timecardEntryId (get #id nte)
-                                        |> createRecord
-                                    pure ()
-                                )
-                            redirectTo $ CommunicationsForAction {selectedPersonId, selectedCommunicationIds = []}
-            Nothing -> do
-                setErrorMessage "No selected messages"
-                redirectTo CommunicationsAction
+        selectedPerson <- fetch selectedPersonId
+        messages <- fetchMessagesBetween botId selectedPersonId
+        toPhoneNumberId <- get #phoneNumberId <$> query @PhoneContact |> filterWhere (#personId, selectedPersonId) |> fetchOne
+        toPhoneNumber <- fetch toPhoneNumberId
+        now <- getCurrentTime
+        let selectedMessageIds = paramOrDefault @[Id TwilioMessage] [] "selectedMessageIds"
+        let selectedMessages = findSelectedMessages messages selectedMessageIds
+        let timecardDate = maybe now (get #createdAt) (head selectedMessages)
+        let timecardEntry = newRecord @TimecardEntry |> buildNewTimecardEntry timecardDate
+        let timecardActivity = CreatingEntry
+        let newMessage = newRecord @TwilioMessage
+        let personActivity = WorkingOnTimecardEntry {timecardEntry, selectedMessages, timecardActivity}
+        let personSelection = PersonSelected {selectedPerson, messages, toPhoneNumber, newMessage, personActivity}
+        if null selectedMessageIds
+            then redirectTo PersonSelectionAction {selectedPersonId}
+            else render IndexView {people, personSelection}
     --
-    action UpdateTimecardEntry = do
+    action EditTimecardEntryAction {..} = autoRefresh do
         ensureIsUser
         botId <- fetchBotId
         people <- fetchPeopleExcluding botId
-        let selectedPersonId = param @(Id Person) "selectedPersonId"
-        selectedPerson <- Just <$> fetch selectedPersonId
-        communications <- fetchCommunicationsBetween botId selectedPersonId
-        let messageIds = param @[Text] "linkedMessageIds"
-        let selectedMessageIds = param @[Id TwilioMessage] "linkedMessageIds"
-        let selectedCommunications = catMaybes $ (\s -> find (\c -> get #messageId c == s) communications) <$> param @[Id TwilioMessage] "linkedMessageIds"
-        let timecardEntries = []
-        let newMessage = Just $ newRecord @TwilioMessage
-        timecardEntry <- fetch (param @(Id TimecardEntry) "timecardEntryId")
-        let editingTimecard = False
-        case listToMaybe messageIds of
-            Just messageId -> do
-                timecardEntry
-                    |> buildTimecardEntry
-                    |> set #personId selectedPersonId
-                    |> ifValid \case
-                        Left newTimecardEntry -> do
-                            render IndexView {newTimecardEntry = Just newTimecardEntry, ..}
-                        Right newTimecardEntry -> do
-                            setSuccessMessage "Updated timecard entry"
-                            withTransaction do
-                                nte <- updateRecord newTimecardEntry
-                                timecardEntryMessages <- query @TimecardEntryMessage |> filterWhere (#timecardEntryId, get #id nte) |> fetch
-                                timecardEntryMessages |> deleteRecords
-                                forEach
-                                    selectedMessageIds
-                                    ( \mid -> do
-                                        newRecord @TimecardEntryMessage
-                                            |> set #twilioMessageId mid
-                                            |> set #timecardEntryId (get #id nte)
-                                            |> createRecord
-                                        pure ()
-                                    )
-                            redirectTo $ CommunicationsForAction {selectedPersonId, selectedCommunicationIds = []}
-            Nothing -> do
-                setErrorMessage "No selected messages"
-                redirectTo CommunicationsAction
-    --
-    action EditTimecardEntry {..} = do
-        ensureIsUser
-        botId <- fetchBotId
-        people <- fetchPeopleExcluding botId
-        timecardEntry <- fetch selectedTimecardEntryId
-        let newTimecardEntry = Just timecardEntry
-        let selectedPersonId = get #personId timecardEntry
-        selectedPerson <- Just <$> fetch selectedPersonId
-        communications <- fetchCommunicationsBetween botId selectedPersonId
+        selectedPerson <- fetch selectedPersonId
+        messages <- fetchMessagesBetween botId selectedPersonId
+        toPhoneNumberId <- get #phoneNumberId <$> query @PhoneContact |> filterWhere (#personId, selectedPersonId) |> fetchOne
+        toPhoneNumber <- fetch toPhoneNumberId
+        timecardEntry <- fetch timecardEntryId
         timecardEntryMessages <- query @TimecardEntryMessage |> filterWhere (#timecardEntryId, get #id timecardEntry) |> fetch
-        let selectedTwilioMessageIds = fromMaybe [] $ paramOrNothing @[Id TwilioMessage] "selectedCommunicationIds"
-        selectedMessages <-
-            if showExistingMessages == "True"
-                then mapM (fetch . get #twilioMessageId) timecardEntryMessages
-                else fetch selectedTwilioMessageIds
-        let selectedCommunicationIds = map (get #id) selectedMessages
-        let selectedCommunications = catMaybes $ (\s -> find (\c -> get #messageId c == s) communications) <$> selectedCommunicationIds
-        let timecardEntries = []
-        let newMessage = Just $ newRecord @TwilioMessage
-        let editingTimecard = True
-        render IndexView {..}
+        let selectedMessageIds = map (get #twilioMessageId) timecardEntryMessages
+        let selectedMessages = findSelectedMessages messages selectedMessageIds
+        let timecardActivity = EditingEntry
+        let newMessage = newRecord @TwilioMessage
+        let personActivity = WorkingOnTimecardEntry {timecardEntry, selectedMessages, timecardActivity}
+        let personSelection = PersonSelected {selectedPerson, messages, toPhoneNumber, newMessage, personActivity}
+        if null selectedMessageIds
+            then redirectTo PersonSelectionAction {selectedPersonId}
+            else render IndexView {people, personSelection}
+    --
+    action EditModifiedTimecardEntryAction {..} = autoRefresh do
+        ensureIsUser
+        botId <- fetchBotId
+        people <- fetchPeopleExcluding botId
+        selectedPerson <- fetch selectedPersonId
+        messages <- fetchMessagesBetween botId selectedPersonId
+        toPhoneNumberId <- get #phoneNumberId <$> query @PhoneContact |> filterWhere (#personId, selectedPersonId) |> fetchOne
+        toPhoneNumber <- fetch toPhoneNumberId
+        timecardEntry <- fetch timecardEntryId
+        let selectedMessageIds = paramOrDefault @[Id TwilioMessage] [] "selectedMessageIds"
+        let selectedMessages = findSelectedMessages messages selectedMessageIds
+        let timecardActivity = EditingModifiedEntry
+        let newMessage = newRecord @TwilioMessage
+        let personActivity = WorkingOnTimecardEntry {timecardEntry, selectedMessages, timecardActivity}
+        let personSelection = PersonSelected {selectedPerson, messages, toPhoneNumber, newMessage, personActivity}
+        if null selectedMessageIds
+            then redirectTo PersonSelectionAction {selectedPersonId}
+            else render IndexView {people, personSelection}
+    --
+    action CreateTimecardEntryAction = do
+        ensureIsUser
+        let selectedPersonId = param @(Id Person) "selectedPersonId"
+        let selectedMessageIds = param @[Id TwilioMessage] "selectedMessageIds"
+        newRecord @TimecardEntry
+            |> buildTimecardEntry
+            |> set #personId selectedPersonId
+            |> ifValid \case
+                Left timecardEntry -> do
+                    botId <- fetchBotId
+                    people <- fetchPeopleExcluding botId
+                    messages <- fetchMessagesBetween botId selectedPersonId
+                    toPhoneNumberId <- get #phoneNumberId <$> query @PhoneContact |> filterWhere (#personId, selectedPersonId) |> fetchOne
+                    toPhoneNumber <- fetch toPhoneNumberId
+                    selectedPerson <- fetch selectedPersonId
+                    let selectedMessages = findSelectedMessages messages selectedMessageIds
+                    let timecardActivity = CreatingEntry
+                    let newMessage = newRecord @TwilioMessage
+                    let personActivity = WorkingOnTimecardEntry {timecardEntry, selectedMessages, timecardActivity}
+                    let personSelection = PersonSelected {selectedPerson, messages, toPhoneNumber, newMessage, personActivity}
+                    render IndexView {people, personSelection}
+                Right timecardEntry -> do
+                    withTransaction do
+                        timecardEntry <- createRecord timecardEntry
+                        let timecardEntryMessages = buildTimecardEntryMessages (get #id timecardEntry) selectedMessageIds
+                        mapM_ createRecord timecardEntryMessages
+                    redirectTo PersonSelectionAction {selectedPersonId}
+    --
+    action UpdateTimecardEntryAction = do
+        ensureIsUser
+        let selectedPersonId = param @(Id Person) "selectedPersonId"
+        let selectedMessageIds = param @[Id TwilioMessage] "selectedMessageIds"
+        let timecardEntryId = param @(Id TimecardEntry) "timecardEntryId"
+        timecardEntry <- fetch timecardEntryId
+        timecardEntry
+            |> buildTimecardEntry
+            |> set #personId selectedPersonId
+            |> ifValid \case
+                Left timecardEntry -> do
+                    botId <- fetchBotId
+                    people <- fetchPeopleExcluding botId
+                    messages <- fetchMessagesBetween botId selectedPersonId
+                    toPhoneNumberId <- get #phoneNumberId <$> query @PhoneContact |> filterWhere (#personId, selectedPersonId) |> fetchOne
+                    toPhoneNumber <- fetch toPhoneNumberId
+                    selectedPerson <- fetch selectedPersonId
+                    timecardEntry <- fetch timecardEntryId
+                    let selectedMessages = findSelectedMessages messages selectedMessageIds
+                    let timecardActivity = EditingEntry
+                    let newMessage = newRecord @TwilioMessage
+                    let personActivity = WorkingOnTimecardEntry {timecardEntry, selectedMessages, timecardActivity}
+                    let personSelection = PersonSelected {selectedPerson, messages, toPhoneNumber, newMessage, personActivity}
+                    render IndexView {people, personSelection}
+                Right timecardEntry -> do
+                    let timecardEntryMessages = buildTimecardEntryMessages timecardEntryId selectedMessageIds
+                    withTransaction do
+                        oldTimecardEntryMessages <- query @TimecardEntryMessage |> filterWhere (#timecardEntryId, timecardEntryId) |> fetch
+                        deleteRecords oldTimecardEntryMessages
+                        updateRecord timecardEntry
+                        mapM_ createRecord timecardEntryMessages
+                    redirectTo PersonSelectionAction {selectedPersonId}
     --
     action CreateOutgoingPhoneMessageAction = do
         ensureIsUser
@@ -161,7 +170,7 @@ instance Controller CommunicationsController where
         fromPhoneNumber <- fetchPhoneNumberFor botId
         toPhoneNumber <- fetchOne toPhoneNumberId
         if body == ""
-            then redirectTo $ CommunicationsForAction (get #id toPerson) []
+            then redirectTo $ PersonSelectionAction (get #id toPerson)
             else pure ()
         Twilio.Response {apiVersion, messageSid, accountSid, status, body, numMedia} <-
             Twilio.sendPhoneMessage
@@ -181,7 +190,7 @@ instance Controller CommunicationsController where
             |> set #body body
             |> set #numMedia numMedia
             |> createRecord
-        redirectTo $ CommunicationsForAction (get #id toPerson) []
+        redirectTo $ PersonSelectionAction (get #id toPerson)
     --
     action UpdateOutgoingPhoneMessageAction = do
         validateCallbackSignature
@@ -249,10 +258,16 @@ fetchBot = query @Person |> filterWhere (#goesBy, botName) |> fetchOne
 botName :: Text
 botName = "Tim the Bot"
 
-fetchCommunicationsBetween :: (?modelContext :: ModelContext) => Id Person -> Id Person -> IO [Communication]
-fetchCommunicationsBetween personIdA personIdB = do
+fetchMessagesBetween :: (?modelContext :: ModelContext) => Id Person -> Id Person -> IO [Message]
+fetchMessagesBetween personIdA personIdB = do
     trackTableRead "twilio_messages"
-    sqlQuery communicationsQuery (personIdA, personIdB)
+    sqlQuery messagesQuery (personIdA, personIdB)
+
+findSelectedMessages :: [Message] -> [Id TwilioMessage] -> [Message]
+findSelectedMessages messages selectedMessageIds =
+    catMaybes $ findMessage <$> selectedMessageIds
+  where
+    findMessage messageId = find (\message -> get #id message == messageId) messages
 
 validateCallbackSignature :: (?context :: ControllerContext) => IO ()
 validateCallbackSignature = do
@@ -308,6 +323,12 @@ buildIncomingTwilioMessage twilioMessage =
         |> set #body (param "Body")
         |> set #numMedia (param "NumMedia")
 
+buildNewTimecardEntry :: UTCTime -> TimecardEntry -> TimecardEntry
+buildNewTimecardEntry date timecardEntry =
+    timecardEntry
+        |> set #date date
+        |> set #hoursWorked 8.0
+
 buildTimecardEntry ::
     (?context :: ControllerContext) =>
     TimecardEntry ->
@@ -320,14 +341,26 @@ buildTimecardEntry timecardEntry = do
         |> validateField #workDone nonEmpty
         |> validateField #invoiceTranslation nonEmpty
 
-communicationsQuery :: Query
-communicationsQuery =
+buildTimecardEntryMessages :: Id TimecardEntry -> [Id TwilioMessage] -> [TimecardEntryMessage]
+buildTimecardEntryMessages timecardEntryId =
+    map $ \messageId ->
+        newRecord @TimecardEntryMessage
+            |> set #timecardEntryId timecardEntryId
+            |> set #twilioMessageId messageId
+
+messagesQuery :: Query
+messagesQuery =
     [r|
 select
     twilio_messages.id,
-    people_a.goes_by name_a,
-    people_b.goes_by name_b,
-    (twilio_messages.from_id = phone_numbers_a.id) is_from_person_a,
+    (case when twilio_messages.from_id = phone_numbers_a.id
+          then people_a.goes_by
+          else people_b.goes_by
+    end) from_name,
+    (case when twilio_messages.to_id = phone_numbers_a.id
+          then people_a.goes_by
+          else people_b.goes_by
+    end) to_name,
     twilio_messages.created_at,
     twilio_messages.status,
     twilio_messages.body
@@ -355,13 +388,29 @@ order by
     twilio_messages.created_at asc;
 |]
 
-instance FromRow Communication where
+instance FromRow Message where
     fromRow =
-        Communication
+        Message
             <$> field
             <*> field
             <*> field
             <*> field
             <*> field
             <*> field
-            <*> field
+
+instance FromField MessageStatus where
+    fromField field maybeData =
+        case maybeData of
+            Just "accepted" -> pure Accepted
+            Just "scheduled" -> pure Scheduled
+            Just "queued" -> pure Queued
+            Just "sending" -> pure Sending
+            Just "sent" -> pure Sent
+            Just "receiving" -> pure Receiving
+            Just "received" -> pure Received
+            Just "delivered" -> pure Delivered
+            Just "undelivered" -> pure Undelivered
+            Just "failed" -> pure Failed
+            Just "read" -> pure Read
+            Just _data -> returnError ConversionFailed field (toString _data)
+            Nothing -> returnError UnexpectedNull field ""
