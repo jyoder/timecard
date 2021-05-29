@@ -242,7 +242,7 @@ renderMessage selectedPerson personActivity selectedMessageIds message =
             <p class="message-body mb-1">{body}</p>
 
             <div class="d-flex w-100 justify-content-between">
-                <span class={messageStatusClass'}> <!-- TODO: use css instead of <small> tag -->
+                <span class={messageStatusClass'}>
                     {messageStatus}
                 </span>
                 <a href={nextAction}
