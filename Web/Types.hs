@@ -9,6 +9,11 @@ data WebApplication = WebApplication deriving (Eq, Show)
 
 data StaticController = WelcomeAction deriving (Eq, Show, Data)
 
+instance HasNewSessionUrl User where
+    newSessionUrl _ = "/NewSession"
+
+type instance CurrentUserRecord = User
+
 data SessionsController
     = NewSessionAction
     | CreateSessionAction
@@ -66,8 +71,6 @@ data CommunicationsController
     | CreateTimecardEntryAction
     | UpdateTimecardEntryAction
     | CreateOutgoingPhoneMessageAction
-    | UpdateOutgoingPhoneMessageAction
-    | CreateIncomingPhoneMessageAction
     deriving (Eq, Show, Data)
 
 data TwilioMessagesController
@@ -80,7 +83,7 @@ data TwilioMessagesController
     | DeleteTwilioMessageAction {twilioMessageId :: !(Id TwilioMessage)}
     deriving (Eq, Show, Data)
 
-instance HasNewSessionUrl User where
-    newSessionUrl _ = "/NewSession"
-
-type instance CurrentUserRecord = User
+data TwilioCallbacksController
+    = UpdateOutgoingPhoneMessageAction
+    | CreateIncomingPhoneMessageAction
+    deriving (Eq, Show, Data)

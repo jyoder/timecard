@@ -1,6 +1,9 @@
 module Application.Service.Twilio (
     sendPhoneMessage,
     callbackSignature,
+    accountId,
+    authToken,
+    statusCallbackUrl,
     AccountId (..),
     AuthToken (..),
     StatusCallbackUrl (..),
@@ -14,7 +17,9 @@ import Data.Aeson.Lens (key, values, _Integer, _String)
 import Data.ByteArray (convert)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Base64 as B64
+import qualified Data.TMap as TMap
 import Data.Text.Encoding (encodeUtf8)
+import IHP.ControllerPrelude
 import IHP.Prelude
 import Network.HTTP.Req
 
@@ -88,6 +93,30 @@ callbackSignature authToken url postParams =
     urlWithParams = url <> BS.intercalate "" concatedParams
     concatedParams = map (\(param, value) -> param <> fromMaybe "" value) sortedParams
     sortedParams = sortBy (\(a, _) (b, _) -> a `compare` b) postParams
+
+accountId :: (?context :: ControllerContext) => AccountId
+accountId =
+    ?context
+        |> getFrameworkConfig
+        |> get #appConfig
+        |> TMap.lookup @AccountId
+        |> fromMaybe (error "Could not find Twilio.AccountId in config")
+
+authToken :: (?context :: ControllerContext) => AuthToken
+authToken =
+    ?context
+        |> getFrameworkConfig
+        |> get #appConfig
+        |> TMap.lookup @AuthToken
+        |> fromMaybe (error "Could not find Twilio.AuthToken in config")
+
+statusCallbackUrl :: (?context :: ControllerContext) => StatusCallbackUrl
+statusCallbackUrl =
+    ?context
+        |> getFrameworkConfig
+        |> get #appConfig
+        |> TMap.lookup @StatusCallbackUrl
+        |> fromMaybe (error "Could not find Twilio.StatusCallbackUrl in config")
 
 post :: MonadHttp m => HttpBody body => Text -> Text -> Url 'Https -> body -> m BsResponse
 post accountId authToken url body = req POST url body bsResponse auth

@@ -12,3 +12,6 @@ instance AutoRoute PhoneNumbersController
 instance AutoRoute PhoneContactsController
 instance AutoRoute CommunicationsController
 instance AutoRoute TwilioMessagesController
+
+instance AutoRoute TwilioCallbacksController
+

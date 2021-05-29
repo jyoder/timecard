@@ -1,6 +1,9 @@
 module Web.View.Communications.Index where
 
+import Data.ByteString.UTF8 (toString)
 import Data.Time.Format.ISO8601 (iso8601Show)
+import Database.PostgreSQL.Simple.FromField (FromField, ResultError (..), fromField, returnError)
+import Database.PostgreSQL.Simple.FromRow (FromRow, field, fromRow)
 import IHP.View.TimeAgo as TO
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
@@ -59,6 +62,33 @@ data MessageStatus
     | Failed
     | Read
     deriving (Show)
+
+instance FromRow Message where
+    fromRow =
+        Message
+            <$> field
+            <*> field
+            <*> field
+            <*> field
+            <*> field
+            <*> field
+
+instance FromField MessageStatus where
+    fromField field maybeData =
+        case maybeData of
+            Just "accepted" -> pure Accepted
+            Just "scheduled" -> pure Scheduled
+            Just "queued" -> pure Queued
+            Just "sending" -> pure Sending
+            Just "sent" -> pure Sent
+            Just "receiving" -> pure Receiving
+            Just "received" -> pure Received
+            Just "delivered" -> pure Delivered
+            Just "undelivered" -> pure Undelivered
+            Just "failed" -> pure Failed
+            Just "read" -> pure Read
+            Just _data -> returnError ConversionFailed field (toString _data)
+            Nothing -> returnError UnexpectedNull field ""
 
 instance View IndexView where
     html view =
@@ -339,11 +369,8 @@ renderTimecardEntryForm selectedPerson selectedMessages timecardActivity timecar
 renderMessageBodies :: Text -> [Message] -> Html
 renderMessageBodies existingText messages =
     if existingText == ""
-        then forEach messages renderMessageBody
+        then [hsx| {intercalate "\n\n" ((get #body) <$> messages)} |]
         else [hsx| {existingText} |]
-
-renderMessageBody :: Message -> Html
-renderMessageBody message = [hsx| {get #body message <> "\n\n"} |]
 
 renderSentAt :: Message -> Html
 renderSentAt message =
