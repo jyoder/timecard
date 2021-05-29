@@ -77,9 +77,7 @@ instance View IndexView where
             <div class="row align-items start">
                 {renderPeopleColumn view}
                 {renderMessagesColumn view}
-                <div class="timecard col-4">
-                    {renderTimecardColumn view}
-                </div>
+                {renderTimecardColumn view}
             </div>
 
             {styles}
@@ -119,7 +117,15 @@ renderMessagesColumn IndexView {..} =
             |]
 
 renderTimecardColumn :: IndexView -> Html
-renderTimecardColumn IndexView {..} =
+renderTimecardColumn view =
+    [hsx|
+        <div class="timecard col-4">
+            {renderTimecardBlock view}
+        </div>
+    |]
+
+renderTimecardBlock :: IndexView -> Html
+renderTimecardBlock IndexView {..} =
     case personSelection of
         NoPersonSelected -> [hsx||]
         PersonSelected {..} ->
@@ -177,6 +183,7 @@ renderSendMessageForm phoneNumber newMessage =
                         class="form-control"
                         value={show $ get #id phoneNumber}>
                 </div>
+
                 <div class="input-group">
                     <textarea 
                         class="form-control"
@@ -184,6 +191,7 @@ renderSendMessageForm phoneNumber newMessage =
                         name="body"
                         rows="3">
                     </textarea>
+
                     <div class="input-group-append">
                         <button class="btn btn-primary">Send</button>
                     </div>
@@ -255,22 +263,22 @@ renderTimecardEntry selectedPerson timecardEntry =
     [hsx|
         <div class="card mb-4">
             <h5 class="card-header">
-                {weekday (get #date timecardEntry)} - {TO.date (get #date timecardEntry)}
+                {weekday} - {date}
             </h5>
 
             <div class="card-body">
-                <h5 class="card-title">{get #jobName timecardEntry}</h5>
-                <p class="card-text">{get #invoiceTranslation timecardEntry}</p>
-                <a
-                    href={EditTimecardEntryAction (get #id selectedPerson) (get #id timecardEntry)}
-                    class="btn btn-primary">
-                    Edit
-                </a>
+                <h5 class="card-title">{jobName}</h5>
+                <p class="card-text">{invoiceTranslation}</p>
+                <a href={editAction} class="btn btn-primary">Edit</a>
             </div>
         </div>
     |]
   where
-    weekday = timeElement "weekday"
+    weekday = timeElement "weekday" (get #date timecardEntry)
+    date = TO.date (get #date timecardEntry)
+    jobName = get #jobName timecardEntry
+    invoiceTranslation = get #invoiceTranslation timecardEntry
+    editAction = EditTimecardEntryAction (get #id selectedPerson) (get #id timecardEntry)
 
 renderTimecardEntryForm :: Person -> [Message] -> TimecardActivity -> TimecardEntry -> Html
 renderTimecardEntryForm selectedPerson selectedMessages timecardActivity timecardEntry =
@@ -285,7 +293,7 @@ renderTimecardEntryForm selectedPerson selectedMessages timecardActivity timecar
             <div id="form-group-timecardEntry_workDone" class="form-group">
                 <label for="timecardEntry_workDone">Work Done</label>
                 <textarea id="timecardEntry_workDone" name="workDone" class="form-control">
-                    {renderMessageBodies (get #workDone timecardEntry) sortedMessages}
+                    {workDone}
                 </textarea>
             </div>
 
@@ -295,7 +303,7 @@ renderTimecardEntryForm selectedPerson selectedMessages timecardActivity timecar
                     id="timecardEntry_invoiceTranslation"
                     name="invoiceTranslation"
                     class="form-control">
-                    {renderMessageBodies (get #invoiceTranslation timecardEntry) sortedMessages}
+                    {invoiceTranslations}
                 </textarea>
             </div>
 
@@ -312,7 +320,7 @@ renderTimecardEntryForm selectedPerson selectedMessages timecardActivity timecar
                 name="selectedPersonId"
                 id="selectedPersonId"
                 class="form-control"
-                value={show $ get #id selectedPerson}
+                value={selectedPersonId}
             />
 
             {submitButton { label = submitLabel } }
@@ -320,6 +328,9 @@ renderTimecardEntryForm selectedPerson selectedMessages timecardActivity timecar
         |]
   where
     formOptions formContext = formContext |> set #formId "timecard-form"
+    workDone = renderMessageBodies (get #workDone timecardEntry) sortedMessages
+    invoiceTranslations = renderMessageBodies (get #invoiceTranslation timecardEntry) sortedMessages
+    selectedPersonId = show $ get #id selectedPerson
     submitLabel = if timecardActivity == CreatingEntry then "Create" else "Update"
     cancelAction = PersonSelectionAction (get #id selectedPerson)
     selectedMessagesParam = intercalate "," (show . get #id <$> sortedMessages)
