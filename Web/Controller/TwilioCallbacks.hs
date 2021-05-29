@@ -11,6 +11,7 @@ import Web.Controller.Prelude
 instance Controller TwilioCallbacksController where
     action UpdateOutgoingPhoneMessageAction = do
         validateCallbackSignature
+
         let messageSid = param @Text "MessageSid"
         let messageStatus = param @Text "MessageStatus"
 
@@ -19,7 +20,7 @@ instance Controller TwilioCallbacksController where
                 |> filterWhere (#messageSid, messageSid)
                 |> fetchOne
 
-        if get #status twilioMessage /= "delivered"
+        if get #status twilioMessage /= deliveredStatus
             then do
                 twilioMessage
                     |> set #status messageStatus
@@ -31,6 +32,7 @@ instance Controller TwilioCallbacksController where
     --
     action CreateIncomingPhoneMessageAction = do
         validateCallbackSignature
+
         let twilioMessage = buildIncomingTwilioMessage newRecord
         let fromNumber = param "From"
         let toNumber = param "To"
@@ -80,3 +82,6 @@ buildIncomingTwilioMessage twilioMessage =
         |> set #status (param "SmsStatus")
         |> set #body (param "Body")
         |> set #numMedia (param "NumMedia")
+
+deliveredStatus :: Text
+deliveredStatus = "delivered"
