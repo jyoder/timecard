@@ -66,7 +66,11 @@ instance View IndexView where
             <nav class="navbar navbar-light bg-light">
                 <div class="container-fluid">
                     <span class="navbar-brand mb-0 h1">Timecard Communication</span>
-                    <a href={DeleteSessionAction} class="btn btn-outline-primary js-delete js-delete-no-confirm">Logout</a>
+                    <a 
+                        href={DeleteSessionAction}
+                        class="btn btn-outline-primary js-delete js-delete-no-confirm">
+                        Logout
+                    </a>
                 </div>
             </nav>
 
@@ -97,20 +101,6 @@ renderPeopleColumn IndexView {..} =
             let isSelected person = get #id person == get #id selectedPerson
              in (\person -> renderPerson (isSelected person) person)
 
-renderPerson :: Bool -> Person -> Html
-renderPerson isSelected person =
-    [hsx|
-        <a
-            href={PersonSelectionAction (get #id person)}
-            class={"list-group-item " <> activeClass}
-            aria-current={ariaCurrent}>
-            {get #firstName person} {get #lastName person}
-        </a>
-    |]
-  where
-    activeClass = if isSelected then "active" else "" :: Text
-    ariaCurrent = if isSelected then "true" else "false" :: Text
-
 renderMessagesColumn :: IndexView -> Html
 renderMessagesColumn IndexView {..} =
     case personSelection of
@@ -128,12 +118,77 @@ renderMessagesColumn IndexView {..} =
                 </div>
             |]
 
+renderTimecardColumn :: IndexView -> Html
+renderTimecardColumn IndexView {..} =
+    case personSelection of
+        NoPersonSelected -> [hsx||]
+        PersonSelected {..} ->
+            case personActivity of
+                SendingMessage {..} ->
+                    renderTimecardEntries
+                        selectedPerson
+                        timecardEntries
+                WorkingOnTimecardEntry {..} ->
+                    renderTimecardEntryForm
+                        selectedPerson
+                        selectedMessages
+                        timecardActivity
+                        timecardEntry
+
+renderPerson :: Bool -> Person -> Html
+renderPerson isSelected person =
+    [hsx|
+        <a
+            href={PersonSelectionAction (get #id person)}
+            class={"list-group-item " <> activeClass}
+            aria-current={ariaCurrent}>
+            {get #firstName person} {get #lastName person}
+        </a>
+    |]
+  where
+    activeClass = if isSelected then "active" else "" :: Text
+    ariaCurrent = if isSelected then "true" else "false" :: Text
+
 renderMessages :: Person -> PersonActivity -> [Id TwilioMessage] -> [Message] -> Html
 renderMessages selectedPerson personActivity selectedMessageIds messages =
     [hsx|
         <div class="communications-history list-group-flush">
-            {forEach messages (renderMessage selectedPerson personActivity selectedMessageIds)}
+            {forEach messages $ renderMessage selectedPerson personActivity selectedMessageIds}
             <div class="scroll-pinned"></div>
+        </div>
+    |]
+
+renderSendMessageForm :: PhoneNumber -> TwilioMessage -> Html
+renderSendMessageForm phoneNumber newMessage =
+    [hsx|
+        <div class="communications-composer">
+            <form 
+                method="POST"
+                action="/CreateOutgoingPhoneMessage"
+                id="send-message-form" 
+                class="new-form"
+                data-disable-javascript-submission="false">
+                
+                <div class="form-group" id="form-group-twilioMessage_toId">
+                    <input 
+                        type="hidden"
+                        name="toId"
+                        id="twilioMessage_toId"
+                        class="form-control"
+                        value={show $ get #id phoneNumber}>
+                </div>
+                <div class="input-group">
+                    <textarea 
+                        class="form-control"
+                        id="twilioMessage_body"
+                        name="body"
+                        rows="3">
+                    </textarea>
+                    <div class="input-group-append">
+                        <button class="btn btn-primary">Send</button>
+                    </div>
+                </div>
+            </form>
         </div>
     |]
 
@@ -149,25 +204,26 @@ renderMessage selectedPerson personActivity selectedMessageIds message =
             <p class="communication-body mb-1">{get #body message}</p>
 
             <div class="d-flex w-100 justify-content-between">
-                <small class={messageStatusClass $ get #status message}>
+                <small class={messageStatusClass $ get #status message}> <!-- TODO: use css instead of <small> tag -->
                     {show $ get #status message}
                 </small>
                 <a href={nextAction}
-                data-turbolinks="false"
-                class={"btn btn-outline-primary btn-sm " <> activeClass'}>
+                    data-turbolinks="false"
+                    class={"btn btn-outline-primary btn-sm " <> activeClass}>
                     {linkButtonText}
                 </a>
             </div>
         </div>
     |]
   where
+    -- TODO simplify?
     selectedPersonId = get #id selectedPerson
     isSelected = messageId `elem` selectedMessageIds
     toggledMessageIds = show <$> if isSelected then excludeMessageId else includeMessageId
     excludeMessageId = filter (/= messageId) selectedMessageIds
     includeMessageId = messageId : selectedMessageIds
     messageId = get #id message
-    activeClass' = activeClass isSelected
+    activeClass = if isSelected then "active" else "" :: Text
     linkButtonText = if isSelected then "Unlink" else "Link" :: Text
     nextAction = case personActivity of
         SendingMessage {..} -> NewTimecardEntryAction {selectedMessageIds = toggledMessageIds, ..}
@@ -186,15 +242,6 @@ renderMessage selectedPerson personActivity selectedMessageIds message =
                     , ..
                     }
 
-renderTimecardColumn :: IndexView -> Html
-renderTimecardColumn IndexView {..} =
-    case personSelection of
-        NoPersonSelected -> [hsx|<p>barf</p>|]
-        PersonSelected {..} ->
-            case personActivity of
-                SendingMessage {..} -> renderTimecardEntries selectedPerson timecardEntries
-                WorkingOnTimecardEntry {..} -> renderTimecardEntryForm selectedPerson selectedMessages timecardActivity timecardEntry
-
 renderTimecardEntries :: Person -> [TimecardEntry] -> Html
 renderTimecardEntries selectedPerson timecardEntries =
     [hsx|
@@ -207,30 +254,29 @@ renderTimecardEntry :: Person -> TimecardEntry -> Html
 renderTimecardEntry selectedPerson timecardEntry =
     [hsx|
         <div class="card mb-4">
-            <h5 class="card-header">{weekday (get #date timecardEntry)} - {TO.date (get #date timecardEntry)}</h5>
+            <h5 class="card-header">
+                {weekday (get #date timecardEntry)} - {TO.date (get #date timecardEntry)}
+            </h5>
 
             <div class="card-body">
                 <h5 class="card-title">{get #jobName timecardEntry}</h5>
                 <p class="card-text">{get #invoiceTranslation timecardEntry}</p>
-                <a href={EditTimecardEntryAction (get #id selectedPerson) (get #id timecardEntry)} class="btn btn-primary">Edit</a>
+                <a
+                    href={EditTimecardEntryAction (get #id selectedPerson) (get #id timecardEntry)}
+                    class="btn btn-primary">
+                    Edit
+                </a>
             </div>
         </div>
     |]
-
-weekday :: UTCTime -> Html
-weekday = timeElement "weekday"
-
-timeElement :: Text -> UTCTime -> Html
-timeElement className dateTime = H.time ! A.class_ (cs className) ! A.datetime (cs $ iso8601Show dateTime) $ cs (beautifyUtcTime dateTime)
-
-beautifyUtcTime :: UTCTime -> String
-beautifyUtcTime = formatTime defaultTimeLocale "%d.%m.%Y, %H:%M"
+  where
+    weekday = timeElement "weekday"
 
 renderTimecardEntryForm :: Person -> [Message] -> TimecardActivity -> TimecardEntry -> Html
 renderTimecardEntryForm selectedPerson selectedMessages timecardActivity timecardEntry =
     formForWithOptions
         timecardEntry
-        timecardEntryFormOptions
+        formOptions
         [hsx|
             {(dateTimeField #date) { fieldClass = "date-time-field"}}
             {(textField #jobName)}
@@ -245,7 +291,10 @@ renderTimecardEntryForm selectedPerson selectedMessages timecardActivity timecar
 
             <div id="form-group-timecardEntry_invoiceTranslation" class="form-group">
                 <label for="timecardEntry_invoiceTranslation">Invoice Translation</label>
-                <textarea id="timecardEntry_invoiceTranslation" name="invoiceTranslation" class="form-control">
+                <textarea 
+                    id="timecardEntry_invoiceTranslation"
+                    name="invoiceTranslation"
+                    class="form-control">
                     {renderMessageBodies (get #invoiceTranslation timecardEntry) sortedMessages}
                 </textarea>
             </div>
@@ -270,10 +319,11 @@ renderTimecardEntryForm selectedPerson selectedMessages timecardActivity timecar
             <a href={cancelAction} class="btn btn-secondary ml-2" role="button">Cancel</a>
         |]
   where
-    sortedMessages = sortBy (\m1 m2 -> get #createdAt m1 `compare` get #createdAt m2) selectedMessages
+    formOptions formContext = formContext |> set #formId "timecard-form"
     submitLabel = if timecardActivity == CreatingEntry then "Create" else "Update"
-    selectedMessagesParam = intercalate "," (show . get #id <$> sortedMessages)
     cancelAction = PersonSelectionAction (get #id selectedPerson)
+    selectedMessagesParam = intercalate "," (show . get #id <$> sortedMessages)
+    sortedMessages = sortBy (\m1 m2 -> get #createdAt m1 `compare` get #createdAt m2) selectedMessages
 
 renderMessageBodies :: Text -> [Message] -> Html
 renderMessageBodies existingText messages =
@@ -283,24 +333,6 @@ renderMessageBodies existingText messages =
 
 renderMessageBody :: Message -> Html
 renderMessageBody message = [hsx| {get #body message <> "\n\n"} |]
-
-renderSendMessageForm :: PhoneNumber -> TwilioMessage -> Html
-renderSendMessageForm phoneNumber newMessage =
-    [hsx|
-        <div class="communications-composer">
-            <form method="POST" action="/CreateOutgoingPhoneMessage" id="send-message-form" class="new-form" data-disable-javascript-submission="false">
-                <div class="form-group" id="form-group-twilioMessage_toId">
-                    <input type="hidden" name="toId" placeholder="" id="twilioMessage_toId" class="form-control" value={show $ get #id phoneNumber}>
-                </div>
-                <div class="input-group">
-                    <textarea class="form-control" id="twilioMessage_body" name="body" rows="2"></textarea>
-                    <div class="input-group-append">
-                        <button class="btn btn-primary">Send</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    |]
 
 renderSentAt :: Message -> Html
 renderSentAt message =
@@ -319,19 +351,21 @@ messageStatusClass status =
         Failed -> "message-status failed"
         _ -> "message-status sending" -- TODO: make "in-progress" instead of sending
 
-activeClass :: Bool -> Text
-activeClass isSelected = if isSelected then "active" else ""
-
 sendMessageFormOptions :: FormContext TwilioMessage -> FormContext TwilioMessage
 sendMessageFormOptions formContext =
     formContext
         |> set #formId "send-message-form"
         |> set #formAction (pathTo CreateOutgoingPhoneMessageAction)
 
-timecardEntryFormOptions :: FormContext TimecardEntry -> FormContext TimecardEntry
-timecardEntryFormOptions formContext =
-    formContext
-        |> set #formId "timecard-form"
+timeElement :: Text -> UTCTime -> Html
+timeElement className dateTime =
+    H.time
+        ! A.class_ (cs className)
+        ! A.datetime (cs $ iso8601Show dateTime)
+        $ cs (beautifyUtcTime dateTime)
+
+beautifyUtcTime :: UTCTime -> String
+beautifyUtcTime = formatTime defaultTimeLocale "%d.%m.%Y, %H:%M"
 
 styles :: Html
 styles =
