@@ -272,6 +272,7 @@ fetchTimecardEntriesFor ::
 fetchTimecardEntriesFor personId =
     query @TimecardEntry
         |> filterWhere (#personId, personId)
+        |> orderByDesc #date
         |> fetch
 
 findSelectedMessages ::
