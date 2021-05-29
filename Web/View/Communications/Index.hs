@@ -116,7 +116,7 @@ instance View IndexView where
 renderPeopleColumn :: IndexView -> Html
 renderPeopleColumn IndexView {..} =
     [hsx|
-        <div class="person-selector col-2">
+        <div class="people-column col-2">
             <div class="list-group">
                 {forEach people renderPerson'}
             </div>
@@ -140,7 +140,7 @@ renderMessagesColumn IndexView {..} =
              in [hsx|
                 <div class="col-6">
                     {renderMessages selectedPerson personActivity selectedMessageIds messages}
-                    <div class="communications-composer">
+                    <div class="message-input">
                         {renderSendMessageForm toPhoneNumber newMessage}
                     </div>
                 </div>
@@ -149,7 +149,7 @@ renderMessagesColumn IndexView {..} =
 renderTimecardColumn :: IndexView -> Html
 renderTimecardColumn view =
     [hsx|
-        <div class="timecard col-4">
+        <div class="timecard-column col-4">
             {renderTimecardBlock view}
         </div>
     |]
@@ -188,7 +188,7 @@ renderPerson isSelected person =
 renderMessages :: Person -> PersonActivity -> [Id TwilioMessage] -> [Message] -> Html
 renderMessages selectedPerson personActivity selectedMessageIds messages =
     [hsx|
-        <div class="communications-history list-group-flush">
+        <div class="message-history list-group-flush">
             {forEach messages $ renderMessage selectedPerson personActivity selectedMessageIds}
             <div class="scroll-pinned"></div>
         </div>
@@ -197,7 +197,7 @@ renderMessages selectedPerson personActivity selectedMessageIds messages =
 renderSendMessageForm :: PhoneNumber -> TwilioMessage -> Html
 renderSendMessageForm phoneNumber newMessage =
     [hsx|
-        <div class="communications-composer">
+        <div class="message-input">
             <form 
                 method="POST"
                 action="/CreateOutgoingPhoneMessage"
@@ -236,15 +236,15 @@ renderMessage selectedPerson personActivity selectedMessageIds message =
         <div
             class="list-group-item flex-column align-items-start">
             <div class="d-flex w-100 justify-content-between">
-                <h5 class="mb-1">{get #fromName message}</h5>
-                <small>{renderSentAt message}</small>
+                <h5 class="mb-1">{fromName}</h5>
+                <span class="message-sent-at">{renderSentAt message}</span>
             </div>
-            <p class="communication-body mb-1">{get #body message}</p>
+            <p class="message-body mb-1">{body}</p>
 
             <div class="d-flex w-100 justify-content-between">
-                <small class={messageStatusClass $ get #status message}> <!-- TODO: use css instead of <small> tag -->
-                    {show $ get #status message}
-                </small>
+                <span class={messageStatusClass'}> <!-- TODO: use css instead of <small> tag -->
+                    {messageStatus}
+                </span>
                 <a href={nextAction}
                     data-turbolinks="false"
                     class={"btn btn-outline-primary btn-sm " <> activeClass}>
@@ -254,13 +254,10 @@ renderMessage selectedPerson personActivity selectedMessageIds message =
         </div>
     |]
   where
-    -- TODO simplify?
-    selectedPersonId = get #id selectedPerson
-    isSelected = messageId `elem` selectedMessageIds
-    toggledMessageIds = show <$> if isSelected then excludeMessageId else includeMessageId
-    excludeMessageId = filter (/= messageId) selectedMessageIds
-    includeMessageId = messageId : selectedMessageIds
-    messageId = get #id message
+    fromName = get #fromName message
+    body = get #body message
+    messageStatusClass' = messageStatusClass $ get #status message
+    messageStatus = show $ get #status message
     activeClass = if isSelected then "active" else "" :: Text
     linkButtonText = if isSelected then "Unlink" else "Link" :: Text
     nextAction = case personActivity of
@@ -279,6 +276,12 @@ renderMessage selectedPerson personActivity selectedMessageIds message =
                     , timecardEntryId = get #id timecardEntry
                     , ..
                     }
+    selectedPersonId = get #id selectedPerson
+    toggledMessageIds = show <$> if isSelected then excludeMessageId else includeMessageId
+    isSelected = messageId `elem` selectedMessageIds
+    excludeMessageId = filter (/= messageId) selectedMessageIds
+    includeMessageId = messageId : selectedMessageIds
+    messageId = get #id message
 
 renderTimecardEntries :: Person -> [TimecardEntry] -> Html
 renderTimecardEntries selectedPerson timecardEntries =
@@ -387,7 +390,7 @@ messageStatusClass status =
         Delivered -> "message-status delivered"
         Received -> "message-status received"
         Failed -> "message-status failed"
-        _ -> "message-status sending" -- TODO: make "in-progress" instead of sending
+        _ -> "message-status sending"
 
 sendMessageFormOptions :: FormContext TwilioMessage -> FormContext TwilioMessage
 sendMessageFormOptions formContext =
@@ -409,47 +412,52 @@ styles :: Html
 styles =
     [hsx|
     <style>
-        .message-status.delivered {
-            font-size: 80%;
-            color: green;
-        }
-
-        .message-status.received {
-            font-size: 80%;
-            color: rgb(26, 124, 236);
-        }
-
-        .message-status.failed {
-            font-size: 80%;
-            color: red;
-        }
-
-        .message-status.sending {
-            font-size: 80%;
-            color: darkgray;
-        }
-
-        .person-selector {
+        .people-column {
             height: calc(100vh - 150px);
             overflow-y: scroll;
         }
 
-        .communications-history {
+        .message-history {
             height: calc(100vh - 270px);
             overflow-y: scroll;
         }
 
-        .communications-composer {
+        .message-input {
             height: 100px;
             padding: 0px;
             margin: 0px;
         }
 
-        .communication-body {
+        .message-body {
             white-space: pre-line;
         }
 
-        .timecard {
+        .message-sent-at {
+            font-size: 80%;
+            color: darkgray;
+        }
+
+        .message-status {
+            font-size: 80%;
+        }
+
+        .message-status.delivered {
+            color: green;
+        }
+
+        .message-status.received {
+            color: rgb(26, 124, 236);
+        }
+
+        .message-status.failed {
+            color: red;
+        }
+
+        .message-status.sending {
+            color: darkgray;
+        }
+
+        .timecard-column {
             height: calc(100vh - 150px);
             overflow-y: scroll;
         }
