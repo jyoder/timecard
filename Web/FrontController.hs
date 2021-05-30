@@ -5,6 +5,7 @@ import Web.Controller.Prelude
 import Web.View.Layout (defaultLayout)
 
 -- Controller Imports
+import Web.Controller.Timecards
 import Web.Controller.TwilioCallbacks
 
 import IHP.LoginSupport.Middleware
@@ -20,7 +21,8 @@ instance FrontController WebApplication where
         [ startPage WelcomeAction
         , parseRoute @SessionsController
         , -- Generator Marker
-          parseRoute @TwilioCallbacksController
+          parseRoute @TimecardsController
+        , parseRoute @TwilioCallbacksController
         , parseRoute @CommunicationsController
         , parseRoute @PhoneContactsController
         , parseRoute @PhoneNumbersController

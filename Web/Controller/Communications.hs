@@ -22,8 +22,8 @@ instance Controller CommunicationsController where
     action PersonSelectionAction {..} = autoRefresh do
         botId <- fetchBotId
         people <- fetchPeopleExcluding botId
-
         selectedPerson <- fetch selectedPersonId
+
         messages <- fetchMessagesBetween botId selectedPersonId
         toPhoneNumber <- fetchPhoneNumberFor selectedPersonId
         let newMessage = newRecord @TwilioMessage

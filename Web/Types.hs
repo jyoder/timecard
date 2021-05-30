@@ -73,17 +73,12 @@ data CommunicationsController
     | CreateOutgoingPhoneMessageAction
     deriving (Eq, Show, Data)
 
-data TwilioMessagesController
-    = TwilioMessagesAction
-    | NewTwilioMessageAction
-    | ShowTwilioMessageAction {twilioMessageId :: !(Id TwilioMessage)}
-    | CreateTwilioMessageAction
-    | EditTwilioMessageAction {twilioMessageId :: !(Id TwilioMessage)}
-    | UpdateTwilioMessageAction {twilioMessageId :: !(Id TwilioMessage)}
-    | DeleteTwilioMessageAction {twilioMessageId :: !(Id TwilioMessage)}
-    deriving (Eq, Show, Data)
-
 data TwilioCallbacksController
     = UpdateOutgoingPhoneMessageAction
     | CreateIncomingPhoneMessageAction
+    deriving (Eq, Show, Data)
+
+data TimecardsController
+    = TimecardsAction
+    | TimecardPersonSelectionAction {selectedPersonId :: !(Id Person)}
     deriving (Eq, Show, Data)

@@ -95,7 +95,7 @@ instance View IndexView where
         [hsx|
             <nav class="navbar navbar-light bg-light">
                 <div class="container-fluid">
-                    <span class="navbar-brand mb-0 h1">Timecard Communication</span>
+                    <span class="navbar-brand mb-0 h1">Communication</span>
                     <a 
                         href={DeleteSessionAction}
                         class="btn btn-outline-primary js-delete js-delete-no-confirm">

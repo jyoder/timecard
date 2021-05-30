@@ -18,6 +18,7 @@ let
             cryptonite
             memory
             base64-bytestring
+            time
         ];
         otherDeps = p: with p; [
             # Native dependencies, e.g. imagemagick
