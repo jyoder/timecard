@@ -122,7 +122,7 @@ renderTimecardRow timecardEntry =
             <th scope="row">{weekday}</th>
             <td>{date}</td>
             <td>{get #jobName timecardEntry}</td>
-            <td>{get #workDone timecardEntry}</td>
+            <td class="work-done">{get #workDone timecardEntry}</td>
             <td>{get #hoursWorked timecardEntry}</td>
         </tr>
     |]
@@ -134,10 +134,7 @@ renderLastRow :: Double -> Html
 renderLastRow hours =
     [hsx|
         <tr class="table-active">
-            <th scope="row">Total Hours</th>
-            <td></td>
-            <td></td>
-            <td></td>
+            <th scope="row" colspan="4">Total Hours</th>
             <td>{hours}</td>
         </tr>
     |]
@@ -179,6 +176,10 @@ styles =
         .timecard-column {
             height: calc(100vh - 150px);
             overflow-y: scroll;
+        }
+
+        .work-done {
+            width: 500px;
         }
 
         /* Remove the scrollbar from Chrome, Safari, Edge and IEw */
