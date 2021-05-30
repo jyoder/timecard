@@ -25,9 +25,19 @@ newtype Timecard = Timecard
 instance View IndexView where
     html view =
         [hsx|
-            <nav class="navbar navbar-light bg-light">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light">
                 <div class="container-fluid">
-                    <span class="navbar-brand mb-0 h1">Timecards</span>
+                    <span class="navbar-brand mb-0 h1" href="#">Constructable</span>
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                            <li class="nav-item">
+                                <a class="nav-link" href={CommunicationsAction}>Communications</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link active" aria-current="page" href={TimecardsAction}>Timecards</a>
+                            </li>
+                        </ul>
+                    </div>
                     <a 
                         href={DeleteSessionAction}
                         class="btn btn-outline-primary js-delete js-delete-no-confirm">
