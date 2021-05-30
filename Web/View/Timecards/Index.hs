@@ -112,7 +112,7 @@ renderTimecard selectedPerson timecard =
                             <th scope="col">Day</th>
                             <th scope="col">Date</th>
                             <th scope="col">Job</th>
-                            <th scope="col">Description</th>
+                            <th scope="col">Work Done</th>
                             <th scope="col">Hours</th>
                         </tr>
                     </thead>
