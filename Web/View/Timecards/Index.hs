@@ -4,6 +4,7 @@ import Data.Time.Format.ISO8601 (iso8601Show)
 import IHP.View.TimeAgo as TO
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
+import Web.View.Navigation (Section (Timecards), renderNavigation)
 import Web.View.Prelude
 
 data IndexView = IndexView
@@ -25,26 +26,7 @@ newtype Timecard = Timecard
 instance View IndexView where
     html view =
         [hsx|
-            <nav class="navbar navbar-expand-lg navbar-light bg-light">
-                <div class="container-fluid">
-                    <span class="navbar-brand mb-0 h1" href="#">Constructable</span>
-                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                            <li class="nav-item">
-                                <a class="nav-link" href={CommunicationsAction}>Communications</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link active" aria-current="page" href={TimecardsAction}>Timecards</a>
-                            </li>
-                        </ul>
-                    </div>
-                    <a 
-                        href={DeleteSessionAction}
-                        class="btn btn-outline-primary js-delete js-delete-no-confirm">
-                        Logout
-                    </a>
-                </div>
-            </nav>
+            {renderNavigation Timecards}
 
             <div class="row align-items start">
                 {renderPeopleColumn view}
