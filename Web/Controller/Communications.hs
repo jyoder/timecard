@@ -7,6 +7,7 @@ import Data.Text (strip)
 import Database.PostgreSQL.Simple (Query)
 import Text.RawString.QQ (r)
 import Web.Controller.Prelude
+import Web.Controller.Service.People (fetchBotId, fetchPeopleExcluding)
 import Web.View.Communications.Index
 
 instance Controller CommunicationsController where
@@ -207,14 +208,6 @@ instance Controller CommunicationsController where
 
         redirectTo $ PersonSelectionAction (get #id toPerson)
 
-fetchPeopleExcluding ::
-    (?modelContext :: ModelContext) =>
-    Id Person ->
-    IO [Person]
-fetchPeopleExcluding idToExclude = do
-    people <- query @Person |> orderByAsc #lastName |> fetch
-    filter (\person -> get #id person /= idToExclude) people |> pure
-
 fetchPersonFor ::
     (?modelContext :: ModelContext) =>
     Id PhoneNumber ->
@@ -225,16 +218,6 @@ fetchPersonFor phoneNumberId = do
             |> filterWhere (#phoneNumberId, phoneNumberId)
             |> fetchOne
     fetchOne (get #personId phoneContact)
-
-fetchBotId ::
-    (?modelContext :: ModelContext) =>
-    IO (Id Person)
-fetchBotId = get #id <$> fetchBot
-
-fetchBot ::
-    (?modelContext :: ModelContext) =>
-    IO Person
-fetchBot = query @Person |> filterWhere (#goesBy, botName) |> fetchOne
 
 fetchPhoneNumberFor ::
     (?modelContext :: ModelContext) =>
@@ -314,9 +297,6 @@ buildTimecardEntryMessages timecardEntryId =
         newRecord @TimecardEntryMessage
             |> set #timecardEntryId timecardEntryId
             |> set #twilioMessageId messageId
-
-botName :: Text
-botName = "Tim the Bot"
 
 defaultHoursWorked :: Double
 defaultHoursWorked = 8.0
