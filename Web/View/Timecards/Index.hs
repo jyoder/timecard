@@ -1,11 +1,11 @@
 module Web.View.Timecards.Index where
 
-import Data.Time.Format.ISO8601 (iso8601Show)
-import IHP.View.TimeAgo as TO
-import qualified Text.Blaze.Html5 as H
-import qualified Text.Blaze.Html5.Attributes as A
 import Web.View.Navigation (Section (Timecards), renderNavigation)
 import Web.View.Prelude
+
+import IHP.View.TimeAgo as TO
+import Web.View.Service.Style (removeScrollbars)
+import Web.View.Service.Time (weekday)
 
 data IndexView = IndexView
     { people :: ![Person]
@@ -111,7 +111,7 @@ renderTimecardRow :: TimecardEntry -> Html
 renderTimecardRow timecardEntry =
     [hsx|
         <tr>
-            <th scope="row">{weekday}</th>
+            <th scope="row">{weekday'}</th>
             <td>{date}</td>
             <td>{get #jobName timecardEntry}</td>
             <td class="work-done">{get #workDone timecardEntry}</td>
@@ -119,7 +119,7 @@ renderTimecardRow timecardEntry =
         </tr>
     |]
   where
-    weekday = timeElement "weekday" (get #date timecardEntry)
+    weekday' = weekday (get #date timecardEntry)
     date = TO.date (get #date timecardEntry)
 
 renderLastRow :: Double -> Html
@@ -146,16 +146,6 @@ totalHoursWorked :: Timecard -> Double
 totalHoursWorked Timecard {..} =
     sum (get #hoursWorked <$> timecardEntries)
 
-timeElement :: Text -> UTCTime -> Html
-timeElement className dateTime =
-    H.time
-        ! A.class_ (cs className)
-        ! A.datetime (cs $ iso8601Show dateTime)
-        $ cs (beautifyUtcTime dateTime)
-
-beautifyUtcTime :: UTCTime -> String
-beautifyUtcTime = formatTime defaultTimeLocale "%d.%m.%Y, %H:%M"
-
 styles :: Html
 styles =
     [hsx|
@@ -173,15 +163,7 @@ styles =
         .work-done {
             width: 500px;
         }
-
-        /* Remove the scrollbar from Chrome, Safari, Edge and IEw */
-        ::-webkit-scrollbar {
-            width: 0px;
-            background: transparent;
-        }
-
-        * {
-        -ms-overflow-style: none !important;
-        }
     </style>
+
+    {removeScrollbars}
 |]

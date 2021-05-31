@@ -9,6 +9,8 @@ import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import Web.View.Navigation (Section (Communications), renderNavigation)
 import Web.View.Prelude
+import Web.View.Service.Style (removeScrollbars)
+import Web.View.Service.Time (weekday)
 
 data IndexView = IndexView
     { people :: ![Person]
@@ -288,7 +290,7 @@ renderTimecardEntry selectedPerson timecardEntry =
     [hsx|
         <div class="card mb-4">
             <h5 class="card-header">
-                {weekday} - {date}
+                {weekday'} - {date}
             </h5>
 
             <div class="card-body">
@@ -299,7 +301,7 @@ renderTimecardEntry selectedPerson timecardEntry =
         </div>
     |]
   where
-    weekday = timeElement "weekday" (get #date timecardEntry)
+    weekday' = weekday $ get #date timecardEntry
     date = TO.date (get #date timecardEntry)
     jobName = get #jobName timecardEntry
     invoiceTranslation = get #invoiceTranslation timecardEntry
@@ -390,16 +392,6 @@ sendMessageFormOptions formContext =
         |> set #formId "send-message-form"
         |> set #formAction (pathTo CreateOutgoingPhoneMessageAction)
 
-timeElement :: Text -> UTCTime -> Html
-timeElement className dateTime =
-    H.time
-        ! A.class_ (cs className)
-        ! A.datetime (cs $ iso8601Show dateTime)
-        $ cs (beautifyUtcTime dateTime)
-
-beautifyUtcTime :: UTCTime -> String
-beautifyUtcTime = formatTime defaultTimeLocale "%d.%m.%Y, %H:%M"
-
 styles :: Html
 styles =
     [hsx|
@@ -465,15 +457,7 @@ styles =
         #timecardEntry_invoiceTranslation {
             height: 123px;
         }
-
-        /* Remove the scrollbar from Chrome, Safari, Edge and IEw */
-        ::-webkit-scrollbar {
-            width: 0px;
-            background: transparent;
-        }
-
-        * {
-        -ms-overflow-style: none !important;
-        }
     </style>
+
+    {removeScrollbars}
 |]
