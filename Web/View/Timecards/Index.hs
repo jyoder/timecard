@@ -72,7 +72,7 @@ renderTimecardColumn IndexView {..} =
         NoPersonSelected -> [hsx||]
         PersonSelected {..} ->
             [hsx|
-                <div class="timecard-column col-8">
+                <div class="timecard-column col-10">
                     {forEach timecards (renderTimecard selectedPerson)}
                 </div>
             |]
@@ -95,6 +95,7 @@ renderTimecard selectedPerson timecard =
                             <th scope="col">Date</th>
                             <th scope="col">Job</th>
                             <th scope="col">Work Done</th>
+                            <th scope="col">Invoice Translation</th>
                             <th scope="col">Hours</th>
                         </tr>
                     </thead>
@@ -115,6 +116,7 @@ renderTimecardRow timecardEntry =
             <td>{date}</td>
             <td>{get #jobName timecardEntry}</td>
             <td class="work-done">{get #workDone timecardEntry}</td>
+            <td class="invoice-translation">{get #invoiceTranslation timecardEntry}</td>
             <td>{get #hoursWorked timecardEntry}</td>
         </tr>
     |]
@@ -126,7 +128,7 @@ renderLastRow :: Double -> Html
 renderLastRow hours =
     [hsx|
         <tr class="table-active">
-            <th scope="row" colspan="4">Total Hours</th>
+            <th scope="row" colspan="5">Total Hours</th>
             <td>{hours}</td>
         </tr>
     |]
@@ -158,10 +160,15 @@ styles =
         .timecard-column {
             height: calc(100vh - 150px);
             overflow-y: scroll;
+            font-size: .8rem;
         }
 
         .work-done {
-            width: 500px;
+            width: 300px;
+        }
+
+        .invoice-translation {
+            width: 300px;
         }
     </style>
 
