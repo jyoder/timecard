@@ -17,6 +17,13 @@ data PersonSelection
     | PersonSelected
         { selectedPerson :: !Person
         , timecards :: ![Timecard]
+        , personActivity :: !PersonActivity
+        }
+
+data PersonActivity
+    = Viewing
+    | Editing
+        { selectedTimecardEntry :: !TimecardEntry
         }
 
 newtype Timecard = Timecard
@@ -73,12 +80,12 @@ renderTimecardColumn IndexView {..} =
         PersonSelected {..} ->
             [hsx|
                 <div class="timecard-column col-10">
-                    {forEach timecards (renderTimecard selectedPerson)}
+                    {forEach timecards (renderTimecard selectedPerson personActivity)}
                 </div>
             |]
 
-renderTimecard :: Person -> Timecard -> Html
-renderTimecard selectedPerson timecard =
+renderTimecard :: Person -> PersonActivity -> Timecard -> Html
+renderTimecard selectedPerson personActivity timecard =
     [hsx|
         <div class="card mb-5">
             <h5 class="card-header">{dateRange timecard}</h5>
@@ -100,7 +107,7 @@ renderTimecard selectedPerson timecard =
                         </tr>
                     </thead>
                     <tbody>
-                        {forEach (get #timecardEntries timecard) renderTimecardRow}
+                        {forEach (get #timecardEntries timecard) (renderTimecardRow personActivity)}
                         {renderLastRow $ totalHoursWorked timecard}
                     </tbody>
                 </table>
@@ -108,21 +115,65 @@ renderTimecard selectedPerson timecard =
         </div>
     |]
 
-renderTimecardRow :: TimecardEntry -> Html
-renderTimecardRow timecardEntry =
+renderTimecardRow :: PersonActivity -> TimecardEntry -> Html
+renderTimecardRow personActivity timecardEntry =
     [hsx|
         <tr>
             <th scope="row">{weekday'}</th>
             <td>{date}</td>
             <td>{get #jobName timecardEntry}</td>
             <td class="work-done">{get #workDone timecardEntry}</td>
-            <td class="invoice-translation">{get #invoiceTranslation timecardEntry}</td>
+            {renderInvoiceTranslation personActivity timecardEntry}
             <td>{get #hoursWorked timecardEntry}</td>
         </tr>
     |]
   where
     weekday' = weekday (get #date timecardEntry)
     date = TO.date (get #date timecardEntry)
+
+renderInvoiceTranslation :: PersonActivity -> TimecardEntry -> Html
+renderInvoiceTranslation personActivity timecardEntry =
+    case personActivity of
+        Viewing -> renderViewInvoiceTranslation timecardEntry
+        Editing {..} ->
+            if get #id timecardEntry == get #id selectedTimecardEntry
+                then
+                    [hsx|
+                        <td class="invoice-translation">
+                            {renderInvoiceTranslationForm selectedTimecardEntry}
+                        </td>
+                    |]
+                else renderViewInvoiceTranslation selectedTimecardEntry
+
+renderViewInvoiceTranslation :: TimecardEntry -> Html
+renderViewInvoiceTranslation timecardEntry =
+    [hsx|
+        <td class="invoice-translation">
+            {get #invoiceTranslation timecardEntry} (<a href={TimecardEditTimecardEntryAction (get #id timecardEntry)}>Edit</a>)
+        </td>
+    |]
+
+renderInvoiceTranslationForm :: TimecardEntry -> Html
+renderInvoiceTranslationForm timecardEntry =
+    formForWithOptions
+        timecardEntry
+        formOptions
+        [hsx| 
+            {(textareaField #invoiceTranslation) {disableLabel = True}}
+            {hiddenField #personId}
+            {hiddenField #id}
+            {submitButton { label = "Save", buttonClass = "btn btn-primary btn-sm"}}
+            <a 
+                href={TimecardPersonSelectionAction (get #personId timecardEntry)}
+                class="btn btn-secondary btn-sm ml-2">
+                Cancel
+            </a>
+        |]
+  where
+    formOptions formContext =
+        formContext
+            |> set #formId "edit-timecard-entry-form"
+            |> set #formAction (pathTo TimecardUpdateTimecardEntryAction)
 
 renderLastRow :: Double -> Html
 renderLastRow hours =
@@ -160,7 +211,7 @@ styles =
         .timecard-column {
             height: calc(100vh - 150px);
             overflow-y: scroll;
-            font-size: .8rem;
+            font-size: .9rem;
         }
 
         .work-done {

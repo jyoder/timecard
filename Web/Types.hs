@@ -80,5 +80,11 @@ data TwilioCallbacksController
 
 data TimecardsController
     = TimecardsAction
-    | TimecardPersonSelectionAction {selectedPersonId :: !(Id Person)}
+    | TimecardPersonSelectionAction
+        { selectedPersonId :: !(Id Person)
+        }
+    | TimecardEditTimecardEntryAction
+        { timecardEntryId :: !(Id TimecardEntry)
+        }
+    | TimecardUpdateTimecardEntryAction
     deriving (Eq, Show, Data)

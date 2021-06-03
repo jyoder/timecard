@@ -26,9 +26,52 @@ instance Controller TimecardsController where
         timecardEntries <- fetchTimecardEntriesFor selectedPersonId
         let timecards = buildTimecards timecardEntries
 
+        let personActivity = Viewing
         let personSelection = PersonSelected {..}
 
         render IndexView {..}
+    --
+    action TimecardEditTimecardEntryAction {..} = do
+        botId <- fetchBotId
+        people <- fetchPeopleExcluding botId
+
+        selectedTimecardEntry <- fetch timecardEntryId
+        let selectedPersonId = get #personId selectedTimecardEntry
+        selectedPerson <- fetch selectedPersonId
+
+        timecardEntries <- fetchTimecardEntriesFor selectedPersonId
+        let timecards = buildTimecards timecardEntries
+
+        let personActivity = Editing {..}
+        let personSelection = PersonSelected {..}
+
+        render IndexView {..}
+    --
+    action TimecardUpdateTimecardEntryAction = do
+        let timecardEntryId = param @(Id TimecardEntry) "id"
+        let selectedPersonId = param @(Id Person) "personId"
+        let invoiceTranslation = param @Text "invoiceTranslation"
+
+        timecardEntry <- fetch timecardEntryId
+        timecardEntry
+            |> set #invoiceTranslation invoiceTranslation
+            |> validateField #invoiceTranslation nonEmpty
+            |> ifValid \case
+                Left selectedTimecardEntry -> do
+                    botId <- fetchBotId
+                    people <- fetchPeopleExcluding botId
+                    selectedPerson <- fetch selectedPersonId
+
+                    timecardEntries <- fetchTimecardEntriesFor selectedPersonId
+                    let timecards = buildTimecards timecardEntries
+
+                    let personActivity = Editing {..}
+                    let personSelection = PersonSelected {..}
+
+                    render IndexView {..}
+                Right timecardEntry -> do
+                    updateRecord timecardEntry
+                    redirectTo TimecardPersonSelectionAction {..}
 
 fetchTimecardEntriesFor ::
     (?modelContext :: ModelContext) =>
