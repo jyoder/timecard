@@ -143,7 +143,7 @@ renderInvoiceTranslation personActivity timecardEntry =
                             {renderInvoiceTranslationForm selectedTimecardEntry}
                         </td>
                     |]
-                else renderViewInvoiceTranslation selectedTimecardEntry
+                else renderViewInvoiceTranslation timecardEntry
 
 renderViewInvoiceTranslation :: TimecardEntry -> Html
 renderViewInvoiceTranslation timecardEntry =
