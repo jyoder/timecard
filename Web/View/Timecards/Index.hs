@@ -149,9 +149,11 @@ renderViewInvoiceTranslation :: TimecardEntry -> Html
 renderViewInvoiceTranslation timecardEntry =
     [hsx|
         <td class="invoice-translation">
-            {get #invoiceTranslation timecardEntry} (<a href={TimecardEditTimecardEntryAction (get #id timecardEntry)}>Edit</a>)
+            {get #invoiceTranslation timecardEntry} (<a href={editAction}>Edit</a>)
         </td>
     |]
+  where
+    editAction = TimecardEditTimecardEntryAction (get #id timecardEntry)
 
 renderInvoiceTranslationForm :: TimecardEntry -> Html
 renderInvoiceTranslationForm timecardEntry =
@@ -160,20 +162,19 @@ renderInvoiceTranslationForm timecardEntry =
         formOptions
         [hsx| 
             {(textareaField #invoiceTranslation) {disableLabel = True}}
+            
             {hiddenField #personId}
             {hiddenField #id}
+            
             {submitButton { label = "Save", buttonClass = "btn btn-primary btn-sm"}}
-            <a 
-                href={TimecardPersonSelectionAction (get #personId timecardEntry)}
-                class="btn btn-secondary btn-sm ml-2">
-                Cancel
-            </a>
+            <a href={personSelectionAction} class="btn btn-secondary btn-sm ml-2">Cancel</a>
         |]
   where
     formOptions formContext =
         formContext
             |> set #formId "edit-timecard-entry-form"
             |> set #formAction (pathTo TimecardUpdateTimecardEntryAction)
+    personSelectionAction = TimecardPersonSelectionAction (get #personId timecardEntry)
 
 renderLastRow :: Double -> Html
 renderLastRow hours =
@@ -220,6 +221,11 @@ styles =
 
         .invoice-translation {
             width: 300px;
+        }
+
+        #timecardEntry_invoiceTranslation {
+            font-size: .9rem;
+            height: 150px;
         }
     </style>
 
