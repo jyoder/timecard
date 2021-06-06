@@ -14,6 +14,13 @@ SET row_security = off;
 
 SET SESSION AUTHORIZATION DEFAULT;
 
+ALTER TABLE public.action_run_states DISABLE TRIGGER ALL;
+
+
+
+ALTER TABLE public.action_run_states ENABLE TRIGGER ALL;
+
+
 ALTER TABLE public.action_run_times DISABLE TRIGGER ALL;
 
 
@@ -59,6 +66,10 @@ ALTER TABLE public.phone_contacts ENABLE TRIGGER ALL;
 
 ALTER TABLE public.process_events_jobs DISABLE TRIGGER ALL;
 
+INSERT INTO public.process_events_jobs (id, created_at, updated_at, status, last_error, attempts_count, locked_at, locked_by) VALUES ('a39d6e53-55ab-4d67-a744-7a81a9d0fddc', '2021-06-06 13:57:01.824153-07', '2021-06-06 13:57:01.849111-07', 'job_status_running', 'Prelude.undefined
+CallStack (from HasCallStack):
+  error, called at libraries/base/GHC/Err.hs:79:14 in base:GHC.Err
+  undefined, called at ./Web/Job/ProcessEvents.hs:80:16 in main:Web.Job.ProcessEvents', 3, '2021-06-06 13:57:01.853923-07', 'a8141f09-3139-48cc-ae2b-ca90721a695c');
 
 
 ALTER TABLE public.process_events_jobs ENABLE TRIGGER ALL;

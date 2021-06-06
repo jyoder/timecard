@@ -95,8 +95,8 @@ CREATE TABLE action_run_states (
 CREATE INDEX action_run_times_runs_at_index ON action_run_times (runs_at);
 CREATE INDEX phone_contacts_person_id_index ON phone_contacts (person_id);
 CREATE INDEX phone_contacts_phone_number_id_index ON phone_contacts (phone_number_id);
-CREATE INDEX send_message_actions_from_id_index ON twilio_messages (from_id);
-CREATE INDEX send_message_actions_to_id_index ON twilio_messages (to_id);
+CREATE INDEX send_message_actions_from_id_index ON send_message_actions (from_id);
+CREATE INDEX send_message_actions_to_id_index ON send_message_actions (to_id);
 CREATE INDEX timecard_entries_person_id_index ON timecard_entries (person_id);
 CREATE INDEX timecard_entry_messages_timecard_entry_id_index ON timecard_entry_messages (timecard_entry_id);
 CREATE INDEX timecard_entry_messages_twilio_message_id_index ON timecard_entry_messages (twilio_message_id);
