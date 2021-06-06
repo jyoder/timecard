@@ -19,6 +19,7 @@ let
             memory
             base64-bytestring
             time
+            monad-loops
         ];
         otherDeps = p: with p; [
             # Native dependencies, e.g. imagemagick
