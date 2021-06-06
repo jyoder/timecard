@@ -14,6 +14,13 @@ SET row_security = off;
 
 SET SESSION AUTHORIZATION DEFAULT;
 
+ALTER TABLE public.action_run_times DISABLE TRIGGER ALL;
+
+
+
+ALTER TABLE public.action_run_times ENABLE TRIGGER ALL;
+
+
 ALTER TABLE public.people DISABLE TRIGGER ALL;
 
 INSERT INTO public.people (id, created_at, updated_at, first_name, last_name, goes_by) VALUES ('5419fec4-1380-475b-a6e7-87f1ea8870a6', '2021-05-11 22:58:57.614427-07', '2021-05-11 22:58:57.614427-07', 'Tim', 'Eckard', 'Tim the Bot');
@@ -48,6 +55,20 @@ INSERT INTO public.phone_contacts (id, created_at, updated_at, person_id, phone_
 
 
 ALTER TABLE public.phone_contacts ENABLE TRIGGER ALL;
+
+
+ALTER TABLE public.process_events_jobs DISABLE TRIGGER ALL;
+
+
+
+ALTER TABLE public.process_events_jobs ENABLE TRIGGER ALL;
+
+
+ALTER TABLE public.send_message_actions DISABLE TRIGGER ALL;
+
+
+
+ALTER TABLE public.send_message_actions ENABLE TRIGGER ALL;
 
 
 ALTER TABLE public.timecard_entries DISABLE TRIGGER ALL;
