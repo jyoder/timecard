@@ -1,6 +1,10 @@
-module Web.Controller.Service.People where
+module Web.Service.People where
 
-import Web.Controller.Prelude
+import Generated.Types
+import IHP.Fetch
+import IHP.ModelSupport
+import IHP.Prelude
+import IHP.QueryBuilder
 
 fetchPeopleExcluding ::
     (?modelContext :: ModelContext) =>

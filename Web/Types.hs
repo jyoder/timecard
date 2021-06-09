@@ -71,6 +71,9 @@ data CommunicationsController
     | CreateTimecardEntryAction
     | UpdateTimecardEntryAction
     | CreateOutgoingPhoneMessageAction
+    | CancelScheduledMessageAction
+        { sendMessageActionId :: !(Id SendMessageAction)
+        }
     deriving (Eq, Show, Data)
 
 data TwilioCallbacksController

@@ -5,7 +5,7 @@ import Data.Time.Calendar.WeekDate (toWeekDate)
 import Data.Time.LocalTime (TimeZone)
 import Text.Read (read)
 import Web.Controller.Prelude
-import Web.Controller.Service.People (fetchBotId, fetchPeopleExcluding)
+import Web.Service.People (fetchBotId, fetchPeopleExcluding)
 import Web.View.Timecards.Index
 
 instance Controller TimecardsController where

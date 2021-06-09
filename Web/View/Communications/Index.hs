@@ -7,6 +7,7 @@ import Database.PostgreSQL.Simple.FromRow (FromRow, field, fromRow)
 import IHP.View.TimeAgo as TO
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
+import Web.Service.SendMessageAction
 import Web.View.Navigation (Section (Communications), renderNavigation)
 import Web.View.Prelude
 import Web.View.Service.Style (removeScrollbars)
@@ -23,6 +24,7 @@ data PersonSelection
         { selectedPerson :: !Person
         , messages :: ![Message]
         , toPhoneNumber :: !PhoneNumber
+        , scheduledMessages :: ![SendMessageAction_]
         , newMessage :: !TwilioMessage
         , personActivity :: !PersonActivity
         }
@@ -133,7 +135,7 @@ renderMessagesColumn IndexView {..} =
                     WorkingOnTimecardEntry {..} -> get #id <$> selectedMessages
              in [hsx|
                 <div class="col-6">
-                    {renderMessages selectedPerson personActivity selectedMessageIds messages}
+                    {renderMessages selectedPerson personActivity selectedMessageIds messages scheduledMessages}
                     <div class="message-input">
                         {renderSendMessageForm toPhoneNumber newMessage}
                     </div>
@@ -179,11 +181,23 @@ renderPerson isSelected person =
     activeClass = if isSelected then "active" else "" :: Text
     ariaCurrent = if isSelected then "true" else "false" :: Text
 
-renderMessages :: Person -> PersonActivity -> [Id TwilioMessage] -> [Message] -> Html
-renderMessages selectedPerson personActivity selectedMessageIds messages =
-    [hsx|
+renderMessages ::
+    Person ->
+    PersonActivity ->
+    [Id TwilioMessage] ->
+    [Message] ->
+    [SendMessageAction_] ->
+    Html
+renderMessages
+    selectedPerson
+    personActivity
+    selectedMessageIds
+    messages
+    scheduledMessages =
+        [hsx|
         <div class="message-history list-group-flush">
             {forEach messages $ renderMessage selectedPerson personActivity selectedMessageIds}
+            {forEach scheduledMessages renderScheduledMessage}
             <div class="scroll-pinned"></div>
         </div>
     |]
@@ -276,6 +290,33 @@ renderMessage selectedPerson personActivity selectedMessageIds message =
     excludeMessageId = filter (/= messageId) selectedMessageIds
     includeMessageId = messageId : selectedMessageIds
     messageId = get #id message
+
+renderScheduledMessage :: SendMessageAction_ -> Html
+renderScheduledMessage scheduledMessage =
+    [hsx|
+        <div
+            class="scheduled-message list-group-item flex-column align-items-start">
+            <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">Scheduled</h5>
+                <span class="message-scheduled-for">{renderScheduledFor scheduledMessage}</span>
+            </div>
+            <p class="message-body mb-1">{body}</p>
+
+            <div class="d-flex w-100 justify-content-between">
+                <span class="message-status scheduled">
+                    Scheduled
+                </span>
+                <a href={cancelAction}
+                    data-turbolinks="false"
+                    class="btn btn-outline-primary btn-sm">
+                    Cancel
+                </a>
+            </div>
+        </div>
+    |]
+  where
+    body = get #body scheduledMessage
+    cancelAction = CancelScheduledMessageAction (get #id scheduledMessage)
 
 renderTimecardEntries :: Person -> [TimecardEntry] -> Html
 renderTimecardEntries selectedPerson timecardEntries =
@@ -386,6 +427,15 @@ messageStatusClass status =
         Failed -> "message-status failed"
         _ -> "message-status sending"
 
+renderScheduledFor :: SendMessageAction_ -> Html
+renderScheduledFor scheduledMessage =
+    let runsAt = get #runsAt scheduledMessage
+     in [hsx|
+            <time class="date-time" datetime={show runsAt}>
+                {show runsAt}
+            </time>
+        |]
+
 sendMessageFormOptions :: FormContext TwilioMessage -> FormContext TwilioMessage
 sendMessageFormOptions formContext =
     formContext
@@ -439,6 +489,19 @@ styles =
 
         .message-status.sending {
             color: darkgray;
+        }
+
+        .message-status.scheduled {
+            color: blueviolet;
+        }
+
+        .scheduled-message {
+            background-color: whitesmoke;
+        }
+
+        .message-scheduled-for {
+            font-size: 80%;
+            color: black;
         }
 
         .timecard-column {

@@ -94,7 +94,7 @@ callbackSignature authToken url postParams =
     concatedParams = map (\(param, value) -> param <> fromMaybe "" value) sortedParams
     sortedParams = sortBy (\(a, _) (b, _) -> a `compare` b) postParams
 
-accountId :: (?context :: ControllerContext) => AccountId
+accountId :: (?context :: context, ConfigProvider context) => AccountId
 accountId =
     ?context
         |> getFrameworkConfig
@@ -102,7 +102,7 @@ accountId =
         |> TMap.lookup @AccountId
         |> fromMaybe (error "Could not find Twilio.AccountId in config")
 
-authToken :: (?context :: ControllerContext) => AuthToken
+authToken :: (?context :: context, ConfigProvider context) => AuthToken
 authToken =
     ?context
         |> getFrameworkConfig
@@ -110,7 +110,7 @@ authToken =
         |> TMap.lookup @AuthToken
         |> fromMaybe (error "Could not find Twilio.AuthToken in config")
 
-statusCallbackUrl :: (?context :: ControllerContext) => StatusCallbackUrl
+statusCallbackUrl :: (?context :: context, ConfigProvider context) => StatusCallbackUrl
 statusCallbackUrl =
     ?context
         |> getFrameworkConfig
