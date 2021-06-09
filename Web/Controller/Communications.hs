@@ -2,6 +2,7 @@
 
 module Web.Controller.Communications where
 
+import Application.Service.People (fetchBotId, fetchPeopleExcluding)
 import qualified Application.Service.Twilio as Twilio
 import Data.Text (strip)
 import Data.Time.Calendar.WeekDate (toWeekDate)
@@ -9,7 +10,6 @@ import Database.PostgreSQL.Simple (Query)
 import Text.RawString.QQ (r)
 import Text.Read (read)
 import Web.Controller.Prelude
-import Web.Service.People (fetchBotId, fetchPeopleExcluding)
 import Web.Service.SendMessageAction (fetchFutureSendMessageActionsFor, scheduleSendMessageAction)
 import Web.View.Communications.Index
 

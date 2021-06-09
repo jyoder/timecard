@@ -1,11 +1,11 @@
 module Web.Controller.Timecards where
 
+import Application.Service.People (fetchBotId, fetchPeopleExcluding)
 import Data.List (groupBy)
 import Data.Time.Calendar.WeekDate (toWeekDate)
 import Data.Time.LocalTime (TimeZone)
 import Text.Read (read)
 import Web.Controller.Prelude
-import Web.Service.People (fetchBotId, fetchPeopleExcluding)
 import Web.View.Timecards.Index
 
 instance Controller TimecardsController where

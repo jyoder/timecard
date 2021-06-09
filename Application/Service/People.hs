@@ -1,4 +1,4 @@
-module Web.Service.People where
+module Application.Service.People where
 
 import Generated.Types
 import IHP.Fetch
