@@ -1,4 +1,5 @@
 module Application.Service.People (
+    validate,
     fetchExcluding,
     fetchBotId,
     fetchBot,
@@ -9,6 +10,14 @@ import IHP.Fetch
 import IHP.ModelSupport
 import IHP.Prelude
 import IHP.QueryBuilder
+import IHP.ValidationSupport.ValidateField
+
+validate :: Person -> Person
+validate person =
+    person
+        |> validateField #firstName nonEmpty
+        |> validateField #lastName nonEmpty
+        |> validateField #goesBy nonEmpty
 
 fetchExcluding ::
     (?modelContext :: ModelContext) =>

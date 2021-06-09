@@ -1,5 +1,6 @@
 module Web.Controller.People where
 
+import qualified Application.Service.People as People
 import Web.Controller.Prelude
 import Web.View.People.Edit
 import Web.View.People.Index
@@ -62,6 +63,4 @@ buildPerson :: (?context :: ControllerContext) => Person -> Person
 buildPerson person =
     person
         |> fill @'["firstName", "lastName", "goesBy"]
-        |> validateField #firstName nonEmpty
-        |> validateField #lastName nonEmpty
-        |> validateField #goesBy nonEmpty
+        |> People.validate
