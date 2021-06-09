@@ -19,22 +19,15 @@ validate person =
         |> validateField #lastName nonEmpty
         |> validateField #goesBy nonEmpty
 
-fetchExcluding ::
-    (?modelContext :: ModelContext) =>
-    Id Person ->
-    IO [Person]
+fetchExcluding :: (?modelContext :: ModelContext) => Id Person -> IO [Person]
 fetchExcluding idToExclude = do
     people <- query @Person |> orderByAsc #lastName |> fetch
     filter (\person -> get #id person /= idToExclude) people |> pure
 
-fetchBotId ::
-    (?modelContext :: ModelContext) =>
-    IO (Id Person)
+fetchBotId :: (?modelContext :: ModelContext) => IO (Id Person)
 fetchBotId = get #id <$> fetchBot
 
-fetchBot ::
-    (?modelContext :: ModelContext) =>
-    IO Person
+fetchBot :: (?modelContext :: ModelContext) => IO Person
 fetchBot = query @Person |> filterWhere (#goesBy, botName) |> fetchOne
 
 botName :: Text
