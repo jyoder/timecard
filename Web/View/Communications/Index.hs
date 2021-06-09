@@ -1,10 +1,8 @@
 module Web.View.Communications.Index where
 
 import qualified Application.Service.SendMessageAction as SendMessageAction
-import Data.ByteString.UTF8 (toString)
+import qualified Application.Service.TwilioMessage as TwilioMessage
 import Data.Time.Format.ISO8601 (iso8601Show)
-import Database.PostgreSQL.Simple.FromField (FromField, ResultError (..), fromField, returnError)
-import Database.PostgreSQL.Simple.FromRow (FromRow, field, fromRow)
 import IHP.View.TimeAgo as TO
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
@@ -22,7 +20,7 @@ data PersonSelection
     = NoPersonSelected
     | PersonSelected
         { selectedPerson :: !Person
-        , messages :: ![Message]
+        , messages :: ![TwilioMessage.T]
         , toPhoneNumber :: !PhoneNumber
         , scheduledMessages :: ![SendMessageAction.T]
         , newMessage :: !TwilioMessage
@@ -35,7 +33,7 @@ data PersonActivity
         }
     | WorkingOnTimecardEntry
         { timecardEntry :: !TimecardEntry
-        , selectedMessages :: ![Message]
+        , selectedMessages :: ![TwilioMessage.T]
         , timecardActivity :: TimecardActivity
         }
 
@@ -44,56 +42,6 @@ data TimecardActivity
     | EditingEntry
     | EditingModifiedEntry
     deriving (Eq)
-
-data Message = Message
-    { id :: !(Id TwilioMessage)
-    , fromName :: !Text
-    , toName :: !Text
-    , createdAt :: !UTCTime
-    , status :: !MessageStatus
-    , body :: !Text
-    }
-
-data MessageStatus
-    = Accepted
-    | Scheduled
-    | Queued
-    | Sending
-    | Sent
-    | Receiving
-    | Received
-    | Delivered
-    | Undelivered
-    | Failed
-    | Read
-    deriving (Show)
-
-instance FromRow Message where
-    fromRow =
-        Message
-            <$> field
-            <*> field
-            <*> field
-            <*> field
-            <*> field
-            <*> field
-
-instance FromField MessageStatus where
-    fromField field maybeData =
-        case maybeData of
-            Just "accepted" -> pure Accepted
-            Just "scheduled" -> pure Scheduled
-            Just "queued" -> pure Queued
-            Just "sending" -> pure Sending
-            Just "sent" -> pure Sent
-            Just "receiving" -> pure Receiving
-            Just "received" -> pure Received
-            Just "delivered" -> pure Delivered
-            Just "undelivered" -> pure Undelivered
-            Just "failed" -> pure Failed
-            Just "read" -> pure Read
-            Just _data -> returnError ConversionFailed field (toString _data)
-            Nothing -> returnError UnexpectedNull field ""
 
 instance View IndexView where
     html view =
@@ -185,7 +133,7 @@ renderMessages ::
     Person ->
     PersonActivity ->
     [Id TwilioMessage] ->
-    [Message] ->
+    [TwilioMessage.T] ->
     [SendMessageAction.T] ->
     Html
 renderMessages
@@ -238,7 +186,7 @@ renderSendMessageForm phoneNumber newMessage =
         </div>
     |]
 
-renderMessage :: Person -> PersonActivity -> [Id TwilioMessage] -> Message -> Html
+renderMessage :: Person -> PersonActivity -> [Id TwilioMessage] -> TwilioMessage.T -> Html
 renderMessage selectedPerson personActivity selectedMessageIds message =
     [hsx|
         <div
@@ -348,7 +296,7 @@ renderTimecardEntry selectedPerson timecardEntry =
     invoiceTranslation = get #invoiceTranslation timecardEntry
     editAction = EditTimecardEntryAction (get #id selectedPerson) (get #id timecardEntry)
 
-renderTimecardEntryForm :: Person -> [Message] -> TimecardActivity -> TimecardEntry -> Html
+renderTimecardEntryForm :: Person -> [TwilioMessage.T] -> TimecardActivity -> TimecardEntry -> Html
 renderTimecardEntryForm selectedPerson selectedMessages timecardActivity timecardEntry =
     formForWithOptions
         timecardEntry
@@ -404,13 +352,13 @@ renderTimecardEntryForm selectedPerson selectedMessages timecardActivity timecar
     selectedMessagesParam = intercalate "," (show . get #id <$> sortedMessages)
     sortedMessages = sortBy (\m1 m2 -> get #createdAt m1 `compare` get #createdAt m2) selectedMessages
 
-renderMessageBodies :: Text -> [Message] -> Html
+renderMessageBodies :: Text -> [TwilioMessage.T] -> Html
 renderMessageBodies existingText messages =
     if existingText == ""
         then [hsx| {intercalate "\n\n" ((get #body) <$> messages)} |]
         else [hsx| {existingText} |]
 
-renderSentAt :: Message -> Html
+renderSentAt :: TwilioMessage.T -> Html
 renderSentAt message =
     let sentAt = get #createdAt message
      in [hsx|
@@ -419,12 +367,12 @@ renderSentAt message =
             </time>
         |]
 
-messageStatusClass :: MessageStatus -> Text
+messageStatusClass :: TwilioMessage.Status -> Text
 messageStatusClass status =
     case status of
-        Delivered -> "message-status delivered"
-        Received -> "message-status received"
-        Failed -> "message-status failed"
+        TwilioMessage.Delivered -> "message-status delivered"
+        TwilioMessage.Received -> "message-status received"
+        TwilioMessage.Failed -> "message-status failed"
         _ -> "message-status sending"
 
 renderScheduledFor :: SendMessageAction.T -> Html

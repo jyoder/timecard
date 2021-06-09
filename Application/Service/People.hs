@@ -3,6 +3,7 @@ module Application.Service.People (
     fetchExcluding,
     fetchBotId,
     fetchBot,
+    fetchByPhoneNumber,
 ) where
 
 import Generated.Types
@@ -29,6 +30,17 @@ fetchBotId = get #id <$> fetchBot
 
 fetchBot :: (?modelContext :: ModelContext) => IO Person
 fetchBot = query @Person |> filterWhere (#goesBy, botName) |> fetchOne
+
+fetchByPhoneNumber ::
+    (?modelContext :: ModelContext) =>
+    Id PhoneNumber ->
+    IO Person
+fetchByPhoneNumber phoneNumberId = do
+    phoneContact <-
+        query @PhoneContact
+            |> filterWhere (#phoneNumberId, phoneNumberId)
+            |> fetchOne
+    fetchOne (get #personId phoneContact)
 
 botName :: Text
 botName = "Tim the Bot"

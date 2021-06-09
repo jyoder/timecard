@@ -2,11 +2,13 @@ module Application.Service.ActionRunState (
     updateNotStarted,
     updateRunning,
     updateFinished,
+    updateCanceled,
     updateFailed,
     validate,
     notStarted,
     running,
     finished,
+    canceled,
     failed,
 ) where
 
@@ -16,25 +18,28 @@ import IHP.Prelude
 import IHP.ValidationSupport.ValidateField
 
 updateNotStarted :: (?modelContext :: ModelContext) => ActionRunState -> IO ActionRunState
-updateNotStarted actionRunState =
-    actionRunState |> set #state notStarted |> validateAndUpdate validate
+updateNotStarted = updateState notStarted
 
 updateRunning :: (?modelContext :: ModelContext) => ActionRunState -> IO ActionRunState
-updateRunning actionRunState =
-    actionRunState |> set #state running |> validateAndUpdate validate
+updateRunning = updateState running
 
 updateFinished :: (?modelContext :: ModelContext) => ActionRunState -> IO ActionRunState
-updateFinished actionRunState =
-    actionRunState |> set #state notStarted |> validateAndUpdate validate
+updateFinished = updateState finished
+
+updateCanceled :: (?modelContext :: ModelContext) => ActionRunState -> IO ActionRunState
+updateCanceled = updateState canceled
 
 updateFailed :: (?modelContext :: ModelContext) => ActionRunState -> IO ActionRunState
-updateFailed actionRunState =
-    actionRunState |> set #state notStarted |> validateAndUpdate validate
+updateFailed = updateState failed
+
+updateState :: (?modelContext :: ModelContext) => Text -> ActionRunState -> IO ActionRunState
+updateState newState actionRunState =
+    actionRunState |> set #state newState |> validateAndUpdate validate
 
 validate :: ActionRunState -> ActionRunState
 validate actionRunState =
     actionRunState
-        |> validateField #state (isInList [notStarted, running, finished, failed])
+        |> validateField #state (isInList [notStarted, running, finished, canceled, failed])
 
 notStarted :: Text
 notStarted = "not_started"
@@ -44,6 +49,9 @@ running = "running"
 
 finished :: Text
 finished = "finished"
+
+canceled :: Text
+canceled = "canceled"
 
 failed :: Text
 failed = "failed"
