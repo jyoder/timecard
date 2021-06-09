@@ -11,7 +11,7 @@ import IHP.Prelude
 import IHP.QueryBuilder
 import Text.RawString.QQ (r)
 
-data SendMessageAction_ = SendMessageAction_
+data SendMessageAction'' = SendMessageAction''
     { id :: !(Id SendMessageAction)
     , actionRunStateId :: !(Id ActionRunState)
     , state :: !Text
@@ -23,9 +23,9 @@ data SendMessageAction_ = SendMessageAction_
     , toNumber :: !Text
     }
 
-instance FromRow SendMessageAction_ where
+instance FromRow SendMessageAction'' where
     fromRow =
-        SendMessageAction_
+        SendMessageAction''
             <$> field
             <*> field
             <*> field
@@ -40,7 +40,7 @@ fetchReadySendMessageActions ::
     ( ?modelContext :: ModelContext
     , ?context :: FrameworkConfig
     ) =>
-    IO [SendMessageAction_]
+    IO [SendMessageAction'']
 fetchReadySendMessageActions = sqlQuery readySendMessageActionsQuery ()
 
 readySendMessageActionsQuery :: Query
@@ -77,7 +77,7 @@ fetchFutureSendMessageActionsFor ::
     ( ?modelContext :: ModelContext
     ) =>
     Id Person ->
-    IO [SendMessageAction_]
+    IO [SendMessageAction'']
 fetchFutureSendMessageActionsFor personId =
     sqlQuery futureSendMessageActionsForQuery (Only personId)
 
@@ -138,13 +138,13 @@ scheduleSendMessageAction fromId toId body runsAt =
             |> set #body body
             |> createRecord
 
-sendMessage ::
+performSendMessageAction ::
     ( ?modelContext :: ModelContext
     , ?context :: FrameworkConfig
     ) =>
-    SendMessageAction_ ->
+    SendMessageAction'' ->
     IO ()
-sendMessage sendMessageAction = do
+performSendMessageAction sendMessageAction = do
     Twilio.Response {..} <-
         Twilio.sendPhoneMessage
             Twilio.accountId

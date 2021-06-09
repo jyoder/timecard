@@ -33,7 +33,7 @@ initModelContext FrameworkConfig {..} = do
 
 runSendMessageAction ::
     (?modelContext :: ModelContext, ?context :: FrameworkConfig) =>
-    SendMessageAction_ ->
+    SendMessageAction'' ->
     IO ()
 runSendMessageAction sendMessageAction = do
     actionRunState <- fetch (get #actionRunStateId sendMessageAction)
@@ -49,7 +49,7 @@ runSendMessageAction sendMessageAction = do
                     <> ": "
                     <> get #body sendMessageAction
                 )
-            sendMessage sendMessageAction
+            performSendMessageAction sendMessageAction
         )
         ( do
             Log.error

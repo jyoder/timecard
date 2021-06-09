@@ -24,7 +24,7 @@ data PersonSelection
         { selectedPerson :: !Person
         , messages :: ![Message]
         , toPhoneNumber :: !PhoneNumber
-        , scheduledMessages :: ![SendMessageAction_]
+        , scheduledMessages :: ![SendMessageAction'']
         , newMessage :: !TwilioMessage
         , personActivity :: !PersonActivity
         }
@@ -186,7 +186,7 @@ renderMessages ::
     PersonActivity ->
     [Id TwilioMessage] ->
     [Message] ->
-    [SendMessageAction_] ->
+    [SendMessageAction''] ->
     Html
 renderMessages
     selectedPerson
@@ -291,7 +291,7 @@ renderMessage selectedPerson personActivity selectedMessageIds message =
     includeMessageId = messageId : selectedMessageIds
     messageId = get #id message
 
-renderScheduledMessage :: SendMessageAction_ -> Html
+renderScheduledMessage :: SendMessageAction'' -> Html
 renderScheduledMessage scheduledMessage =
     [hsx|
         <div
@@ -427,7 +427,7 @@ messageStatusClass status =
         Failed -> "message-status failed"
         _ -> "message-status sending"
 
-renderScheduledFor :: SendMessageAction_ -> Html
+renderScheduledFor :: SendMessageAction'' -> Html
 renderScheduledFor scheduledMessage =
     let runsAt = get #runsAt scheduledMessage
      in [hsx|
