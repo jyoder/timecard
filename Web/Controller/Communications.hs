@@ -3,7 +3,7 @@
 module Web.Controller.Communications where
 
 import Application.Service.People (fetchBotId, fetchPeopleExcluding)
-import Application.Service.SendMessageAction (fetchFutureSendMessageActionsFor, scheduleSendMessageAction)
+import qualified Application.Service.SendMessageAction as SendMessageAction
 import qualified Application.Service.Twilio as Twilio
 import Data.Text (strip)
 import Data.Time.Calendar.WeekDate (toWeekDate)
@@ -30,7 +30,7 @@ instance Controller CommunicationsController where
 
         messages <- fetchMessagesBetween botId selectedPersonId
         toPhoneNumber <- fetchPhoneNumberFor selectedPersonId
-        scheduledMessages <- fetchFutureSendMessageActionsFor selectedPersonId
+        scheduledMessages <- SendMessageAction.fetchFutureFor selectedPersonId
         let newMessage = newRecord @TwilioMessage
 
         timecardEntries <- fetchTimecardEntriesFor selectedPersonId
@@ -49,7 +49,7 @@ instance Controller CommunicationsController where
         toPhoneNumber <- fetchPhoneNumberFor selectedPersonId
         let selectedMessageIds = paramOrDefault @[Id TwilioMessage] [] "selectedMessageIds"
         let selectedMessages = findSelectedMessages messages selectedMessageIds
-        scheduledMessages <- fetchFutureSendMessageActionsFor selectedPersonId
+        scheduledMessages <- SendMessageAction.fetchFutureFor selectedPersonId
         let newMessage = newRecord @TwilioMessage
 
         now <- getCurrentTime
@@ -74,7 +74,7 @@ instance Controller CommunicationsController where
         timecardEntryMessages <- fetchTimecardEntryMessagesFor timecardEntryId
         let selectedMessageIds = map (get #twilioMessageId) timecardEntryMessages
         let selectedMessages = findSelectedMessages messages selectedMessageIds
-        scheduledMessages <- fetchFutureSendMessageActionsFor selectedPersonId
+        scheduledMessages <- SendMessageAction.fetchFutureFor selectedPersonId
         let newMessage = newRecord @TwilioMessage
 
         timecardEntry <- fetch timecardEntryId
@@ -96,7 +96,7 @@ instance Controller CommunicationsController where
         toPhoneNumber <- fetchPhoneNumberFor selectedPersonId
         let selectedMessageIds = paramOrDefault @[Id TwilioMessage] [] "selectedMessageIds"
         let selectedMessages = findSelectedMessages messages selectedMessageIds
-        scheduledMessages <- fetchFutureSendMessageActionsFor selectedPersonId
+        scheduledMessages <- SendMessageAction.fetchFutureFor selectedPersonId
         let newMessage = newRecord @TwilioMessage
 
         timecardEntry <- fetch timecardEntryId
@@ -125,7 +125,7 @@ instance Controller CommunicationsController where
                     messages <- fetchMessagesBetween botId selectedPersonId
                     toPhoneNumber <- fetchPhoneNumberFor selectedPersonId
                     let selectedMessages = findSelectedMessages messages selectedMessageIds
-                    scheduledMessages <- fetchFutureSendMessageActionsFor selectedPersonId
+                    scheduledMessages <- SendMessageAction.fetchFutureFor selectedPersonId
                     let newMessage = newRecord @TwilioMessage
 
                     let timecardActivity = CreatingEntry
@@ -163,7 +163,7 @@ instance Controller CommunicationsController where
                     messages <- fetchMessagesBetween botId selectedPersonId
                     toPhoneNumber <- fetchPhoneNumberFor selectedPersonId
                     let selectedMessages = findSelectedMessages messages selectedMessageIds
-                    scheduledMessages <- fetchFutureSendMessageActionsFor selectedPersonId
+                    scheduledMessages <- SendMessageAction.fetchFutureFor selectedPersonId
                     let newMessage = newRecord @TwilioMessage
 
                     timecardEntry <- fetch timecardEntryId
@@ -302,12 +302,12 @@ scheduleNextTimecardEntryRequest lastTimecardEntry person = do
             fromId <- fromPhoneNumberId
             toId <- toPhoneNumberId
             let sendAt = sendTime companyTimeZone now
-            scheduleSendMessageAction fromId toId messageBody sendAt
+            SendMessageAction.schedule fromId toId messageBody sendAt
             pure ()
         else pure ()
   where
     alreadyScheduled = do
-        sendMessageActions <- fetchFutureSendMessageActionsFor (get #id person)
+        sendMessageActions <- SendMessageAction.fetchFutureFor (get #id person)
         pure $ not $ null sendMessageActions
     fromPhoneNumberId = do
         botId <- fetchBotId

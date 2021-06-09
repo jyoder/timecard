@@ -1,6 +1,6 @@
 module Web.Job.ProcessEvents (initSingleton) where
 
-import Application.Service.SendMessageAction
+import Application.Service.SendMessageAction as SendMessageAction
 import Control.Concurrent (threadDelay)
 import qualified Control.Exception
 import Control.Monad.Loops (whileM_)
@@ -11,7 +11,7 @@ instance Job ProcessEventsJob where
     perform ProcessEventsJob {..} = do
         whileM_ (pure True) do
             Log.debug ("Running scheduled actions" :: Text)
-            sendMessageActions <- fetchReadySendMessageActions
+            sendMessageActions <- SendMessageAction.fetchReady
             mapM_ runSendMessageAction sendMessageActions
             threadDelay runInterval
 
@@ -33,7 +33,7 @@ initModelContext FrameworkConfig {..} = do
 
 runSendMessageAction ::
     (?modelContext :: ModelContext, ?context :: FrameworkConfig) =>
-    SendMessageAction'' ->
+    SendMessageAction.T ->
     IO ()
 runSendMessageAction sendMessageAction = do
     actionRunState <- fetch (get #actionRunStateId sendMessageAction)
@@ -49,7 +49,7 @@ runSendMessageAction sendMessageAction = do
                     <> ": "
                     <> get #body sendMessageAction
                 )
-            performSendMessageAction sendMessageAction
+            SendMessageAction.perform sendMessageAction
         )
         ( do
             Log.error

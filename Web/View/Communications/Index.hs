@@ -1,6 +1,6 @@
 module Web.View.Communications.Index where
 
-import Application.Service.SendMessageAction
+import qualified Application.Service.SendMessageAction as SendMessageAction
 import Data.ByteString.UTF8 (toString)
 import Data.Time.Format.ISO8601 (iso8601Show)
 import Database.PostgreSQL.Simple.FromField (FromField, ResultError (..), fromField, returnError)
@@ -24,7 +24,7 @@ data PersonSelection
         { selectedPerson :: !Person
         , messages :: ![Message]
         , toPhoneNumber :: !PhoneNumber
-        , scheduledMessages :: ![SendMessageAction'']
+        , scheduledMessages :: ![SendMessageAction.T]
         , newMessage :: !TwilioMessage
         , personActivity :: !PersonActivity
         }
@@ -186,7 +186,7 @@ renderMessages ::
     PersonActivity ->
     [Id TwilioMessage] ->
     [Message] ->
-    [SendMessageAction''] ->
+    [SendMessageAction.T] ->
     Html
 renderMessages
     selectedPerson
@@ -291,7 +291,7 @@ renderMessage selectedPerson personActivity selectedMessageIds message =
     includeMessageId = messageId : selectedMessageIds
     messageId = get #id message
 
-renderScheduledMessage :: SendMessageAction'' -> Html
+renderScheduledMessage :: SendMessageAction.T -> Html
 renderScheduledMessage scheduledMessage =
     [hsx|
         <div
@@ -427,7 +427,7 @@ messageStatusClass status =
         Failed -> "message-status failed"
         _ -> "message-status sending"
 
-renderScheduledFor :: SendMessageAction'' -> Html
+renderScheduledFor :: SendMessageAction.T -> Html
 renderScheduledFor scheduledMessage =
     let runsAt = get #runsAt scheduledMessage
      in [hsx|

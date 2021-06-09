@@ -1,17 +1,23 @@
-module Application.Service.SendMessageAction where
+module Application.Service.SendMessageAction (
+    T (..),
+    validate,
+    fetchReady,
+    fetchFutureFor,
+    schedule,
+    perform,
+) where
 
 import qualified Application.Service.Twilio as Twilio
 import Database.PostgreSQL.Simple (Only (..), Query)
 import Database.PostgreSQL.Simple.FromRow (FromRow, field, fromRow)
 import Generated.Types
-import IHP.Fetch
-import IHP.FrameworkConfig
+import IHP.FrameworkConfig (FrameworkConfig)
 import IHP.ModelSupport
 import IHP.Prelude
-import IHP.QueryBuilder
+import IHP.ValidationSupport.ValidateField
 import Text.RawString.QQ (r)
 
-data SendMessageAction'' = SendMessageAction''
+data T = T
     { id :: !(Id SendMessageAction)
     , actionRunStateId :: !(Id ActionRunState)
     , state :: !Text
@@ -23,9 +29,9 @@ data SendMessageAction'' = SendMessageAction''
     , toNumber :: !Text
     }
 
-instance FromRow SendMessageAction'' where
+instance FromRow T where
     fromRow =
-        SendMessageAction''
+        T
             <$> field
             <*> field
             <*> field
@@ -36,15 +42,16 @@ instance FromRow SendMessageAction'' where
             <*> field
             <*> field
 
-fetchReadySendMessageActions ::
-    ( ?modelContext :: ModelContext
-    , ?context :: FrameworkConfig
-    ) =>
-    IO [SendMessageAction'']
-fetchReadySendMessageActions = sqlQuery readySendMessageActionsQuery ()
+validate :: SendMessageAction -> SendMessageAction
+validate sendMessageAction =
+    sendMessageAction
+        |> validateField #body nonEmpty
 
-readySendMessageActionsQuery :: Query
-readySendMessageActionsQuery =
+fetchReady :: (?modelContext :: ModelContext, ?context :: FrameworkConfig) => IO [T]
+fetchReady = sqlQuery fetchReadyQuery ()
+
+fetchReadyQuery :: Query
+fetchReadyQuery =
     [r|
 select
     send_message_actions.id,
@@ -73,16 +80,11 @@ order by
     action_run_times.runs_at asc;
 |]
 
-fetchFutureSendMessageActionsFor ::
-    ( ?modelContext :: ModelContext
-    ) =>
-    Id Person ->
-    IO [SendMessageAction'']
-fetchFutureSendMessageActionsFor personId =
-    sqlQuery futureSendMessageActionsForQuery (Only personId)
+fetchFutureFor :: (?modelContext :: ModelContext) => Id Person -> IO [T]
+fetchFutureFor personId = sqlQuery fetchFutureForQuery (Only personId)
 
-futureSendMessageActionsForQuery :: Query
-futureSendMessageActionsForQuery =
+fetchFutureForQuery :: Query
+fetchFutureForQuery =
     [r|
 select
     send_message_actions.id,
@@ -114,14 +116,14 @@ order by
     action_run_times.runs_at asc;
 |]
 
-scheduleSendMessageAction ::
+schedule ::
     (?modelContext :: ModelContext) =>
     Id PhoneNumber ->
     Id PhoneNumber ->
     Text ->
     UTCTime ->
     IO SendMessageAction
-scheduleSendMessageAction fromId toId body runsAt =
+schedule fromId toId body runsAt =
     withTransaction do
         actionRunState <-
             newRecord @ActionRunState
@@ -138,13 +140,8 @@ scheduleSendMessageAction fromId toId body runsAt =
             |> set #body body
             |> createRecord
 
-performSendMessageAction ::
-    ( ?modelContext :: ModelContext
-    , ?context :: FrameworkConfig
-    ) =>
-    SendMessageAction'' ->
-    IO ()
-performSendMessageAction sendMessageAction = do
+perform :: (?modelContext :: ModelContext, ?context :: FrameworkConfig) => T -> IO ()
+perform sendMessageAction = do
     Twilio.Response {..} <-
         Twilio.sendPhoneMessage
             Twilio.accountId
