@@ -1,11 +1,11 @@
 module Web.Job.ProcessEvents (initSingleton) where
 
+import Application.Service.SendMessageAction
 import Control.Concurrent (threadDelay)
 import qualified Control.Exception
 import Control.Monad.Loops (whileM_)
 import IHP.Log as Log
 import Web.Controller.Prelude
-import Web.Service.SendMessageAction
 
 instance Job ProcessEventsJob where
     perform ProcessEventsJob {..} = do

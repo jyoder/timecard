@@ -1,4 +1,4 @@
-module Web.Service.SendMessageAction where
+module Application.Service.SendMessageAction where
 
 import qualified Application.Service.Twilio as Twilio
 import Database.PostgreSQL.Simple (Only (..), Query)

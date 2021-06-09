@@ -1,5 +1,6 @@
 module Web.View.Communications.Index where
 
+import Application.Service.SendMessageAction
 import Data.ByteString.UTF8 (toString)
 import Data.Time.Format.ISO8601 (iso8601Show)
 import Database.PostgreSQL.Simple.FromField (FromField, ResultError (..), fromField, returnError)
@@ -7,7 +8,6 @@ import Database.PostgreSQL.Simple.FromRow (FromRow, field, fromRow)
 import IHP.View.TimeAgo as TO
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
-import Web.Service.SendMessageAction
 import Web.View.Navigation (Section (Communications), renderNavigation)
 import Web.View.Prelude
 import Web.View.Service.Style (removeScrollbars)
