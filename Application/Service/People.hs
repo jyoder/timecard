@@ -1,4 +1,8 @@
-module Application.Service.People where
+module Application.Service.People (
+    fetchExcluding,
+    fetchBotId,
+    fetchBot,
+) where
 
 import Generated.Types
 import IHP.Fetch
@@ -6,11 +10,11 @@ import IHP.ModelSupport
 import IHP.Prelude
 import IHP.QueryBuilder
 
-fetchPeopleExcluding ::
+fetchExcluding ::
     (?modelContext :: ModelContext) =>
     Id Person ->
     IO [Person]
-fetchPeopleExcluding idToExclude = do
+fetchExcluding idToExclude = do
     people <- query @Person |> orderByAsc #lastName |> fetch
     filter (\person -> get #id person /= idToExclude) people |> pure
 

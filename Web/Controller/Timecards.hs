@@ -1,6 +1,6 @@
 module Web.Controller.Timecards where
 
-import Application.Service.People (fetchBotId, fetchPeopleExcluding)
+import qualified Application.Service.People as People
 import Data.List (groupBy)
 import Data.Time.Calendar.WeekDate (toWeekDate)
 import Data.Time.LocalTime (TimeZone)
@@ -12,15 +12,15 @@ instance Controller TimecardsController where
     beforeAction = ensureIsUser
 
     action TimecardsAction = do
-        botId <- fetchBotId
-        people <- fetchPeopleExcluding botId
+        botId <- People.fetchBotId
+        people <- People.fetchExcluding botId
         let personSelection = NoPersonSelected
 
         render IndexView {..}
     --
     action TimecardPersonSelectionAction {..} = do
-        botId <- fetchBotId
-        people <- fetchPeopleExcluding botId
+        botId <- People.fetchBotId
+        people <- People.fetchExcluding botId
         selectedPerson <- fetch selectedPersonId
 
         timecardEntries <- fetchTimecardEntriesFor selectedPersonId
@@ -32,8 +32,8 @@ instance Controller TimecardsController where
         render IndexView {..}
     --
     action TimecardEditTimecardEntryAction {..} = do
-        botId <- fetchBotId
-        people <- fetchPeopleExcluding botId
+        botId <- People.fetchBotId
+        people <- People.fetchExcluding botId
 
         selectedTimecardEntry <- fetch timecardEntryId
         let selectedPersonId = get #personId selectedTimecardEntry
@@ -58,8 +58,8 @@ instance Controller TimecardsController where
             |> validateField #invoiceTranslation nonEmpty
             |> ifValid \case
                 Left selectedTimecardEntry -> do
-                    botId <- fetchBotId
-                    people <- fetchPeopleExcluding botId
+                    botId <- People.fetchBotId
+                    people <- People.fetchExcluding botId
                     selectedPerson <- fetch selectedPersonId
 
                     timecardEntries <- fetchTimecardEntriesFor selectedPersonId

@@ -2,7 +2,7 @@
 
 module Web.Controller.Communications where
 
-import Application.Service.People (fetchBotId, fetchPeopleExcluding)
+import qualified Application.Service.People as People
 import qualified Application.Service.SendMessageAction as SendMessageAction
 import qualified Application.Service.Twilio as Twilio
 import Data.Text (strip)
@@ -17,15 +17,15 @@ instance Controller CommunicationsController where
     beforeAction = ensureIsUser
 
     action CommunicationsAction = autoRefresh do
-        botId <- fetchBotId
-        people <- fetchPeopleExcluding botId
+        botId <- People.fetchBotId
+        people <- People.fetchExcluding botId
         let personSelection = NoPersonSelected
 
         render IndexView {..}
     --
     action PersonSelectionAction {..} = autoRefresh do
-        botId <- fetchBotId
-        people <- fetchPeopleExcluding botId
+        botId <- People.fetchBotId
+        people <- People.fetchExcluding botId
         selectedPerson <- fetch selectedPersonId
 
         messages <- fetchMessagesBetween botId selectedPersonId
@@ -41,8 +41,8 @@ instance Controller CommunicationsController where
         render IndexView {..}
     --
     action NewTimecardEntryAction {..} = autoRefresh do
-        botId <- fetchBotId
-        people <- fetchPeopleExcluding botId
+        botId <- People.fetchBotId
+        people <- People.fetchExcluding botId
         selectedPerson <- fetch selectedPersonId
 
         messages <- fetchMessagesBetween botId selectedPersonId
@@ -65,8 +65,8 @@ instance Controller CommunicationsController where
             else render IndexView {..}
     --
     action EditTimecardEntryAction {..} = autoRefresh do
-        botId <- fetchBotId
-        people <- fetchPeopleExcluding botId
+        botId <- People.fetchBotId
+        people <- People.fetchExcluding botId
         selectedPerson <- fetch selectedPersonId
 
         toPhoneNumber <- fetchPhoneNumberFor selectedPersonId
@@ -88,8 +88,8 @@ instance Controller CommunicationsController where
             else render IndexView {..}
     --
     action EditModifiedTimecardEntryAction {..} = autoRefresh do
-        botId <- fetchBotId
-        people <- fetchPeopleExcluding botId
+        botId <- People.fetchBotId
+        people <- People.fetchExcluding botId
         selectedPerson <- fetch selectedPersonId
 
         messages <- fetchMessagesBetween botId selectedPersonId
@@ -119,8 +119,8 @@ instance Controller CommunicationsController where
             |> set #personId selectedPersonId
             |> ifValid \case
                 Left timecardEntry -> do
-                    botId <- fetchBotId
-                    people <- fetchPeopleExcluding botId
+                    botId <- People.fetchBotId
+                    people <- People.fetchExcluding botId
 
                     messages <- fetchMessagesBetween botId selectedPersonId
                     toPhoneNumber <- fetchPhoneNumberFor selectedPersonId
@@ -156,8 +156,8 @@ instance Controller CommunicationsController where
             |> set #personId selectedPersonId
             |> ifValid \case
                 Left timecardEntry -> do
-                    botId <- fetchBotId
-                    people <- fetchPeopleExcluding botId
+                    botId <- People.fetchBotId
+                    people <- People.fetchExcluding botId
                     selectedPerson <- fetch selectedPersonId
 
                     messages <- fetchMessagesBetween botId selectedPersonId
@@ -188,7 +188,7 @@ instance Controller CommunicationsController where
         let toPhoneNumberId = Id (param "toId")
         toPhoneNumber <- fetchOne toPhoneNumberId
 
-        botId <- fetchBotId
+        botId <- People.fetchBotId
         fromPhoneNumber <- fetchPhoneNumberFor botId
         toPerson <- fetchPersonFor toPhoneNumberId
 
@@ -310,7 +310,7 @@ scheduleNextTimecardEntryRequest lastTimecardEntry person = do
         sendMessageActions <- SendMessageAction.fetchFutureFor (get #id person)
         pure $ not $ null sendMessageActions
     fromPhoneNumberId = do
-        botId <- fetchBotId
+        botId <- People.fetchBotId
         phoneNumber <- fetchPhoneNumberFor botId
         pure $ get #id phoneNumber
     toPhoneNumberId = do
