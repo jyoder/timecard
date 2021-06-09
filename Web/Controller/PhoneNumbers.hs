@@ -1,5 +1,6 @@
 module Web.Controller.PhoneNumbers where
 
+import qualified Application.Service.PhoneNumber as PhoneNumber
 import Web.Controller.Prelude
 import Web.View.PhoneNumbers.Edit
 import Web.View.PhoneNumbers.Index
@@ -62,4 +63,4 @@ buildPhoneNumber :: (?context :: ControllerContext) => PhoneNumber -> PhoneNumbe
 buildPhoneNumber phoneNumber =
     phoneNumber
         |> fill @'["number"]
-        |> validateField #number isPhoneNumber
+        |> PhoneNumber.validate

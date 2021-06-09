@@ -1,6 +1,8 @@
 module Web.Job.ProcessEvents (initSingleton) where
 
+import Application.Service.ActionRunState as ActionRunState
 import Application.Service.SendMessageAction as SendMessageAction
+import Application.Service.Validation (validateAndUpdate)
 import Control.Concurrent (threadDelay)
 import qualified Control.Exception
 import Control.Monad.Loops (whileM_)
@@ -37,7 +39,7 @@ runSendMessageAction ::
     IO ()
 runSendMessageAction sendMessageAction = do
     actionRunState <- fetch (get #actionRunStateId sendMessageAction)
-    actionRunState |> set #state "running" |> updateRecord
+    ActionRunState.updateRunning actionRunState
 
     Control.Exception.onException
         ( do
@@ -58,11 +60,11 @@ runSendMessageAction sendMessageAction = do
                     <> ")"
                 )
             actionRunState <- fetch (get #actionRunStateId sendMessageAction)
-            actionRunState |> set #state "failed" |> updateRecord
+            ActionRunState.updateFailed actionRunState
         )
 
     actionRunState <- fetch (get #actionRunStateId sendMessageAction)
-    actionRunState |> set #state "finished" |> updateRecord
+    ActionRunState.updateFinished actionRunState
     pure ()
 
 runInterval :: Int
