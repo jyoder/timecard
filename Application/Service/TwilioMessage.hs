@@ -3,6 +3,7 @@ module Application.Service.TwilioMessage (
     Status (..),
     validate,
     fetchByPeople,
+    delivered,
 ) where
 
 import Data.ByteString.UTF8 (toString)

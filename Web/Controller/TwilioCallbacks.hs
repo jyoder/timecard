@@ -1,6 +1,7 @@
 module Web.Controller.TwilioCallbacks where
 
 import qualified Application.Service.Twilio as Twilio
+import qualified Application.Service.TwilioMessage as TwilioMessage
 import qualified Data.TMap as TMap
 import Data.Text.Encoding (encodeUtf8)
 import qualified IHP.Log as Log
@@ -20,7 +21,7 @@ instance Controller TwilioCallbacksController where
                 |> filterWhere (#messageSid, messageSid)
                 |> fetchOne
 
-        if get #status twilioMessage /= deliveredStatus
+        if get #status twilioMessage /= TwilioMessage.delivered
             then do
                 twilioMessage
                     |> set #status messageStatus
@@ -33,7 +34,6 @@ instance Controller TwilioCallbacksController where
     action CreateIncomingPhoneMessageAction = do
         validateCallbackSignature
 
-        let twilioMessage = buildIncomingTwilioMessage newRecord
         let fromNumber = param "From"
         let toNumber = param "To"
 
@@ -46,10 +46,17 @@ instance Controller TwilioCallbacksController where
                 |> filterWhere (#number, toNumber)
                 |> fetchOne
 
-        twilioMessage
-            |> set #fromId (get #id fromPhoneNumber)
-            |> set #toId (get #id toPhoneNumber)
-            |> createRecord
+        newRecord @TwilioMessage
+            |> buildIncomingTwilioMessage
+                (get #id fromPhoneNumber)
+                (get #id toPhoneNumber)
+            |> ifValid \case
+                Left twilioMessage -> do
+                    Log.error ("Failed to save incoming message: " <> show twilioMessage)
+                    pure ()
+                Right twilioMessage -> do
+                    createRecord twilioMessage
+                    pure ()
 
         renderPlain ""
 
@@ -71,10 +78,14 @@ validateCallbackSignature = do
 
 buildIncomingTwilioMessage ::
     (?context :: ControllerContext) =>
+    Id PhoneNumber ->
+    Id PhoneNumber ->
     TwilioMessage ->
     TwilioMessage
-buildIncomingTwilioMessage twilioMessage =
+buildIncomingTwilioMessage fromId toId twilioMessage =
     twilioMessage
+        |> set #fromId fromId
+        |> set #toId toId
         |> set #apiVersion (param "ApiVersion")
         |> set #messageSid (param "MessageSid")
         |> set #accountSid (param "AccountSid")
@@ -82,6 +93,4 @@ buildIncomingTwilioMessage twilioMessage =
         |> set #status (param "SmsStatus")
         |> set #body (param "Body")
         |> set #numMedia (param "NumMedia")
-
-deliveredStatus :: Text
-deliveredStatus = "delivered"
+        |> TwilioMessage.validate
