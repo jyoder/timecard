@@ -3,7 +3,6 @@ module Web.Controller.TwilioCallbacks where
 import Application.Service.Validation (validateAndUpdate)
 import qualified Application.Twilio.TwilioClient as TwilioClient
 import qualified Application.Twilio.TwilioMessage as TwilioMessage
-import qualified Data.TMap as TMap
 import Data.Text.Encoding (encodeUtf8)
 import qualified IHP.Log as Log
 import Network.HTTP.Types (hContentType, status400)
