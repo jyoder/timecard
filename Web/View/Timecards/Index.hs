@@ -1,9 +1,9 @@
 module Web.View.Timecards.Index where
 
+import qualified Application.Timecard.Timecard as Timecard
+import IHP.View.TimeAgo as TO
 import Web.View.Navigation (Section (Timecards), renderNavigation)
 import Web.View.Prelude
-
-import IHP.View.TimeAgo as TO
 import Web.View.Service.Style (removeScrollbars)
 import Web.View.Service.Time (weekday)
 
@@ -16,7 +16,7 @@ data PersonSelection
     = NoPersonSelected
     | PersonSelected
         { selectedPerson :: !Person
-        , timecards :: ![Timecard]
+        , timecards :: ![Timecard.T]
         , personActivity :: !PersonActivity
         }
 
@@ -25,10 +25,6 @@ data PersonActivity
     | Editing
         { selectedTimecardEntry :: !TimecardEntry
         }
-
-newtype Timecard = Timecard
-    { timecardEntries :: [TimecardEntry]
-    }
 
 instance View IndexView where
     html view =
@@ -84,7 +80,7 @@ renderTimecardColumn IndexView {..} =
                 </div>
             |]
 
-renderTimecard :: Person -> PersonActivity -> Timecard -> Html
+renderTimecard :: Person -> PersonActivity -> Timecard.T -> Html
 renderTimecard selectedPerson personActivity timecard =
     [hsx|
         <div class="card mb-5">
@@ -185,8 +181,8 @@ renderLastRow hours =
         </tr>
     |]
 
-dateRange :: Timecard -> Html
-dateRange Timecard {..} =
+dateRange :: Timecard.T -> Html
+dateRange Timecard.T {..} =
     case (head timecardEntries, last timecardEntries) of
         (Just firstEntry, Just lastEntry) ->
             [hsx|
@@ -196,8 +192,8 @@ dateRange Timecard {..} =
             |]
         _ -> [hsx||]
 
-totalHoursWorked :: Timecard -> Double
-totalHoursWorked Timecard {..} =
+totalHoursWorked :: Timecard.T -> Double
+totalHoursWorked Timecard.T {..} =
     sum (get #hoursWorked <$> timecardEntries)
 
 styles :: Html

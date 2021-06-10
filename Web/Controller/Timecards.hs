@@ -1,9 +1,8 @@
 module Web.Controller.Timecards where
 
 import qualified Application.Base.People as People
-import Data.List (groupBy)
-import Data.Time.Calendar.WeekDate (toWeekDate)
-import Data.Time.LocalTime (TimeZone)
+import qualified Application.Timecard.Timecard as Timecard
+import qualified Application.Timecard.TimecardEntry as TimecardEntry
 import Text.Read (read)
 import Web.Controller.Prelude
 import Web.View.Timecards.Index
@@ -23,8 +22,8 @@ instance Controller TimecardsController where
         people <- People.fetchExcluding botId
         selectedPerson <- fetch selectedPersonId
 
-        timecardEntries <- fetchTimecardEntriesFor selectedPersonId
-        let timecards = buildTimecards timecardEntries
+        timecardEntries <- TimecardEntry.fetchByPerson selectedPersonId
+        let timecards = Timecard.buildAll companyTimeZone timecardEntries
 
         let personActivity = Viewing
         let personSelection = PersonSelected {..}
@@ -39,8 +38,8 @@ instance Controller TimecardsController where
         let selectedPersonId = get #personId selectedTimecardEntry
         selectedPerson <- fetch selectedPersonId
 
-        timecardEntries <- fetchTimecardEntriesFor selectedPersonId
-        let timecards = buildTimecards timecardEntries
+        timecardEntries <- TimecardEntry.fetchByPerson selectedPersonId
+        let timecards = Timecard.buildAll companyTimeZone timecardEntries
 
         let personActivity = Editing {..}
         let personSelection = PersonSelected {..}
@@ -62,8 +61,8 @@ instance Controller TimecardsController where
                     people <- People.fetchExcluding botId
                     selectedPerson <- fetch selectedPersonId
 
-                    timecardEntries <- fetchTimecardEntriesFor selectedPersonId
-                    let timecards = buildTimecards timecardEntries
+                    timecardEntries <- TimecardEntry.fetchByPerson selectedPersonId
+                    let timecards = Timecard.buildAll companyTimeZone timecardEntries
 
                     let personActivity = Editing {..}
                     let personSelection = PersonSelected {..}
@@ -72,38 +71,6 @@ instance Controller TimecardsController where
                 Right timecardEntry -> do
                     updateRecord timecardEntry
                     redirectTo TimecardPersonSelectionAction {..}
-
-fetchTimecardEntriesFor ::
-    (?modelContext :: ModelContext) =>
-    Id Person ->
-    IO [TimecardEntry]
-fetchTimecardEntriesFor personId =
-    query @TimecardEntry
-        |> filterWhere (#personId, personId)
-        |> orderByDesc #date
-        |> fetch
-
-buildTimecards :: [TimecardEntry] -> [Timecard]
-buildTimecards timecardEntries =
-    Timecard . sortEntries <$> groupBy inSameWeek timecardEntries
-  where
-    sortEntries entries = sortBy dateCompare entries
-    dateCompare entryA entryB = get #date entryA `compare` get #date entryB
-
-inSameWeek :: TimecardEntry -> TimecardEntry -> Bool
-inSameWeek timecardEntry1 timecardEntry2 =
-    let week1 = weekOfYear companyTimeZone $ get #date timecardEntry1
-     in let week2 = weekOfYear companyTimeZone $ get #date timecardEntry2
-         in week1 == week2
-
-weekOfYear :: TimeZone -> UTCTime -> (Integer, Int)
-weekOfYear timeZone time =
-    let (year, week, _) =
-            utcToZonedTime companyTimeZone time
-                |> zonedTimeToLocalTime
-                |> localDay
-                |> toWeekDate
-     in (year, week)
 
 companyTimeZone :: TimeZone
 companyTimeZone = read "PDT"
