@@ -1,7 +1,7 @@
 module Web.Controller.TwilioCallbacks where
 
-import qualified Application.Service.Twilio as Twilio
-import qualified Application.Service.TwilioMessage as TwilioMessage
+import qualified Application.Twilio.TwilioClient as TwilioClient
+import qualified Application.Twilio.TwilioMessage as TwilioMessage
 import qualified Data.TMap as TMap
 import Data.Text.Encoding (encodeUtf8)
 import qualified IHP.Log as Log
@@ -65,8 +65,8 @@ validateCallbackSignature = do
     case (getHeader "Host", getHeader "X-Twilio-Signature") of
         (Just host, Just receivedSignature) -> do
             let requestUrl = "https://" <> host <> getRequestPath
-            let authToken = (\(Twilio.AuthToken token) -> encodeUtf8 token) Twilio.authToken
-            let computedSignature = Twilio.callbackSignature authToken requestUrl allParams
+            let authToken = (\(TwilioClient.AuthToken token) -> encodeUtf8 token) TwilioClient.authToken
+            let computedSignature = TwilioClient.callbackSignature authToken requestUrl allParams
             if receivedSignature == computedSignature
                 then pure ()
                 else do

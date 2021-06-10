@@ -1,4 +1,4 @@
-module Application.Service.TwilioMessage (
+module Application.Twilio.TwilioMessage (
     T (..),
     Status (..),
     validate,
@@ -7,8 +7,8 @@ module Application.Service.TwilioMessage (
     delivered,
 ) where
 
-import qualified Application.Service.Twilio as Twilio
 import Application.Service.Validation (validateAndCreate)
+import qualified Application.Twilio.TwilioClient as TwilioClient
 import Data.ByteString.UTF8 (toString)
 import Database.PostgreSQL.Simple (Query)
 import Database.PostgreSQL.Simple.FromField (FromField, ResultError (..), fromField, returnError)
@@ -136,11 +136,11 @@ send ::
     Text ->
     IO TwilioMessage
 send fromPhoneNumber toPhoneNumber body = do
-    Twilio.Response {..} <-
-        Twilio.sendPhoneMessage
-            Twilio.accountId
-            Twilio.authToken
-            Twilio.statusCallbackUrl
+    TwilioClient.Response {..} <-
+        TwilioClient.sendPhoneMessage
+            TwilioClient.accountId
+            TwilioClient.authToken
+            TwilioClient.statusCallbackUrl
             (get #number fromPhoneNumber)
             (get #number toPhoneNumber)
             body

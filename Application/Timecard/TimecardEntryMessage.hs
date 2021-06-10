@@ -1,4 +1,4 @@
-module Application.Service.TimecardEntryMessage (
+module Application.Timecard.TimecardEntryMessage (
     buildAll,
     fetchByTimecardEntry,
 ) where

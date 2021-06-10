@@ -1,4 +1,4 @@
-module Application.Service.SendMessageAction (
+module Application.Action.SendMessageAction (
     T (..),
     validate,
     fetchReady,
@@ -7,10 +7,10 @@ module Application.Service.SendMessageAction (
     perform,
 ) where
 
-import qualified Application.Service.ActionRunState as ActionRunState
-import qualified Application.Service.ActionRunTime as ActionRunTime
-import qualified Application.Service.Twilio as Twilio
+import qualified Application.Action.ActionRunState as ActionRunState
+import qualified Application.Action.ActionRunTime as ActionRunTime
 import Application.Service.Validation (validateAndCreate)
+import qualified Application.Twilio.TwilioClient as TwilioClient
 import Database.PostgreSQL.Simple (Only (..), Query)
 import Database.PostgreSQL.Simple.FromRow (FromRow, field, fromRow)
 import Generated.Types
@@ -145,11 +145,11 @@ schedule fromId toId body runsAt =
 
 perform :: (?modelContext :: ModelContext, ?context :: FrameworkConfig) => T -> IO ()
 perform sendMessageAction = do
-    Twilio.Response {..} <-
-        Twilio.sendPhoneMessage
-            Twilio.accountId
-            Twilio.authToken
-            Twilio.statusCallbackUrl
+    TwilioClient.Response {..} <-
+        TwilioClient.sendPhoneMessage
+            TwilioClient.accountId
+            TwilioClient.authToken
+            TwilioClient.statusCallbackUrl
             (get #fromNumber sendMessageAction)
             (get #toNumber sendMessageAction)
             (get #body sendMessageAction)

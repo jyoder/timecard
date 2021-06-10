@@ -1,6 +1,6 @@
 module Web.Controller.Timecards where
 
-import qualified Application.Service.People as People
+import qualified Application.Base.People as People
 import Data.List (groupBy)
 import Data.Time.Calendar.WeekDate (toWeekDate)
 import Data.Time.LocalTime (TimeZone)

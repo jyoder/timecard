@@ -1,7 +1,7 @@
 module Web.Job.ProcessEvents (initSingleton) where
 
-import Application.Service.ActionRunState as ActionRunState
-import Application.Service.SendMessageAction as SendMessageAction
+import qualified Application.Action.ActionRunState as ActionRunState
+import qualified Application.Action.SendMessageAction as SendMessageAction
 import Application.Service.Validation (validateAndUpdate)
 import Control.Concurrent (threadDelay)
 import qualified Control.Exception

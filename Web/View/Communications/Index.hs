@@ -1,7 +1,7 @@
 module Web.View.Communications.Index where
 
-import qualified Application.Service.SendMessageAction as SendMessageAction
-import qualified Application.Service.TwilioMessage as TwilioMessage
+import qualified Application.Action.SendMessageAction as SendMessageAction
+import qualified Application.Twilio.TwilioMessage as TwilioMessage
 import Data.Time.Format.ISO8601 (iso8601Show)
 import IHP.View.TimeAgo as TO
 import qualified Text.Blaze.Html5 as H

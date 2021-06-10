@@ -14,7 +14,8 @@ import IHP.Prelude hiding (toException)
 newtype ValidationException = ValidationException {description :: Text} deriving (Show)
 
 instance Exception ValidationException where
-    displayException ValidationException {description} = unpack $ "Validations failed: " <> description
+    displayException ValidationException {description} =
+        unpack $ "Validations failed: " <> description
 
 validateAndCreate ::
     ( ?modelContext :: ModelContext

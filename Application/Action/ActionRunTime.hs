@@ -1,4 +1,4 @@
-module Application.Service.ActionRunTime (validate) where
+module Application.Action.ActionRunTime (validate) where
 
 import Generated.Types
 

@@ -1,4 +1,4 @@
-module Application.Service.TimecardEntry (
+module Application.Timecard.TimecardEntry (
     validate,
     fetchByPerson,
 ) where

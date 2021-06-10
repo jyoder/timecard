@@ -1,6 +1,6 @@
 module Web.Controller.PhoneNumbers where
 
-import qualified Application.Service.PhoneNumber as PhoneNumber
+import qualified Application.Base.PhoneNumber as PhoneNumber
 import Web.Controller.Prelude
 import Web.View.PhoneNumbers.Edit
 import Web.View.PhoneNumbers.Index

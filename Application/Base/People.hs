@@ -1,4 +1,4 @@
-module Application.Service.People (
+module Application.Base.People (
     validate,
     fetchExcluding,
     fetchBotId,

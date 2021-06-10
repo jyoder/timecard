@@ -1,4 +1,4 @@
-module Application.Service.PhoneNumber (
+module Application.Base.PhoneNumber (
     validate,
     fetchByPerson,
 ) where

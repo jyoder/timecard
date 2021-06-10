@@ -2,15 +2,14 @@
 
 module Web.Controller.Communications where
 
-import qualified Application.Service.ActionRunState as ActionRunState
-import qualified Application.Service.People as People
-import qualified Application.Service.PhoneNumber as PhoneNumber
-import qualified Application.Service.SendMessageAction as SendMessageAction
-import qualified Application.Service.TimecardEntry as TimecardEntry
-import qualified Application.Service.TimecardEntryMessage as TimecardEntryMessage
-import qualified Application.Service.Twilio as Twilio
-import qualified Application.Service.TwilioMessage as TwilioMessage
+import qualified Application.Action.ActionRunState as ActionRunState
+import qualified Application.Action.SendMessageAction as SendMessageAction
+import qualified Application.Base.People as People
+import qualified Application.Base.PhoneNumber as PhoneNumber
 import Application.Service.Validation (validateAndCreate)
+import qualified Application.Timecard.TimecardEntry as TimecardEntry
+import qualified Application.Timecard.TimecardEntryMessage as TimecardEntryMessage
+import qualified Application.Twilio.TwilioMessage as TwilioMessage
 import Data.Text (strip)
 import Data.Time.Calendar.WeekDate (toWeekDate)
 import Text.Read (read)

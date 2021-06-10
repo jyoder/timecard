@@ -1,6 +1,6 @@
 module Config where
 
-import qualified Application.Service.Twilio as Twilio
+import qualified Application.Twilio.TwilioClient as TwilioClient
 import Data.Text (pack)
 import IHP.Environment
 import IHP.FrameworkConfig
@@ -24,10 +24,10 @@ config = do
     option logger
 
     twilioAccountId <- liftIO $ getEnv "TWILIO_ACCOUNT_ID"
-    option (Twilio.AccountId $ pack twilioAccountId)
+    option (TwilioClient.AccountId $ pack twilioAccountId)
 
     twilioAuthToken <- liftIO $ getEnv "TWILIO_AUTH_TOKEN"
-    option (Twilio.AuthToken $ pack twilioAuthToken)
+    option (TwilioClient.AuthToken $ pack twilioAuthToken)
 
     twilioStatusCallbackUrl <- liftIO $ getEnv "TWILIO_STATUS_CALLBACK_URL"
-    option (Twilio.StatusCallbackUrl $ pack twilioStatusCallbackUrl)
+    option (TwilioClient.StatusCallbackUrl $ pack twilioStatusCallbackUrl)

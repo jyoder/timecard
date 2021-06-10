@@ -1,4 +1,4 @@
-module Application.Service.Twilio (
+module Application.Twilio.TwilioClient (
     sendPhoneMessage,
     callbackSignature,
     accountId,

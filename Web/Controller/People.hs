@@ -1,6 +1,6 @@
 module Web.Controller.People where
 
-import qualified Application.Service.People as People
+import qualified Application.Base.People as People
 import Web.Controller.Prelude
 import Web.View.People.Edit
 import Web.View.People.Index

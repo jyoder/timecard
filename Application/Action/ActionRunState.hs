@@ -1,4 +1,4 @@
-module Application.Service.ActionRunState (
+module Application.Action.ActionRunState (
     updateNotStarted,
     updateRunning,
     updateFinished,
