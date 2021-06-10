@@ -19,7 +19,7 @@ defaultLayout inner =
     {stylesheets}
     {scripts}
 
-    <title>App</title>
+    <title>Constructable</title>
 </head>
 <body>
     <div class="content container-fluid">
