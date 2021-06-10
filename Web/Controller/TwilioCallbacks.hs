@@ -1,5 +1,6 @@
 module Web.Controller.TwilioCallbacks where
 
+import Application.Service.Validation (validateAndUpdate)
 import qualified Application.Twilio.TwilioClient as TwilioClient
 import qualified Application.Twilio.TwilioMessage as TwilioMessage
 import qualified Data.TMap as TMap
@@ -16,18 +17,19 @@ instance Controller TwilioCallbacksController where
         let messageSid = param @Text "MessageSid"
         let messageStatus = param @Text "MessageStatus"
 
-        twilioMessage <-
-            query @TwilioMessage
-                |> filterWhere (#messageSid, messageSid)
-                |> fetchOne
+        withTransaction do
+            twilioMessage <-
+                query @TwilioMessage
+                    |> filterWhere (#messageSid, messageSid)
+                    |> fetchOne
 
-        if get #status twilioMessage /= TwilioMessage.delivered
-            then do
-                twilioMessage
-                    |> set #status messageStatus
-                    |> updateRecord
-                pure ()
-            else pure ()
+            if get #status twilioMessage /= TwilioMessage.delivered
+                then
+                    twilioMessage
+                        |> set #status messageStatus
+                        |> validateAndUpdate TwilioMessage.validate
+                        >> pure ()
+                else pure ()
 
         renderPlain ""
     --
