@@ -52,7 +52,6 @@ scripts =
         <script src="/vendor/turbolinksMorphdom.js"></script>
         <script src="/helpers.js"></script>
         <script src="/ihp-auto-refresh.js"></script>
-        <script src="https://unpkg.com/htmx.org@1.3.3"></script>
         <script src="app.js"></script>
     |]
 

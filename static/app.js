@@ -29,19 +29,14 @@ function initCustomTime() {
 }
 
 function initApp() {
-    // Initialize htmx whenever Turbolinks loads a new page
-    htmx.process(document.body);
+    // For anything marked as 'scroll-pinned', scroll to it on page load
+    scrollToPinned();
+
     // Reformat time elements based on locale whenever page changes occur
     initTime();
     initCustomTime();
-    // For anything marked as 'scroll-pinned', scroll to it on page load
-    scrollToPinned();
 }
 
 $(document).on('ready turbolinks:load', function () {
-    initApp();
-});
-
-$(document).on("htmx:afterOnLoad", function () {
     initApp();
 });
