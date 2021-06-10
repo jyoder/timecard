@@ -3,17 +3,18 @@ module Application.Service.TwilioMessage (
     Status (..),
     validate,
     fetchByPeople,
+    send,
     delivered,
 ) where
 
+import qualified Application.Service.Twilio as Twilio
+import Application.Service.Validation (validateAndCreate)
 import Data.ByteString.UTF8 (toString)
 import Database.PostgreSQL.Simple (Query)
 import Database.PostgreSQL.Simple.FromField (FromField, ResultError (..), fromField, returnError)
 import Database.PostgreSQL.Simple.FromRow (FromRow, field, fromRow)
 import Generated.Types
-import IHP.ModelSupport
-import IHP.Prelude
-import IHP.ValidationSupport.ValidateField
+import IHP.ControllerPrelude
 import Text.RawString.QQ (r)
 
 data T = T
@@ -124,6 +125,36 @@ where
 order by
     twilio_messages.created_at asc;
 |]
+
+send ::
+    ( ?context :: context
+    , ConfigProvider context
+    , ?modelContext :: ModelContext
+    ) =>
+    PhoneNumber ->
+    PhoneNumber ->
+    Text ->
+    IO TwilioMessage
+send fromPhoneNumber toPhoneNumber body = do
+    Twilio.Response {..} <-
+        Twilio.sendPhoneMessage
+            Twilio.accountId
+            Twilio.authToken
+            Twilio.statusCallbackUrl
+            (get #number fromPhoneNumber)
+            (get #number toPhoneNumber)
+            body
+
+    newRecord @TwilioMessage
+        |> set #apiVersion apiVersion
+        |> set #messageSid messageSid
+        |> set #accountSid accountSid
+        |> set #fromId (get #id fromPhoneNumber)
+        |> set #toId (get #id toPhoneNumber)
+        |> set #status status
+        |> set #body body
+        |> set #numMedia numMedia
+        |> validateAndCreate validate
 
 statuses :: [Text]
 statuses =

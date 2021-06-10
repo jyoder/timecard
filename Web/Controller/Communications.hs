@@ -199,29 +199,9 @@ instance Controller CommunicationsController where
         let body = strip $ param "body"
         if body == ""
             then redirectTo $ PersonSelectionAction (get #id toPerson)
-            else pure ()
-
-        Twilio.Response {..} <-
-            Twilio.sendPhoneMessage
-                Twilio.accountId
-                Twilio.authToken
-                Twilio.statusCallbackUrl
-                (get #number fromPhoneNumber)
-                (get #number toPhoneNumber)
-                body
-
-        newRecord @TwilioMessage
-            |> set #apiVersion apiVersion
-            |> set #messageSid messageSid
-            |> set #accountSid accountSid
-            |> set #fromId (get #id fromPhoneNumber)
-            |> set #toId toPhoneNumberId
-            |> set #status status
-            |> set #body body
-            |> set #numMedia numMedia
-            |> validateAndCreate TwilioMessage.validate
-
-        redirectTo $ PersonSelectionAction (get #id toPerson)
+            else do
+                TwilioMessage.send fromPhoneNumber toPhoneNumber body
+                redirectTo $ PersonSelectionAction (get #id toPerson)
     --
     action CancelScheduledMessageAction {..} = do
         sendMessageAction <- fetch sendMessageActionId
