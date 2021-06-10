@@ -8,9 +8,9 @@ import qualified Application.Base.People as People
 import qualified Application.Base.PhoneNumber as PhoneNumber
 import qualified Application.Timecard.TimecardEntry as TimecardEntry
 import qualified Application.Timecard.TimecardEntryMessage as TimecardEntryMessage
+import qualified Application.Timecard.TimecardEntryRequest as TimecardEntryRequest
 import qualified Application.Twilio.TwilioMessage as TwilioMessage
 import Data.Text (strip)
-import Data.Time.Calendar.WeekDate (toWeekDate)
 import Text.Read (read)
 import Web.Controller.Prelude
 import Web.View.Communications.Index
@@ -32,7 +32,7 @@ instance Controller CommunicationsController where
 
         messages <- TwilioMessage.fetchByPeople botId selectedPersonId
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
-        scheduledMessages <- SendMessageAction.fetchFutureFor selectedPersonId
+        scheduledMessages <- SendMessageAction.fetchFutureByPerson selectedPersonId
         let newMessage = newRecord @TwilioMessage
 
         timecardEntries <- TimecardEntry.fetchByPerson selectedPersonId
@@ -51,7 +51,7 @@ instance Controller CommunicationsController where
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
         let selectedMessageIds = paramOrDefault @[Id TwilioMessage] [] "selectedMessageIds"
         let selectedMessages = findSelectedMessages messages selectedMessageIds
-        scheduledMessages <- SendMessageAction.fetchFutureFor selectedPersonId
+        scheduledMessages <- SendMessageAction.fetchFutureByPerson selectedPersonId
         let newMessage = newRecord @TwilioMessage
 
         now <- getCurrentTime
@@ -76,7 +76,7 @@ instance Controller CommunicationsController where
         timecardEntryMessages <- TimecardEntryMessage.fetchByTimecardEntry timecardEntryId
         let selectedMessageIds = map (get #twilioMessageId) timecardEntryMessages
         let selectedMessages = findSelectedMessages messages selectedMessageIds
-        scheduledMessages <- SendMessageAction.fetchFutureFor selectedPersonId
+        scheduledMessages <- SendMessageAction.fetchFutureByPerson selectedPersonId
         let newMessage = newRecord @TwilioMessage
 
         timecardEntry <- fetch timecardEntryId
@@ -98,7 +98,7 @@ instance Controller CommunicationsController where
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
         let selectedMessageIds = paramOrDefault @[Id TwilioMessage] [] "selectedMessageIds"
         let selectedMessages = findSelectedMessages messages selectedMessageIds
-        scheduledMessages <- SendMessageAction.fetchFutureFor selectedPersonId
+        scheduledMessages <- SendMessageAction.fetchFutureByPerson selectedPersonId
         let newMessage = newRecord @TwilioMessage
 
         timecardEntry <- fetch timecardEntryId
@@ -114,20 +114,19 @@ instance Controller CommunicationsController where
     action CreateTimecardEntryAction = do
         let selectedPersonId = param @(Id Person) "selectedPersonId"
         let selectedMessageIds = param @[Id TwilioMessage] "selectedMessageIds"
+        botId <- People.fetchBotId
         selectedPerson <- fetch selectedPersonId
+        toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
 
         newRecord @TimecardEntry
             |> buildTimecardEntry
             |> set #personId selectedPersonId
             |> ifValid \case
                 Left timecardEntry -> do
-                    botId <- People.fetchBotId
                     people <- People.fetchExcluding botId
-
                     messages <- TwilioMessage.fetchByPeople botId selectedPersonId
-                    toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
                     let selectedMessages = findSelectedMessages messages selectedMessageIds
-                    scheduledMessages <- SendMessageAction.fetchFutureFor selectedPersonId
+                    scheduledMessages <- SendMessageAction.fetchFutureByPerson selectedPersonId
                     let newMessage = newRecord @TwilioMessage
 
                     let timecardActivity = CreatingEntry
@@ -136,12 +135,17 @@ instance Controller CommunicationsController where
 
                     render IndexView {..}
                 Right timecardEntry -> do
+                    fromPhoneNumber <- PhoneNumber.fetchByPerson botId
                     withTransaction do
                         timecardEntry <- createRecord timecardEntry
                         TimecardEntryMessage.replaceAllForTimecard
                             (get #id timecardEntry)
                             selectedMessageIds
-                        scheduleNextTimecardEntryRequest timecardEntry selectedPerson
+                        scheduleNextRequest
+                            timecardEntry
+                            selectedPerson
+                            (get #id fromPhoneNumber)
+                            (get #id toPhoneNumber)
                     redirectTo PersonSelectionAction {..}
     --
     action UpdateTimecardEntryAction = do
@@ -163,7 +167,7 @@ instance Controller CommunicationsController where
                     messages <- TwilioMessage.fetchByPeople botId selectedPersonId
                     toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
                     let selectedMessages = findSelectedMessages messages selectedMessageIds
-                    scheduledMessages <- SendMessageAction.fetchFutureFor selectedPersonId
+                    scheduledMessages <- SendMessageAction.fetchFutureByPerson selectedPersonId
                     let newMessage = newRecord @TwilioMessage
 
                     timecardEntry <- fetch timecardEntryId
@@ -214,51 +218,23 @@ findSelectedMessages messages selectedMessageIds =
   where
     findMessage messageId = find (\message -> get #id message == messageId) messages
 
-scheduleNextTimecardEntryRequest ::
+scheduleNextRequest ::
     (?modelContext :: ModelContext) =>
     TimecardEntry ->
     Person ->
+    Id PhoneNumber ->
+    Id PhoneNumber ->
     IO ()
-scheduleNextTimecardEntryRequest lastTimecardEntry person = do
+scheduleNextRequest lastEntry person fromId toId = do
     now <- getCurrentTime
-    isScheduled <- alreadyScheduled
-    if not isScheduled
-        then do
-            fromId <- fromPhoneNumberId
-            toId <- toPhoneNumberId
-            let sendAt = sendTime companyTimeZone now
-            SendMessageAction.schedule fromId toId messageBody sendAt
-            pure ()
-        else pure ()
-  where
-    alreadyScheduled = do
-        sendMessageActions <- SendMessageAction.fetchFutureFor (get #id person)
-        pure $ not $ null sendMessageActions
-    fromPhoneNumberId = do
-        botId <- People.fetchBotId
-        phoneNumber <- PhoneNumber.fetchByPerson botId
-        pure $ get #id phoneNumber
-    toPhoneNumberId = do
-        phoneNumber <- PhoneNumber.fetchByPerson (get #id person)
-        pure $ get #id phoneNumber
-    messageBody = "Hey " <> get #goesBy person <> " - I've got you at " <> get #jobName lastTimecardEntry <> " today. Let me know what hours you worked and what you did when you have a chance. Thanks!"
-    sendTime timeZone time =
-        let localTime = utcToLocalTime timeZone time
-         in localTimeToUTC
-                timeZone
-                if localTime < sendTimeToday localTime
-                    then sendTimeToday localTime
-                    else sendTimeNextWorkingDay localTime
-    sendTimeToday now = LocalTime (localDay now) sendTimeOfDay
-    sendTimeNextWorkingDay now = LocalTime (nextWorkingDay $ localDay now) sendTimeOfDay
-    sendTimeOfDay = TimeOfDay 15 30 0
-    nextWorkingDay today = case toWeekDate today of
-        (_, _, 5) -> addDays 3 today
-        (_, _, 6) -> addDays 2 today
-        _ -> addDays 1 today
+    alreadyScheduled <- TimecardEntryRequest.scheduledRequestExists toId
 
-companyTimeZone :: TimeZone
-companyTimeZone = read "PDT"
+    let body = TimecardEntryRequest.requestBody person lastEntry
+    let sendAt = TimecardEntryRequest.nextRequestTime companyTimeZone now
+
+    if not alreadyScheduled
+        then SendMessageAction.schedule fromId toId body sendAt >> pure ()
+        else pure ()
 
 buildNewTimecardEntry ::
     UTCTime ->
@@ -280,3 +256,6 @@ buildTimecardEntry timecardEntry = do
 
 defaultHoursWorked :: Double
 defaultHoursWorked = 8.0
+
+companyTimeZone :: TimeZone
+companyTimeZone = read "PDT"

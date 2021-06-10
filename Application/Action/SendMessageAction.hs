@@ -2,7 +2,8 @@ module Application.Action.SendMessageAction (
     T (..),
     validate,
     fetchReady,
-    fetchFutureFor,
+    fetchFutureByPerson,
+    fetchFutureByPhoneNumber,
     schedule,
     perform,
 ) where
@@ -83,11 +84,11 @@ order by
     action_run_times.runs_at asc;
 |]
 
-fetchFutureFor :: (?modelContext :: ModelContext) => Id Person -> IO [T]
-fetchFutureFor personId = sqlQuery fetchFutureForQuery (Only personId)
+fetchFutureByPerson :: (?modelContext :: ModelContext) => Id Person -> IO [T]
+fetchFutureByPerson personId = sqlQuery fetchFutureByPersonQuery (Only personId)
 
-fetchFutureForQuery :: Query
-fetchFutureForQuery =
+fetchFutureByPersonQuery :: Query
+fetchFutureByPersonQuery =
     [r|
 select
     send_message_actions.id,
@@ -109,6 +110,41 @@ from
 where
     phone_contacts.person_id = ? 
     and phone_contacts.phone_number_id = to_phone_numbers.id
+    and to_phone_numbers.id = send_message_actions.to_id
+    and from_phone_numbers.id = send_message_actions.from_id
+    and send_message_actions.action_run_state_id = action_run_states.id
+    and action_run_times.action_run_state_id = action_run_states.id
+    and action_run_states.state = 'not_started'
+    and action_run_times.runs_at > now()
+order by
+    action_run_times.runs_at asc;
+|]
+
+fetchFutureByPhoneNumber :: (?modelContext :: ModelContext) => Id PhoneNumber -> IO [T]
+fetchFutureByPhoneNumber toPhoneNumberId =
+    sqlQuery fetchFutureByPhoneNumberQuery (Only toPhoneNumberId)
+
+fetchFutureByPhoneNumberQuery :: Query
+fetchFutureByPhoneNumberQuery =
+    [r|
+select
+    send_message_actions.id,
+    action_run_states.id,
+    action_run_states.state,
+    action_run_times.runs_at,
+    send_message_actions.body,
+    send_message_actions.from_id,
+    from_phone_numbers.number,
+    send_message_actions.to_id,
+    to_phone_numbers.number
+from
+    phone_numbers from_phone_numbers,
+    phone_numbers to_phone_numbers,
+    send_message_actions,
+    action_run_states,
+    action_run_times
+where
+    to_phone_numbers.id = ?
     and to_phone_numbers.id = send_message_actions.to_id
     and from_phone_numbers.id = send_message_actions.from_id
     and send_message_actions.action_run_state_id = action_run_states.id
