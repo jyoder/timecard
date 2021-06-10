@@ -6,7 +6,6 @@ import qualified Application.Action.ActionRunState as ActionRunState
 import qualified Application.Action.SendMessageAction as SendMessageAction
 import qualified Application.Base.People as People
 import qualified Application.Base.PhoneNumber as PhoneNumber
-import Application.Service.Validation (validateAndCreate)
 import qualified Application.Timecard.TimecardEntry as TimecardEntry
 import qualified Application.Timecard.TimecardEntryMessage as TimecardEntryMessage
 import qualified Application.Twilio.TwilioMessage as TwilioMessage
@@ -138,13 +137,11 @@ instance Controller CommunicationsController where
                     render IndexView {..}
                 Right timecardEntry -> do
                     withTransaction do
-                        scheduleNextTimecardEntryRequest timecardEntry selectedPerson
                         timecardEntry <- createRecord timecardEntry
-                        let timecardEntryId = get #id timecardEntry
-                        let timecardEntryMessages =
-                                TimecardEntryMessage.buildAll timecardEntryId selectedMessageIds
-                        mapM_ createRecord timecardEntryMessages
-
+                        TimecardEntryMessage.replaceAllForTimecard
+                            (get #id timecardEntry)
+                            selectedMessageIds
+                        scheduleNextTimecardEntryRequest timecardEntry selectedPerson
                     redirectTo PersonSelectionAction {..}
     --
     action UpdateTimecardEntryAction = do
@@ -177,15 +174,12 @@ instance Controller CommunicationsController where
 
                     render IndexView {people, personSelection}
                 Right timecardEntry -> do
-                    let timecardEntryMessages =
-                            TimecardEntryMessage.buildAll timecardEntryId selectedMessageIds
                     withTransaction do
-                        oldTimecardEntryMessages <- TimecardEntryMessage.fetchByTimecardEntry timecardEntryId
-                        deleteRecords oldTimecardEntryMessages
                         updateRecord timecardEntry
-                        mapM_ createRecord timecardEntryMessages
-
-                    redirectTo PersonSelectionAction {selectedPersonId}
+                        TimecardEntryMessage.replaceAllForTimecard
+                            (get #id timecardEntry)
+                            selectedMessageIds
+                    redirectTo PersonSelectionAction {..}
     --
     action CreateOutgoingPhoneMessageAction = do
         let toPhoneNumberId = Id (param "toId")
