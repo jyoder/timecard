@@ -60,7 +60,8 @@ CREATE TABLE timecard_entries (
     job_name TEXT NOT NULL,
     hours_worked DOUBLE PRECISION NOT NULL,
     work_done TEXT NOT NULL,
-    invoice_translation TEXT NOT NULL
+    invoice_translation TEXT NOT NULL,
+    date2 TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
 );
 CREATE TABLE process_events_jobs (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
