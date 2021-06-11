@@ -104,6 +104,7 @@ CREATE INDEX twilio_messages_from_id_index ON twilio_messages (from_id);
 CREATE INDEX twilio_messages_to_id_index ON twilio_messages (to_id);
 CREATE INDEX action_run_times_action_run_state_id_index ON action_run_times (action_run_state_id);
 CREATE INDEX send_message_actions_action_run_state_id_index ON send_message_actions (action_run_state_id);
+CREATE INDEX action_run_states_state_index ON action_run_states (state);
 ALTER TABLE action_run_times ADD CONSTRAINT action_run_times_ref_action_run_state_id FOREIGN KEY (action_run_state_id) REFERENCES action_run_states (id) ON DELETE NO ACTION;
 ALTER TABLE phone_contacts ADD CONSTRAINT phone_contacts_ref_person_id FOREIGN KEY (person_id) REFERENCES people (id) ON DELETE NO ACTION;
 ALTER TABLE phone_contacts ADD CONSTRAINT phone_contacts_ref_phone_number_id FOREIGN KEY (phone_number_id) REFERENCES phone_numbers (id) ON DELETE NO ACTION;
