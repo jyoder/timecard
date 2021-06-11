@@ -52,7 +52,11 @@ validate sendMessageAction =
         |> validateField #body nonEmpty
 
 fetchReady :: (?modelContext :: ModelContext, ?context :: FrameworkConfig) => IO [T]
-fetchReady = sqlQuery fetchReadyQuery ()
+fetchReady = do
+    trackTableRead "send_message_actions"
+    trackTableRead "action_run_times"
+    trackTableRead "action_run_states"
+    sqlQuery fetchReadyQuery ()
 
 fetchReadyQuery :: Query
 fetchReadyQuery =
@@ -85,7 +89,11 @@ order by
 |]
 
 fetchFutureByPerson :: (?modelContext :: ModelContext) => Id Person -> IO [T]
-fetchFutureByPerson personId = sqlQuery fetchFutureByPersonQuery (Only personId)
+fetchFutureByPerson personId = do
+    trackTableRead "send_message_actions"
+    trackTableRead "action_run_times"
+    trackTableRead "action_run_states"
+    sqlQuery fetchFutureByPersonQuery (Only personId)
 
 fetchFutureByPersonQuery :: Query
 fetchFutureByPersonQuery =
@@ -121,7 +129,10 @@ order by
 |]
 
 fetchFutureByPhoneNumber :: (?modelContext :: ModelContext) => Id PhoneNumber -> IO [T]
-fetchFutureByPhoneNumber toPhoneNumberId =
+fetchFutureByPhoneNumber toPhoneNumberId = do
+    trackTableRead "send_message_actions"
+    trackTableRead "action_run_times"
+    trackTableRead "action_run_states"
     sqlQuery fetchFutureByPhoneNumberQuery (Only toPhoneNumberId)
 
 fetchFutureByPhoneNumberQuery :: Query
