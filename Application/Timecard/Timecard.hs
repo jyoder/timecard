@@ -13,7 +13,7 @@ buildAll timeZone timecardEntries =
     T . sortEntries <$> groupBy inSameWeek timecardEntries
   where
     sortEntries entries = sortBy dateCompare entries
-    dateCompare entryA entryB = get #date2 entryA `compare` get #date2 entryB
+    dateCompare entryA entryB = get #date entryA `compare` get #date entryB
 
 inSameWeek :: TimecardEntry -> TimecardEntry -> Bool
 inSameWeek timecardEntry1 timecardEntry2 =

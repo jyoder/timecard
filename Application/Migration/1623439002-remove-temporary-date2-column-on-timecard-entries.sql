@@ -1,0 +1,1 @@
+ALTER TABLE timecard_entries DROP COLUMN date2;
