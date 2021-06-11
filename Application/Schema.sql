@@ -56,7 +56,7 @@ CREATE TABLE timecard_entries (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     person_id UUID NOT NULL,
-    date TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    date DATE NOT NULL,
     job_name TEXT NOT NULL,
     hours_worked DOUBLE PRECISION NOT NULL,
     work_done TEXT NOT NULL,
