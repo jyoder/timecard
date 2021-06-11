@@ -13,12 +13,12 @@ buildAll timeZone timecardEntries =
     T . sortEntries <$> groupBy (inSameWeek timeZone) timecardEntries
   where
     sortEntries entries = sortBy dateCompare entries
-    dateCompare entryA entryB = get #date entryA `compare` get #date entryB
+    dateCompare entryA entryB = get #date2 entryA `compare` get #date2 entryB
 
 inSameWeek :: TimeZone -> TimecardEntry -> TimecardEntry -> Bool
 inSameWeek timeZone timecardEntry1 timecardEntry2 =
-    let week1 = weekOfYear timeZone $ get #date timecardEntry1
-     in let week2 = weekOfYear timeZone $ get #date timecardEntry2
+    let week1 = weekOfYear timeZone $ get #date2 timecardEntry1
+     in let week2 = weekOfYear timeZone $ get #date2 timecardEntry2
          in week1 == week2
 
 weekOfYear :: TimeZone -> UTCTime -> (Integer, Int)

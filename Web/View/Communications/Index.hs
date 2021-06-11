@@ -290,8 +290,8 @@ renderTimecardEntry selectedPerson timecardEntry =
         </div>
     |]
   where
-    weekday' = weekday $ get #date timecardEntry
-    date = TO.date (get #date timecardEntry)
+    weekday' = weekday $ get #date2 timecardEntry
+    date = TO.date (get #date2 timecardEntry)
     jobName = get #jobName timecardEntry
     invoiceTranslation = get #invoiceTranslation timecardEntry
     editAction = EditTimecardEntryAction (get #id selectedPerson) (get #id timecardEntry)
@@ -302,7 +302,7 @@ renderTimecardEntryForm selectedPerson selectedMessages timecardActivity timecar
         timecardEntry
         formOptions
         [hsx|
-            {(dateTimeField #date) { fieldClass = "date-time-field"}}
+            {(dateTimeField #date2) { fieldClass = "date-time-field"}}
             {(textField #jobName)}
             {(textField #hoursWorked)}
 

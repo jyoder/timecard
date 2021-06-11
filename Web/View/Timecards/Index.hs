@@ -124,8 +124,8 @@ renderTimecardRow personActivity timecardEntry =
         </tr>
     |]
   where
-    weekday' = weekday (get #date timecardEntry)
-    date = TO.date (get #date timecardEntry)
+    weekday' = weekday (get #date2 timecardEntry)
+    date = TO.date (get #date2 timecardEntry)
 
 renderInvoiceTranslation :: PersonActivity -> TimecardEntry -> Html
 renderInvoiceTranslation personActivity timecardEntry =
@@ -187,7 +187,7 @@ dateRange Timecard.T {..} =
         (Just firstEntry, Just lastEntry) ->
             [hsx|
                 <span>
-                    {TO.date (get #date firstEntry)} - {TO.date (get #date lastEntry)}
+                    {TO.date (get #date2 firstEntry)} - {TO.date (get #date2 lastEntry)}
                 </span>
             |]
         _ -> [hsx||]

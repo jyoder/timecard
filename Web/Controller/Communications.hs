@@ -246,7 +246,7 @@ buildNewTimecardEntry ::
     TimecardEntry
 buildNewTimecardEntry date timecardEntry =
     timecardEntry
-        |> set #date date
+        |> set #date2 date
         |> set #hoursWorked defaultHoursWorked
 
 buildTimecardEntry ::
@@ -255,7 +255,7 @@ buildTimecardEntry ::
     TimecardEntry
 buildTimecardEntry timecardEntry = do
     timecardEntry
-        |> fill @["date", "jobName", "hoursWorked", "workDone", "invoiceTranslation"]
+        |> fill @["date2", "jobName", "hoursWorked", "workDone", "invoiceTranslation"]
         |> TimecardEntry.validate
 
 defaultHoursWorked :: Double

@@ -25,5 +25,5 @@ fetchByPerson ::
 fetchByPerson personId =
     query @TimecardEntry
         |> filterWhere (#personId, personId)
-        |> orderByDesc #date
+        |> orderByDesc #date2
         |> fetch
