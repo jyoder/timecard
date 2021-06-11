@@ -32,7 +32,7 @@ instance Controller CommunicationsController where
 
         messages <- TwilioMessage.fetchByPeople botId selectedPersonId
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
-        scheduledMessages <- SendMessageAction.fetchFutureByPerson selectedPersonId
+        scheduledMessages <- SendMessageAction.fetchFutureByPhoneNumber (get #id toPhoneNumber)
         let newMessage = newRecord @TwilioMessage
 
         timecardEntries <- TimecardEntry.fetchByPerson selectedPersonId
@@ -51,7 +51,7 @@ instance Controller CommunicationsController where
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
         let selectedMessageIds = paramOrDefault @[Id TwilioMessage] [] "selectedMessageIds"
         let selectedMessages = findSelectedMessages messages selectedMessageIds
-        scheduledMessages <- SendMessageAction.fetchFutureByPerson selectedPersonId
+        scheduledMessages <- SendMessageAction.fetchFutureByPhoneNumber (get #id toPhoneNumber)
         let newMessage = newRecord @TwilioMessage
 
         now <- getCurrentTime
@@ -76,7 +76,7 @@ instance Controller CommunicationsController where
         timecardEntryMessages <- TimecardEntryMessage.fetchByTimecardEntry timecardEntryId
         let selectedMessageIds = map (get #twilioMessageId) timecardEntryMessages
         let selectedMessages = findSelectedMessages messages selectedMessageIds
-        scheduledMessages <- SendMessageAction.fetchFutureByPerson selectedPersonId
+        scheduledMessages <- SendMessageAction.fetchFutureByPhoneNumber (get #id toPhoneNumber)
         let newMessage = newRecord @TwilioMessage
 
         timecardEntry <- fetch timecardEntryId
@@ -98,7 +98,7 @@ instance Controller CommunicationsController where
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
         let selectedMessageIds = paramOrDefault @[Id TwilioMessage] [] "selectedMessageIds"
         let selectedMessages = findSelectedMessages messages selectedMessageIds
-        scheduledMessages <- SendMessageAction.fetchFutureByPerson selectedPersonId
+        scheduledMessages <- SendMessageAction.fetchFutureByPhoneNumber (get #id toPhoneNumber)
         let newMessage = newRecord @TwilioMessage
 
         timecardEntry <- fetch timecardEntryId
@@ -126,7 +126,9 @@ instance Controller CommunicationsController where
                     people <- People.fetchExcluding botId
                     messages <- TwilioMessage.fetchByPeople botId selectedPersonId
                     let selectedMessages = findSelectedMessages messages selectedMessageIds
-                    scheduledMessages <- SendMessageAction.fetchFutureByPerson selectedPersonId
+                    scheduledMessages <-
+                        SendMessageAction.fetchFutureByPhoneNumber
+                            (get #id toPhoneNumber)
                     let newMessage = newRecord @TwilioMessage
 
                     let timecardActivity = CreatingEntry
@@ -167,7 +169,9 @@ instance Controller CommunicationsController where
                     messages <- TwilioMessage.fetchByPeople botId selectedPersonId
                     toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
                     let selectedMessages = findSelectedMessages messages selectedMessageIds
-                    scheduledMessages <- SendMessageAction.fetchFutureByPerson selectedPersonId
+                    scheduledMessages <-
+                        SendMessageAction.fetchFutureByPhoneNumber
+                            (get #id toPhoneNumber)
                     let newMessage = newRecord @TwilioMessage
 
                     timecardEntry <- fetch timecardEntryId
