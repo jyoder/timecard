@@ -10,7 +10,10 @@ function initDatePicker() {
         return;
     }
     flatpickr("input[type='date']", {
-        altFormat: 'd.m.y',
+        allowInput: true,
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "m/d/Y"
     });
     flatpickr("input[type='datetime-local']", {
         allowInput: true,

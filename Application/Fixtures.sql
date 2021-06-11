@@ -19,6 +19,7 @@ ALTER TABLE public.action_run_states DISABLE TRIGGER ALL;
 INSERT INTO public.action_run_states (id, created_at, updated_at, state) VALUES ('f3d1863a-2bba-49b3-b814-0001a62f1970', '2021-06-10 22:27:39.194266-07', '2021-06-10 22:27:40.626427-07', 'canceled');
 INSERT INTO public.action_run_states (id, created_at, updated_at, state) VALUES ('1d2d1efe-3e9c-4c9d-b962-18b4c0b7ed16', '2021-06-10 22:58:30.587209-07', '2021-06-11 08:18:55.85562-07', 'canceled');
 INSERT INTO public.action_run_states (id, created_at, updated_at, state) VALUES ('318a4d8e-f234-45ad-aae3-5b1a6940ddeb', '2021-06-11 08:19:14.089155-07', '2021-06-11 08:19:25.120716-07', 'canceled');
+INSERT INTO public.action_run_states (id, created_at, updated_at, state) VALUES ('e34b3c03-86db-4203-89d5-481b4a98e01d', '2021-06-11 08:56:19.816743-07', '2021-06-11 08:56:19.816743-07', 'not_started');
 
 
 ALTER TABLE public.action_run_states ENABLE TRIGGER ALL;
@@ -29,6 +30,7 @@ ALTER TABLE public.action_run_times DISABLE TRIGGER ALL;
 INSERT INTO public.action_run_times (id, created_at, updated_at, runs_at, action_run_state_id) VALUES ('cd5a434e-2baa-467e-9f80-7f4e13b064e1', '2021-06-10 22:27:39.194266-07', '2021-06-10 22:27:39.194266-07', '2021-06-11 15:30:00-07', 'f3d1863a-2bba-49b3-b814-0001a62f1970');
 INSERT INTO public.action_run_times (id, created_at, updated_at, runs_at, action_run_state_id) VALUES ('7df2a751-6c8e-4e49-9894-a8d7f8491234', '2021-06-10 22:58:30.587209-07', '2021-06-10 22:58:30.587209-07', '2021-06-11 15:30:00-07', '1d2d1efe-3e9c-4c9d-b962-18b4c0b7ed16');
 INSERT INTO public.action_run_times (id, created_at, updated_at, runs_at, action_run_state_id) VALUES ('e279c93b-c9b6-4f8b-b34d-fc8c28989636', '2021-06-11 08:19:14.089155-07', '2021-06-11 08:19:14.089155-07', '2021-06-11 15:30:00-07', '318a4d8e-f234-45ad-aae3-5b1a6940ddeb');
+INSERT INTO public.action_run_times (id, created_at, updated_at, runs_at, action_run_state_id) VALUES ('3eeed540-f66c-4946-aa3a-a9a2f6c2ea43', '2021-06-11 08:56:19.816743-07', '2021-06-11 08:56:19.816743-07', '2021-06-11 15:30:00-07', 'e34b3c03-86db-4203-89d5-481b4a98e01d');
 
 
 ALTER TABLE public.action_run_times ENABLE TRIGGER ALL;
@@ -72,7 +74,7 @@ ALTER TABLE public.phone_contacts ENABLE TRIGGER ALL;
 
 ALTER TABLE public.process_events_jobs DISABLE TRIGGER ALL;
 
-INSERT INTO public.process_events_jobs (id, created_at, updated_at, status, last_error, attempts_count, locked_at, locked_by) VALUES ('51707dca-f0cf-4d73-b4d7-fb6d8cfb5033', '2021-06-11 08:41:26.802395-07', '2021-06-11 08:41:26.807561-07', 'job_status_running', NULL, 1, '2021-06-11 08:41:26.807561-07', '674fbf8a-5dfa-464e-b21e-b5ff9eed64fd');
+INSERT INTO public.process_events_jobs (id, created_at, updated_at, status, last_error, attempts_count, locked_at, locked_by) VALUES ('aaff6913-6df1-4e6a-b41a-2d216c4c8d0d', '2021-06-11 11:20:15.852555-07', '2021-06-11 11:20:15.858204-07', 'job_status_running', NULL, 1, '2021-06-11 11:20:15.858204-07', '7db26606-ae90-4103-a81e-9ee047e67e96');
 
 
 ALTER TABLE public.process_events_jobs ENABLE TRIGGER ALL;
@@ -83,6 +85,7 @@ ALTER TABLE public.send_message_actions DISABLE TRIGGER ALL;
 INSERT INTO public.send_message_actions (id, created_at, updated_at, body, from_id, to_id, action_run_state_id) VALUES ('34360990-b4d6-4689-801b-2c813920388a', '2021-06-10 22:27:39.194266-07', '2021-06-10 22:27:39.194266-07', 'Hey John - I''ve got you at Slap today. Let me know what hours you worked and what you did when you have a chance. Thanks!', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'c1375981-0102-4132-8799-54f4fe3e0fbd', 'f3d1863a-2bba-49b3-b814-0001a62f1970');
 INSERT INTO public.send_message_actions (id, created_at, updated_at, body, from_id, to_id, action_run_state_id) VALUES ('ae242dca-7683-4053-a1bf-446bb52802c5', '2021-06-10 22:58:30.587209-07', '2021-06-10 22:58:30.587209-07', 'Hey John - I''ve got you at YAY! today. Let me know what hours you worked and what you did when you have a chance. Thanks!', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'c1375981-0102-4132-8799-54f4fe3e0fbd', '1d2d1efe-3e9c-4c9d-b962-18b4c0b7ed16');
 INSERT INTO public.send_message_actions (id, created_at, updated_at, body, from_id, to_id, action_run_state_id) VALUES ('6741c394-6225-444a-a22d-84f1b688a691', '2021-06-11 08:19:14.089155-07', '2021-06-11 08:19:14.089155-07', 'Hey John - I''ve got you at Snarky today. Let me know what hours you worked and what you did when you have a chance. Thanks!', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'c1375981-0102-4132-8799-54f4fe3e0fbd', '318a4d8e-f234-45ad-aae3-5b1a6940ddeb');
+INSERT INTO public.send_message_actions (id, created_at, updated_at, body, from_id, to_id, action_run_state_id) VALUES ('b8235832-c965-4ae5-a9fd-c82dc972114d', '2021-06-11 08:56:19.816743-07', '2021-06-11 08:56:19.816743-07', 'Hey John - I''ve got you at Goober today. Let me know what hours you worked and what you did when you have a chance. Thanks!', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'c1375981-0102-4132-8799-54f4fe3e0fbd', 'e34b3c03-86db-4203-89d5-481b4a98e01d');
 
 
 ALTER TABLE public.send_message_actions ENABLE TRIGGER ALL;
@@ -90,6 +93,10 @@ ALTER TABLE public.send_message_actions ENABLE TRIGGER ALL;
 
 ALTER TABLE public.timecard_entries DISABLE TRIGGER ALL;
 
+INSERT INTO public.timecard_entries (id, created_at, updated_at, person_id, date, job_name, hours_worked, work_done, invoice_translation, date2) VALUES ('44faf2bc-16dc-44a5-9547-e8220c113fc4', '2021-06-11 08:56:19.806046-07', '2021-06-11 09:15:55.749919-07', 'c8a20c60-1c95-4a9e-bb6a-57ca2670115d', '2021-06-07', 'Goober', 8, 'Hey John - I''ve got you at Garbe today. Let me know what hours you worked and what you did when you have a chance. Thanks!', 'Hey John - I''ve got you at Garbe today. Let me know what hours you worked and what you did when you have a chance. Thanks!', '2021-06-11 08:56:19.806046-07');
+INSERT INTO public.timecard_entries (id, created_at, updated_at, person_id, date, job_name, hours_worked, work_done, invoice_translation, date2) VALUES ('223a8902-cb17-439b-a707-7f736dc73bbd', '2021-06-11 09:16:14.700774-07', '2021-06-11 09:16:14.700774-07', 'c8a20c60-1c95-4a9e-bb6a-57ca2670115d', '2021-06-11', 'Newer', 8, 'Hey John - I''ve got you at Garbe today. Let me know what hours you worked and what you did when you have a chance. Thanks!', 'Hey John - I''ve got you at Garbe today. Let me know what hours you worked and what you did when you have a chance. Thanks!', '2021-06-11 09:16:14.700774-07');
+INSERT INTO public.timecard_entries (id, created_at, updated_at, person_id, date, job_name, hours_worked, work_done, invoice_translation, date2) VALUES ('a22f29c3-25cc-42d2-ad04-a528a3acd314', '2021-06-11 10:53:26.947018-07', '2021-06-11 10:54:41.174993-07', 'c8a20c60-1c95-4a9e-bb6a-57ca2670115d', '1858-11-17', 'narf', 8, 'Hey John - I''ve got you at Garbe today. Let me know what hours you worked and what you did when you have a chance. Thanks!b', 'Hey John - I''ve got you at Garbe today. Let me know what hours you worked and what you did when you have a chance. Thanks!a', '2021-06-10 15:30:23.859-07');
+INSERT INTO public.timecard_entries (id, created_at, updated_at, person_id, date, job_name, hours_worked, work_done, invoice_translation, date2) VALUES ('9c699bfa-89c3-4511-b175-b4f9154f5df1', '2021-06-11 10:58:26.204625-07', '2021-06-11 10:58:26.204625-07', 'c8a20c60-1c95-4a9e-bb6a-57ca2670115d', '1858-11-17', 'Happy', 8, 'Hey John - I''ve got you at Garbe today. Let me know what hours you worked and what you did when you have a chance. Thanks!', 'Hey John - I''ve got you at Garbe today. Let me know what hours you worked and what you did when you have a chance. Thanks!', '2021-06-10 15:30:23.859-07');
 
 
 ALTER TABLE public.timecard_entries ENABLE TRIGGER ALL;
@@ -201,6 +208,10 @@ INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard
 INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('1b803f53-6908-4dd2-a4f1-3ace4dd161cb', '2021-06-10 22:27:39.18966-07', '2021-06-10 22:27:39.18966-07', 'b0d5ab96-ac69-4408-b4f9-45fb6041be2c', '9d2fd2f5-ac59-4de4-aca4-7c6eafcd9c6b');
 INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('4c33ec9f-93ca-46b6-afa5-6a0054453191', '2021-06-10 22:58:30.577767-07', '2021-06-10 22:58:30.577767-07', 'a66e24ca-5ad7-423e-9017-646db6dced56', '9d2fd2f5-ac59-4de4-aca4-7c6eafcd9c6b');
 INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('b2bf2d2f-0f6d-48b2-90a4-d5fa88d4b78c', '2021-06-11 08:19:55.150503-07', '2021-06-11 08:19:55.150503-07', '0c702dbc-4414-41f4-a8cc-42cfb6e114e9', '9d2fd2f5-ac59-4de4-aca4-7c6eafcd9c6b');
+INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('7a3facf2-92c2-44eb-a3fc-aee25d1a78b0', '2021-06-11 09:15:55.749919-07', '2021-06-11 09:15:55.749919-07', '44faf2bc-16dc-44a5-9547-e8220c113fc4', '9d2fd2f5-ac59-4de4-aca4-7c6eafcd9c6b');
+INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('b96176d3-17bf-465c-b16d-602b210c86fb', '2021-06-11 09:16:14.700774-07', '2021-06-11 09:16:14.700774-07', '223a8902-cb17-439b-a707-7f736dc73bbd', '9d2fd2f5-ac59-4de4-aca4-7c6eafcd9c6b');
+INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('6a1099c6-9443-4244-882c-7e62a82fd6dd', '2021-06-11 10:54:41.174993-07', '2021-06-11 10:54:41.174993-07', 'a22f29c3-25cc-42d2-ad04-a528a3acd314', '9d2fd2f5-ac59-4de4-aca4-7c6eafcd9c6b');
+INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('fb93bdaa-b596-4084-8ac8-0f80057b3720', '2021-06-11 10:58:26.204625-07', '2021-06-11 10:58:26.204625-07', '9c699bfa-89c3-4511-b175-b4f9154f5df1', '9d2fd2f5-ac59-4de4-aca4-7c6eafcd9c6b');
 
 
 ALTER TABLE public.timecard_entry_messages ENABLE TRIGGER ALL;
@@ -208,7 +219,7 @@ ALTER TABLE public.timecard_entry_messages ENABLE TRIGGER ALL;
 
 ALTER TABLE public.users DISABLE TRIGGER ALL;
 
-INSERT INTO public.users (id, email, password_hash, locked_at, failed_login_attempts, created_at, updated_at) VALUES ('aa267118-f73f-45ab-9644-5705f21070e7', 'test@company.com', 'sha256|17|V6JGPzE2wOfao5X6hI+QPA==|5/99LLTnfGArcvfziM8eIvlOMN/syoKpKvvW3NaRBvM=', NULL, 0, '2021-06-10 22:27:20.261931-07', '2021-06-10 22:27:20.261931-07');
+INSERT INTO public.users (id, email, password_hash, locked_at, failed_login_attempts, created_at, updated_at) VALUES ('aa267118-f73f-45ab-9644-5705f21070e7', 'test@company.com', 'sha256|17|V6JGPzE2wOfao5X6hI+QPA==|5/99LLTnfGArcvfziM8eIvlOMN/syoKpKvvW3NaRBvM=', NULL, 0, '2021-06-10 22:27:20.261931-07', '2021-06-11 10:53:14.096509-07');
 
 
 ALTER TABLE public.users ENABLE TRIGGER ALL;

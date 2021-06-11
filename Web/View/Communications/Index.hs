@@ -9,7 +9,7 @@ import qualified Text.Blaze.Html5.Attributes as A
 import Web.View.Navigation (Section (Communications), renderNavigation)
 import Web.View.Prelude
 import Web.View.Service.Style (removeScrollbars)
-import Web.View.Service.Time (weekday)
+import Web.View.Service.Time (formatDay)
 
 data IndexView = IndexView
     { people :: ![Person]
@@ -279,7 +279,7 @@ renderTimecardEntry selectedPerson timecardEntry =
     [hsx|
         <div class="card mb-4">
             <h5 class="card-header">
-                {weekday'} - {date}
+                {dayOfWeek date} - {formatDay date}
             </h5>
 
             <div class="card-body">
@@ -290,8 +290,7 @@ renderTimecardEntry selectedPerson timecardEntry =
         </div>
     |]
   where
-    weekday' = weekday $ get #date2 timecardEntry
-    date = TO.date (get #date2 timecardEntry)
+    date = get #date timecardEntry
     jobName = get #jobName timecardEntry
     invoiceTranslation = get #invoiceTranslation timecardEntry
     editAction = EditTimecardEntryAction (get #id selectedPerson) (get #id timecardEntry)
@@ -302,7 +301,7 @@ renderTimecardEntryForm selectedPerson selectedMessages timecardActivity timecar
         timecardEntry
         formOptions
         [hsx|
-            {(dateTimeField #date2) { fieldClass = "date-time-field"}}
+            {(dateField #date)}
             {(textField #jobName)}
             {(textField #hoursWorked)}
 

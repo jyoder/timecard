@@ -55,7 +55,7 @@ instance Controller CommunicationsController where
         let newMessage = newRecord @TwilioMessage
 
         now <- getCurrentTime
-        let timecardDate = maybe now (get #createdAt) (head selectedMessages)
+        let timecardDate = toLocalDay $ maybe now (get #createdAt) (head selectedMessages)
         let timecardEntry = newRecord @TimecardEntry |> buildNewTimecardEntry timecardDate
         let timecardActivity = CreatingEntry
 
@@ -65,6 +65,8 @@ instance Controller CommunicationsController where
         if null selectedMessageIds
             then redirectTo PersonSelectionAction {..}
             else render IndexView {..}
+      where
+        toLocalDay = localDay . utcToLocalTime companyTimeZone
     --
     action EditTimecardEntryAction {..} = autoRefresh do
         botId <- People.fetchBotId
@@ -241,12 +243,12 @@ scheduleNextRequest lastEntry person fromId toId = do
         else pure ()
 
 buildNewTimecardEntry ::
-    UTCTime ->
+    Day ->
     TimecardEntry ->
     TimecardEntry
 buildNewTimecardEntry date timecardEntry =
     timecardEntry
-        |> set #date2 date
+        |> set #date date
         |> set #hoursWorked defaultHoursWorked
 
 buildTimecardEntry ::
@@ -255,7 +257,7 @@ buildTimecardEntry ::
     TimecardEntry
 buildTimecardEntry timecardEntry = do
     timecardEntry
-        |> fill @["date2", "jobName", "hoursWorked", "workDone", "invoiceTranslation"]
+        |> fill @["date", "jobName", "hoursWorked", "workDone", "invoiceTranslation"]
         |> TimecardEntry.validate
 
 defaultHoursWorked :: Double

@@ -10,21 +10,18 @@ newtype T = T
 
 buildAll :: TimeZone -> [TimecardEntry] -> [T]
 buildAll timeZone timecardEntries =
-    T . sortEntries <$> groupBy (inSameWeek timeZone) timecardEntries
+    T . sortEntries <$> groupBy inSameWeek timecardEntries
   where
     sortEntries entries = sortBy dateCompare entries
     dateCompare entryA entryB = get #date2 entryA `compare` get #date2 entryB
 
-inSameWeek :: TimeZone -> TimecardEntry -> TimecardEntry -> Bool
-inSameWeek timeZone timecardEntry1 timecardEntry2 =
-    let week1 = weekOfYear timeZone $ get #date2 timecardEntry1
-     in let week2 = weekOfYear timeZone $ get #date2 timecardEntry2
+inSameWeek :: TimecardEntry -> TimecardEntry -> Bool
+inSameWeek timecardEntry1 timecardEntry2 =
+    let week1 = weekOfYear $ get #date timecardEntry1
+     in let week2 = weekOfYear $ get #date timecardEntry2
          in week1 == week2
 
-weekOfYear :: TimeZone -> UTCTime -> (Integer, Int)
-weekOfYear timeZone time =
-    let (year, week, _) =
-            utcToLocalTime timeZone time
-                |> localDay
-                |> toWeekDate
+weekOfYear :: Day -> (Integer, Int)
+weekOfYear day =
+    let (year, week, _) = toWeekDate day
      in (year, week)

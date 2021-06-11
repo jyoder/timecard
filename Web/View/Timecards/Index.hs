@@ -5,7 +5,7 @@ import IHP.View.TimeAgo as TO
 import Web.View.Navigation (Section (Timecards), renderNavigation)
 import Web.View.Prelude
 import Web.View.Service.Style (removeScrollbars)
-import Web.View.Service.Time (weekday)
+import Web.View.Service.Time (formatDay)
 
 data IndexView = IndexView
     { people :: ![Person]
@@ -115,7 +115,7 @@ renderTimecardRow :: PersonActivity -> TimecardEntry -> Html
 renderTimecardRow personActivity timecardEntry =
     [hsx|
         <tr>
-            <th scope="row">{weekday'}</th>
+            <th scope="row">{dayOfWeek date}</th>
             <td>{date}</td>
             <td>{get #jobName timecardEntry}</td>
             <td class="work-done">{get #workDone timecardEntry}</td>
@@ -124,8 +124,7 @@ renderTimecardRow personActivity timecardEntry =
         </tr>
     |]
   where
-    weekday' = weekday (get #date2 timecardEntry)
-    date = TO.date (get #date2 timecardEntry)
+    date = get #date timecardEntry
 
 renderInvoiceTranslation :: PersonActivity -> TimecardEntry -> Html
 renderInvoiceTranslation personActivity timecardEntry =
@@ -187,7 +186,7 @@ dateRange Timecard.T {..} =
         (Just firstEntry, Just lastEntry) ->
             [hsx|
                 <span>
-                    {TO.date (get #date2 firstEntry)} - {TO.date (get #date2 lastEntry)}
+                    {formatDay $ get #date firstEntry} - {formatDay $ get #date lastEntry}
                 </span>
             |]
         _ -> [hsx||]
