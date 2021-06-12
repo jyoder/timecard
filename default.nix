@@ -18,12 +18,16 @@ let
             cryptonite
             memory
             base64-bytestring
+            bytestring
             time
             monad-loops
+            pandoc
         ];
-        otherDeps = p: with p; [
-            # Native dependencies, e.g. imagemagick
-        ];
+        otherDeps = p: with p; builtins.concatLists [[
+        ]
+        (if pkgs.stdenv.isDarwin then [] else [
+            wkhtmltopdf
+        ])];
         projectPath = ./.;
     };
 in
