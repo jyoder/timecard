@@ -8,8 +8,8 @@ newtype T = T
     { timecardEntries :: [TimecardEntry]
     }
 
-buildAll :: TimeZone -> [TimecardEntry] -> [T]
-buildAll timeZone timecardEntries =
+buildAll :: [TimecardEntry] -> [T]
+buildAll timecardEntries =
     T . sortEntries <$> groupBy inSameWeek timecardEntries
   where
     sortEntries entries = sortBy dateCompare entries

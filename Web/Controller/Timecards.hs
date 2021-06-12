@@ -23,7 +23,7 @@ instance Controller TimecardsController where
         selectedPerson <- fetch selectedPersonId
 
         timecardEntries <- TimecardEntry.fetchByPerson selectedPersonId
-        let timecards = Timecard.buildAll companyTimeZone timecardEntries
+        let timecards = Timecard.buildAll timecardEntries
 
         let personActivity = Viewing
         let personSelection = PersonSelected {..}
@@ -39,7 +39,7 @@ instance Controller TimecardsController where
         selectedPerson <- fetch selectedPersonId
 
         timecardEntries <- TimecardEntry.fetchByPerson selectedPersonId
-        let timecards = Timecard.buildAll companyTimeZone timecardEntries
+        let timecards = Timecard.buildAll timecardEntries
 
         let personActivity = Editing {..}
         let personSelection = PersonSelected {..}
@@ -62,7 +62,7 @@ instance Controller TimecardsController where
                     selectedPerson <- fetch selectedPersonId
 
                     timecardEntries <- TimecardEntry.fetchByPerson selectedPersonId
-                    let timecards = Timecard.buildAll companyTimeZone timecardEntries
+                    let timecards = Timecard.buildAll timecardEntries
 
                     let personActivity = Editing {..}
                     let personSelection = PersonSelected {..}
@@ -71,6 +71,3 @@ instance Controller TimecardsController where
                 Right timecardEntry -> do
                     updateRecord timecardEntry
                     redirectTo TimecardPersonSelectionAction {..}
-
-companyTimeZone :: TimeZone
-companyTimeZone = read "PDT"

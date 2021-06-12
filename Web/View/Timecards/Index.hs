@@ -115,7 +115,7 @@ renderTimecardRow :: PersonActivity -> TimecardEntry -> Html
 renderTimecardRow personActivity timecardEntry =
     [hsx|
         <tr>
-            <th scope="row">{dayOfWeek date}</th>
+            <th scope="row">{dayOfWeek'}</th>
             <td>{date}</td>
             <td>{get #jobName timecardEntry}</td>
             <td class="work-done">{get #workDone timecardEntry}</td>
@@ -124,7 +124,8 @@ renderTimecardRow personActivity timecardEntry =
         </tr>
     |]
   where
-    date = get #date timecardEntry
+    dayOfWeek' = dayOfWeek $ get #date timecardEntry
+    date = formatDay $ get #date timecardEntry
 
 renderInvoiceTranslation :: PersonActivity -> TimecardEntry -> Html
 renderInvoiceTranslation personActivity timecardEntry =
