@@ -1,4 +1,6 @@
-module Web.View.Service.Style where
+module Web.View.Service.Style (
+    removeScrollbars,
+) where
 
 import Web.View.Prelude
 

@@ -3,6 +3,7 @@ module Web.View.Timecards.ShowPdf where
 import qualified Application.Timecard.Timecard as Timecard
 import Web.View.Prelude
 import Web.View.Service.Time (formatDay)
+import qualified Prelude as P
 
 data ShowPdfView = ShowPdfView
     { selectedPerson :: !Person
@@ -10,25 +11,17 @@ data ShowPdfView = ShowPdfView
     }
 
 instance View ShowPdfView where
-    beforeRender view = do
-        setLayout (\view -> view)
+    beforeRender view = setLayout P.id
 
-    html view =
+    html ShowPdfView {..} =
         [hsx|
             <div class="content container-fluid">
-                <div class="row align-items start">
-                    {renderTimecardColumn view}
+                <div class="col-12">
+                    {renderTimecard selectedPerson timecard}
                 </div>
             </div>
+            {styles}
         |]
-
-renderTimecardColumn :: ShowPdfView -> Html
-renderTimecardColumn ShowPdfView {..} =
-    [hsx|
-        <div class="timecard-column col-12">
-            {renderTimecard selectedPerson timecard}
-        </div>
-    |]
 
 renderTimecard :: Person -> Timecard.T -> Html
 renderTimecard selectedPerson timecard =
