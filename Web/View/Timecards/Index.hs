@@ -88,7 +88,7 @@ renderTimecard selectedPerson personActivity timecard =
             
             <div class="card-body">
                 <h5 class="card-title">
-                    {get #lastName selectedPerson}, {get #firstName selectedPerson}
+                    {lastName}, {firstName}
                 </h5>
 
                 <table class="table">
@@ -112,10 +112,10 @@ renderTimecard selectedPerson personActivity timecard =
         </div>
     |]
   where
-    downloadAction = TimecardDownloadTimecardAction (get #id selectedPerson) weekOf
-    downloadFilename = weekOf <> "-" <> lastName <> "-" <> firstName <> ".pdf"
     lastName = get #lastName selectedPerson
     firstName = get #firstName selectedPerson
+    downloadAction = TimecardDownloadTimecardAction (get #id selectedPerson) weekOf
+    downloadFilename = weekOf <> "-" <> lastName <> "-" <> firstName <> ".pdf"
     weekOf =
         let Timecard.T {..} = timecard
          in case head timecardEntries of
