@@ -8,16 +8,16 @@ data Section
     | Timecards
     deriving (Eq)
 
-renderNavigation :: Section -> Html
-renderNavigation currentSection =
+renderNavigation :: Section -> Maybe Person -> Html
+renderNavigation currentSection selectedPerson =
     [hsx|
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
             <div class="container-fluid">
                 <span class="navbar-brand mb-0 h1" href="#">Constructable</span>
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        {renderItem CommunicationsAction Communications "Communications" currentSection}
-                        {renderItem TimecardsAction Timecards "Timecards" currentSection}
+                        {renderItem communicationsAction Communications "Communications" currentSection}
+                        {renderItem timecardsAction Timecards "Timecards" currentSection}
                     </ul>
                 </div>
                 <a 
@@ -28,6 +28,13 @@ renderNavigation currentSection =
             </div>
         </nav>
     |]
+  where
+    communicationsAction = case selectedPerson of
+        Just selectedPerson -> PersonSelectionAction (get #id selectedPerson)
+        Nothing -> CommunicationsAction
+    timecardsAction = case selectedPerson of
+        Just selectedPerson -> TimecardPersonSelectionAction (get #id selectedPerson)
+        Nothing -> TimecardsAction
 
 renderItem :: (HasPath action) => action -> Section -> Text -> Section -> Html
 renderItem action newSection label currentSection =

@@ -29,7 +29,7 @@ data PersonActivity
 instance View IndexView where
     html view =
         [hsx|
-            {renderNavigation Timecards}
+            {renderNavigation Timecards selectedPerson'}
 
             <div class="row align-items start">
                 {renderPeopleColumn view}
@@ -38,6 +38,10 @@ instance View IndexView where
 
             {styles}
         |]
+      where
+        selectedPerson' = case get #personSelection view of
+            NoPersonSelected -> Nothing
+            PersonSelected {..} -> Just selectedPerson
 
 renderPeopleColumn :: IndexView -> Html
 renderPeopleColumn IndexView {..} =
