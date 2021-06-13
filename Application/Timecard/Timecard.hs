@@ -19,7 +19,7 @@ buildForWeek :: Day -> [TimecardEntry] -> T
 buildForWeek date timecardEntries =
     T sortedEntriesInWeek
   where
-    sortedEntriesInWeek = sortBy dateCompare timecardEntries
+    sortedEntriesInWeek = sortBy dateCompare entriesInWeek
     entriesInWeek = filter (\timecardEntry -> entryWeek timecardEntry == week) timecardEntries
     week = weekOfYear date
     entryWeek entry = weekOfYear $ get #date entry
