@@ -89,5 +89,9 @@ data TimecardsController
     | TimecardEditTimecardEntryAction
         { timecardEntryId :: !(Id TimecardEntry)
         }
+    | TimecardDownloadTimecardAction
+        { selectedPersonId :: !(Id Person)
+        , weekOf :: !Text
+        }
     | TimecardUpdateTimecardEntryAction
     deriving (Eq, Show, Data)

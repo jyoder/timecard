@@ -15,6 +15,16 @@ buildAll timecardEntries =
     sortEntries entries = sortBy dateCompare entries
     dateCompare entryA entryB = get #date entryA `compare` get #date entryB
 
+buildForWeek :: Day -> [TimecardEntry] -> T
+buildForWeek date timecardEntries =
+    T sortedEntriesInWeek
+  where
+    sortedEntriesInWeek = sortBy dateCompare timecardEntries
+    entriesInWeek = filter (\timecardEntry -> entryWeek timecardEntry == week) timecardEntries
+    week = weekOfYear date
+    entryWeek entry = weekOfYear $ get #date entry
+    dateCompare entryA entryB = get #date entryA `compare` get #date entryB
+
 inSameWeek :: TimecardEntry -> TimecardEntry -> Bool
 inSameWeek timecardEntry1 timecardEntry2 =
     let week1 = weekOfYear $ get #date timecardEntry1

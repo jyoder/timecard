@@ -107,9 +107,20 @@ renderTimecard selectedPerson personActivity timecard =
                         {renderLastRow $ totalHoursWorked timecard}
                     </tbody>
                 </table>
+                <a href={downloadAction} download={downloadFilename}>Download PDF</a>
             </div>
         </div>
     |]
+  where
+    downloadAction = TimecardDownloadTimecardAction (get #id selectedPerson) weekOf
+    downloadFilename = weekOf <> "-" <> lastName <> "-" <> firstName <> ".pdf"
+    lastName = get #lastName selectedPerson
+    firstName = get #firstName selectedPerson
+    weekOf =
+        let Timecard.T {..} = timecard
+         in case head timecardEntries of
+                Just timecardEntry -> show $ get #date timecardEntry
+                Nothing -> ""
 
 renderTimecardRow :: PersonActivity -> TimecardEntry -> Html
 renderTimecardRow personActivity timecardEntry =
