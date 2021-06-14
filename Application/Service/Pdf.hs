@@ -39,11 +39,14 @@ bootstrapPath = "build/ihp-lib/static/vendor/bootstrap.min.css"
 
 fullHtmlDocument :: Lazy.ByteString -> Lazy.ByteString -> Lazy.ByteString
 fullHtmlDocument bootstrap htmlFragment =
-    "<html><head><style>"
-        <> bootstrap
-        <> "</style></head><body>"
-        <> htmlFragment
-        <> "</body></html>"
+    "<html>"
+        <> "<head>"
+        <> "<meta http-equiv=\"Content-type\" content=\"text/html; charset=utf-8\" />"
+        <> "<meta charset=\"UTF-8\" />"
+        <> ("<style>" <> bootstrap <> "</style>")
+        <> "</head>"
+        <> ("<body>" <> htmlFragment <> "</body>")
+        <> "</html>"
 
 createConvertProcess :: IO (Handle, Handle)
 createConvertProcess = do
