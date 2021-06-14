@@ -11,7 +11,7 @@ data Section
 renderNavigation :: Section -> Maybe Person -> Html
 renderNavigation currentSection selectedPerson =
     [hsx|
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <nav class="navbar navbar-expand navbar-light bg-light">
             <div class="container-fluid">
                 <span class="navbar-brand mb-0 h1" href="#">Constructable</span>
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
