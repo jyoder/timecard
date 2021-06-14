@@ -95,7 +95,7 @@ renderTimecard selectedPerson personActivity timecard =
                     {lastName}, {firstName}
                 </h5>
 
-                <table class="table">
+                <table class="table sticky-header">
                     <thead>
                         <tr>
                             <th scope="col">Day</th>
@@ -224,6 +224,14 @@ styles =
             height: calc(100vh - 150px);
             overflow-y: scroll;
             font-size: .9rem;
+        }
+
+        .sticky-header thead th { 
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background: white;
+            border: none;
         }
 
         .work-done {
