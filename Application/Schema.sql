@@ -103,7 +103,9 @@ CREATE TABLE timecards (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     week_of DATE NOT NULL,
     state TEXT DEFAULT 'created' NOT NULL,
-    CHECK (state = 'created')
+    person_id UUID NOT NULL,
+    CHECK (state = 'created'),
+    UNIQUE (person_id, week_of)
 );
 CREATE INDEX action_run_times_runs_at_index ON action_run_times (runs_at);
 CREATE INDEX phone_contacts_person_id_index ON phone_contacts (person_id);
@@ -119,6 +121,7 @@ CREATE INDEX action_run_times_action_run_state_id_index ON action_run_times (act
 CREATE INDEX send_message_actions_action_run_state_id_index ON send_message_actions (action_run_state_id);
 CREATE INDEX action_run_states_state_index ON action_run_states (state);
 CREATE INDEX timecard_entries_timecard_id_index ON timecard_entries (timecard_id);
+CREATE INDEX timecards_person_id_index ON timecards (person_id);
 CREATE FUNCTION trigger_set_updated_at() RETURNS TRIGGER AS $$
 BEGIN
   NEW.updated_at = NOW();
@@ -147,5 +150,6 @@ ALTER TABLE timecard_entries ADD CONSTRAINT timecard_entries_ref_person_id FOREI
 ALTER TABLE timecard_entries ADD CONSTRAINT timecard_entries_ref_timecard_id FOREIGN KEY (timecard_id) REFERENCES timecards (id) ON DELETE NO ACTION;
 ALTER TABLE timecard_entry_messages ADD CONSTRAINT timecard_entry_messages_ref_timecard_entry_id FOREIGN KEY (timecard_entry_id) REFERENCES timecard_entries (id) ON DELETE NO ACTION;
 ALTER TABLE timecard_entry_messages ADD CONSTRAINT timecard_entry_messages_ref_twilio_message_id FOREIGN KEY (twilio_message_id) REFERENCES twilio_messages (id) ON DELETE NO ACTION;
+ALTER TABLE timecards ADD CONSTRAINT timecards_ref_person_id FOREIGN KEY (person_id) REFERENCES people (id) ON DELETE NO ACTION;
 ALTER TABLE twilio_messages ADD CONSTRAINT twilio_messages_ref_from_id FOREIGN KEY (from_id) REFERENCES phone_numbers (id) ON DELETE NO ACTION;
 ALTER TABLE twilio_messages ADD CONSTRAINT twilio_messages_ref_to_id FOREIGN KEY (to_id) REFERENCES phone_numbers (id) ON DELETE NO ACTION;

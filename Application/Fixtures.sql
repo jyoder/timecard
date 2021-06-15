@@ -78,7 +78,7 @@ ALTER TABLE public.phone_contacts ENABLE TRIGGER ALL;
 
 ALTER TABLE public.process_events_jobs DISABLE TRIGGER ALL;
 
-INSERT INTO public.process_events_jobs (id, created_at, updated_at, status, last_error, attempts_count, locked_at, locked_by) VALUES ('d6942ea7-c677-4d5a-a0c7-28d61d80f8fd', '2021-06-14 19:05:33.578904-07', '2021-06-14 19:05:33.58417-07', 'job_status_running', NULL, 1, '2021-06-14 19:05:33.58417-07', 'eb33c278-75c4-47a1-b8ae-5ae7aca72b3f');
+INSERT INTO public.process_events_jobs (id, created_at, updated_at, status, last_error, attempts_count, locked_at, locked_by) VALUES ('5a944f3c-2494-48c3-9fb4-191a6e9788cb', '2021-06-14 19:29:43.731436-07', '2021-06-14 19:29:43.737687-07', 'job_status_running', NULL, 1, '2021-06-14 19:29:43.737687-07', '4787a59d-e640-49df-9d97-d32f06ce00ef');
 
 
 ALTER TABLE public.process_events_jobs ENABLE TRIGGER ALL;
