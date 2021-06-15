@@ -1,3 +1,4 @@
+-- pgFormatter-ignore
 -- Your database schema. Use the Schema Designer at http://localhost:8001/ to add some tables.
 CREATE TABLE users (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
@@ -60,7 +61,8 @@ CREATE TABLE timecard_entries (
     job_name TEXT NOT NULL,
     hours_worked DOUBLE PRECISION NOT NULL,
     work_done TEXT NOT NULL,
-    invoice_translation TEXT NOT NULL
+    invoice_translation TEXT NOT NULL,
+    timecard_id UUID DEFAULT NULL
 );
 CREATE TABLE process_events_jobs (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
@@ -92,7 +94,16 @@ CREATE TABLE action_run_states (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-    state TEXT DEFAULT 'not_started' NOT NULL
+    state TEXT DEFAULT 'not_started' NOT NULL,
+    CHECK (((((state = 'not_started') OR (state = 'started')) OR (state = 'canceled')) OR (state = 'finished')) OR (state = 'failed'))
+);
+CREATE TABLE timecards (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    week_of DATE NOT NULL,
+    state TEXT DEFAULT 'created' NOT NULL,
+    CHECK (state = 'created')
 );
 CREATE INDEX action_run_times_runs_at_index ON action_run_times (runs_at);
 CREATE INDEX phone_contacts_person_id_index ON phone_contacts (person_id);
@@ -107,6 +118,7 @@ CREATE INDEX twilio_messages_to_id_index ON twilio_messages (to_id);
 CREATE INDEX action_run_times_action_run_state_id_index ON action_run_times (action_run_state_id);
 CREATE INDEX send_message_actions_action_run_state_id_index ON send_message_actions (action_run_state_id);
 CREATE INDEX action_run_states_state_index ON action_run_states (state);
+CREATE INDEX timecard_entries_timecard_id_index ON timecard_entries (timecard_id);
 CREATE FUNCTION trigger_set_updated_at() RETURNS TRIGGER AS $$
 BEGIN
   NEW.updated_at = NOW();
@@ -124,6 +136,7 @@ CREATE TRIGGER set_updated_at BEFORE UPDATE ON process_events_jobs FOR EACH ROW 
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON action_run_times FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON send_message_actions FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON action_run_states FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
+CREATE TRIGGER set_updated_at BEFORE UPDATE ON timecards FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
 ALTER TABLE action_run_times ADD CONSTRAINT action_run_times_ref_action_run_state_id FOREIGN KEY (action_run_state_id) REFERENCES action_run_states (id) ON DELETE NO ACTION;
 ALTER TABLE phone_contacts ADD CONSTRAINT phone_contacts_ref_person_id FOREIGN KEY (person_id) REFERENCES people (id) ON DELETE NO ACTION;
 ALTER TABLE phone_contacts ADD CONSTRAINT phone_contacts_ref_phone_number_id FOREIGN KEY (phone_number_id) REFERENCES phone_numbers (id) ON DELETE NO ACTION;
@@ -131,6 +144,7 @@ ALTER TABLE send_message_actions ADD CONSTRAINT send_message_actions_ref_action_
 ALTER TABLE send_message_actions ADD CONSTRAINT send_message_actions_ref_from_id FOREIGN KEY (from_id) REFERENCES phone_numbers (id) ON DELETE NO ACTION;
 ALTER TABLE send_message_actions ADD CONSTRAINT send_message_actions_ref_to_id FOREIGN KEY (to_id) REFERENCES phone_numbers (id) ON DELETE NO ACTION;
 ALTER TABLE timecard_entries ADD CONSTRAINT timecard_entries_ref_person_id FOREIGN KEY (person_id) REFERENCES people (id) ON DELETE NO ACTION;
+ALTER TABLE timecard_entries ADD CONSTRAINT timecard_entries_ref_timecard_id FOREIGN KEY (timecard_id) REFERENCES timecards (id) ON DELETE NO ACTION;
 ALTER TABLE timecard_entry_messages ADD CONSTRAINT timecard_entry_messages_ref_timecard_entry_id FOREIGN KEY (timecard_entry_id) REFERENCES timecard_entries (id) ON DELETE NO ACTION;
 ALTER TABLE timecard_entry_messages ADD CONSTRAINT timecard_entry_messages_ref_twilio_message_id FOREIGN KEY (twilio_message_id) REFERENCES twilio_messages (id) ON DELETE NO ACTION;
 ALTER TABLE twilio_messages ADD CONSTRAINT twilio_messages_ref_from_id FOREIGN KEY (from_id) REFERENCES phone_numbers (id) ON DELETE NO ACTION;
