@@ -95,7 +95,7 @@ CREATE TABLE action_run_states (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     state TEXT DEFAULT 'not_started' NOT NULL,
-    CHECK (((((state = 'not_started') OR (state = 'started')) OR (state = 'canceled')) OR (state = 'finished')) OR (state = 'failed'))
+    CHECK (((((state = 'not_started') OR (state = 'running')) OR (state = 'canceled')) OR (state = 'finished')) OR (state = 'failed'))
 );
 CREATE TABLE timecards (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
