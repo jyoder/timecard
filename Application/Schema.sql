@@ -116,7 +116,7 @@ BEGIN
   END IF;
 END;
 $$ language plpgsql;
-CREATE TRIGGER validate_timecard_entry_date BEFORE UPDATE ON timecard_entries FOR EACH ROW EXECUTE PROCEDURE trigger_validate_timecard_entry_date();
+CREATE TRIGGER validate_timecard_entry_date BEFORE INSERT OR UPDATE ON timecard_entries FOR EACH ROW EXECUTE PROCEDURE trigger_validate_timecard_entry_date();
 
 CREATE INDEX action_run_times_runs_at_index ON action_run_times (runs_at);
 CREATE INDEX phone_contacts_person_id_index ON phone_contacts (person_id);
