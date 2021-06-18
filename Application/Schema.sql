@@ -106,7 +106,7 @@ CREATE TABLE timecards (
     CHECK (state = 'created'),
     UNIQUE(person_id, week_of)
 );
-CREATE FUNCTION trigger_validate_timecard_entry_date() RETURNS TRIGGER AS $$
+CREATE FUNCTION trigger_validate_timecard_entry_date_matches_timecard() RETURNS TRIGGER AS $$
 BEGIN
   IF date_trunc('week', NEW.date) = (SELECT timecards.week_of FROM timecards WHERE timecards.id = NEW.timecard_id) THEN
     RETURN NEW;
@@ -115,7 +115,33 @@ BEGIN
   END IF;
 END;
 $$ language plpgsql;
-CREATE TRIGGER validate_timecard_entry_date BEFORE INSERT OR UPDATE ON timecard_entries FOR EACH ROW EXECUTE PROCEDURE trigger_validate_timecard_entry_date();
+CREATE TRIGGER validate_timecard_entry_date_matches_timecard BEFORE INSERT OR UPDATE ON timecard_entries FOR EACH ROW EXECUTE PROCEDURE trigger_validate_timecard_entry_date_matches_timecard();
+
+CREATE FUNCTION trigger_validate_timecard_week_of_matches_timecard_entries() RETURNS TRIGGER AS $$
+DECLARE
+  week_of DATE;
+BEGIN
+  week_of := (SELECT date_trunc('week', timecard_entries.date)::date week_of FROM timecard_entries WHERE timecard_entries.timecard_id = NEW.id limit 1);
+  IF week_of IS NULL OR week_of = NEW.week_of THEN
+    RETURN NEW;
+  ELSE
+    RAISE EXCEPTION 'week_of must encompass timecard entry dates';
+  END IF;
+END;
+$$ language plpgsql;
+CREATE TRIGGER validate_timecard_week_of_matches_timecard_entries BEFORE INSERT OR UPDATE ON timecards FOR EACH ROW EXECUTE PROCEDURE trigger_validate_timecard_week_of_matches_timecard_entries();
+
+CREATE FUNCTION trigger_validate_timecard_week_of_is_start_of_week() RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.week_of = date_trunc('week', NEW.week_of)::date THEN
+    RETURN NEW;
+  ELSE
+    RAISE EXCEPTION 'week_of must be the start of the week';
+  END IF;
+END;
+$$ language plpgsql;
+CREATE TRIGGER validate_timecard_week_of_is_start_of_week BEFORE INSERT OR UPDATE ON timecards FOR EACH ROW EXECUTE PROCEDURE trigger_validate_timecard_week_of_is_start_of_week();
+
 CREATE INDEX action_run_times_runs_at_index ON action_run_times (runs_at);
 CREATE INDEX phone_contacts_person_id_index ON phone_contacts (person_id);
 CREATE INDEX phone_contacts_phone_number_id_index ON phone_contacts (phone_number_id);
