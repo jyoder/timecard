@@ -19,7 +19,8 @@ fetchByPerson ::
     IO [TimecardEntry]
 fetchByPerson personId =
     query @TimecardEntry
-        |> filterWhere (#personId, personId)
+        |> innerJoin @Timecard (#timecardId, #id)
+        |> filterWhereJoinedTable @Timecard (#personId, personId)
         |> orderByDesc #date
         |> fetch
 

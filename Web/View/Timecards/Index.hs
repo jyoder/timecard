@@ -107,7 +107,7 @@ renderTimecard selectedPerson personActivity timecard =
                         </tr>
                     </thead>
                     <tbody>
-                        {forEach (get #timecardEntries timecard) (renderTimecardRow personActivity)}
+                        {forEach (get #timecardEntries timecard) (renderTimecardRow selectedPerson personActivity)}
                         {renderLastRow $ totalHoursWorked timecard}
                     </tbody>
                 </table>
@@ -126,15 +126,15 @@ renderTimecard selectedPerson personActivity timecard =
                 Just timecardEntry -> show $ get #date timecardEntry
                 Nothing -> ""
 
-renderTimecardRow :: PersonActivity -> TimecardEntry -> Html
-renderTimecardRow personActivity timecardEntry =
+renderTimecardRow :: Person -> PersonActivity -> TimecardEntry -> Html
+renderTimecardRow selectedPerson personActivity timecardEntry =
     [hsx|
         <tr>
             <th scope="row">{dayOfWeek'}</th>
             <td>{date}</td>
             <td>{get #jobName timecardEntry}</td>
             <td class="work-done">{get #workDone timecardEntry}</td>
-            {renderInvoiceTranslation personActivity timecardEntry}
+            {renderInvoiceTranslation selectedPerson personActivity timecardEntry}
             <td>{get #hoursWorked timecardEntry}</td>
         </tr>
     |]
@@ -142,8 +142,8 @@ renderTimecardRow personActivity timecardEntry =
     dayOfWeek' = dayOfWeek $ get #date timecardEntry
     date = formatDay $ get #date timecardEntry
 
-renderInvoiceTranslation :: PersonActivity -> TimecardEntry -> Html
-renderInvoiceTranslation personActivity timecardEntry =
+renderInvoiceTranslation :: Person -> PersonActivity -> TimecardEntry -> Html
+renderInvoiceTranslation selectedPerson personActivity timecardEntry =
     case personActivity of
         Viewing -> renderViewInvoiceTranslation timecardEntry
         Editing {..} ->
@@ -151,7 +151,7 @@ renderInvoiceTranslation personActivity timecardEntry =
                 then
                     [hsx|
                         <td class="invoice-translation">
-                            {renderInvoiceTranslationForm selectedTimecardEntry}
+                            {renderInvoiceTranslationForm selectedPerson selectedTimecardEntry}
                         </td>
                     |]
                 else renderViewInvoiceTranslation timecardEntry
@@ -166,15 +166,14 @@ renderViewInvoiceTranslation timecardEntry =
   where
     editAction = TimecardEditTimecardEntryAction (get #id timecardEntry)
 
-renderInvoiceTranslationForm :: TimecardEntry -> Html
-renderInvoiceTranslationForm timecardEntry =
+renderInvoiceTranslationForm :: Person -> TimecardEntry -> Html
+renderInvoiceTranslationForm selectedPerson timecardEntry =
     formForWithOptions
         timecardEntry
         formOptions
         [hsx| 
             {(textareaField #invoiceTranslation) {disableLabel = True}}
-            
-            {hiddenField #personId}
+
             {hiddenField #id}
             
             {submitButton { label = "Save", buttonClass = "btn btn-primary btn-sm"}}
@@ -185,7 +184,7 @@ renderInvoiceTranslationForm timecardEntry =
         formContext
             |> set #formId "edit-timecard-entry-form"
             |> set #formAction (pathTo TimecardUpdateTimecardEntryAction)
-    personSelectionAction = TimecardPersonSelectionAction (get #personId timecardEntry)
+    personSelectionAction = TimecardPersonSelectionAction (get #id selectedPerson)
 
 renderLastRow :: Double -> Html
 renderLastRow hours =

@@ -41,7 +41,8 @@ instance Controller TimecardsController where
         people <- People.fetchExcluding botId
 
         selectedTimecardEntry <- fetch timecardEntryId
-        let selectedPersonId = get #personId selectedTimecardEntry
+        selectedTimecard <- fetch (get #timecardId selectedTimecardEntry)
+        let selectedPersonId = get #personId selectedTimecard
         selectedPerson <- fetch selectedPersonId
 
         timecardEntries <- TimecardEntry.fetchByPerson selectedPersonId
@@ -72,10 +73,12 @@ instance Controller TimecardsController where
     --
     action TimecardUpdateTimecardEntryAction = do
         let timecardEntryId = param @(Id TimecardEntry) "id"
-        let selectedPersonId = param @(Id Person) "personId"
         let invoiceTranslation = param @Text "invoiceTranslation"
 
         timecardEntry <- fetch timecardEntryId
+        timecard <- fetch (get #timecardId timecardEntry)
+        let selectedPersonId = get #personId timecard
+
         timecardEntry
             |> set #invoiceTranslation invoiceTranslation
             |> validateField #invoiceTranslation nonEmpty
@@ -83,6 +86,7 @@ instance Controller TimecardsController where
                 Left selectedTimecardEntry -> do
                     botId <- People.fetchBotId
                     people <- People.fetchExcluding botId
+
                     selectedPerson <- fetch selectedPersonId
 
                     timecardEntries <- TimecardEntry.fetchByPerson selectedPersonId

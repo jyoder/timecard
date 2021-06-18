@@ -123,7 +123,6 @@ instance Controller CommunicationsController where
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
 
         newRecord @TimecardEntry
-            |> set #personId selectedPersonId
             |> buildTimecardEntry
             |> TimecardEntry.create selectedPersonId selectedMessageIds
                 >>= either
@@ -160,7 +159,6 @@ instance Controller CommunicationsController where
 
         timecardEntry
             |> buildTimecardEntry
-            |> set #personId selectedPersonId
             |> TimecardEntry.update selectedMessageIds
                 >>= either
                     ( \timecardEntry -> do
