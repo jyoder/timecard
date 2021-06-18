@@ -1,12 +1,46 @@
 module Application.Timecard.Timecard where
 
-import Data.Time.Calendar.WeekDate (toWeekDate)
+import Application.Service.Validation (validateAndCreate)
+import Data.Time.Calendar.WeekDate (fromWeekDate, toWeekDate)
 import Generated.Types
+import IHP.Fetch
+import IHP.ModelSupport
 import IHP.Prelude
+import IHP.QueryBuilder
+import IHP.ValidationSupport.ValidateField
 
 newtype T = T
     { timecardEntries :: [TimecardEntry]
     }
+
+validate :: Timecard -> Timecard
+validate timecard =
+    timecard
+        |> validateField
+            #weekOf
+            (isInList [startOfWeek (get #weekOf timecard)])
+
+fetchOrCreate ::
+    (?modelContext :: ModelContext) =>
+    Id Person ->
+    Day ->
+    IO Timecard
+fetchOrCreate personId day = do
+    let weekOf = startOfWeek day
+
+    maybeTimecard <-
+        query @Timecard
+            |> filterWhere (#personId, personId)
+            |> filterWhere (#weekOf, weekOf)
+            |> fetchOneOrNothing
+
+    case maybeTimecard of
+        Just timecard -> pure timecard
+        Nothing -> do
+            newRecord @Timecard
+                |> set #personId personId
+                |> set #weekOf weekOf
+                |> validateAndCreate validate
 
 buildAll :: [TimecardEntry] -> [T]
 buildAll timecardEntries =
@@ -35,3 +69,8 @@ weekOfYear :: Day -> (Integer, Int)
 weekOfYear day =
     let (year, week, _) = toWeekDate day
      in (year, week)
+
+startOfWeek :: Day -> Day
+startOfWeek day =
+    let (year, week, _) = toWeekDate day
+     in fromWeekDate year week 1

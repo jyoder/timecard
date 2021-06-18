@@ -1,5 +1,6 @@
 module Application.Timecard.TimecardEntryMessage (
-    replaceAllForTimecard,
+    createAll,
+    replaceAll,
     fetchByTimecardEntry,
 ) where
 
@@ -9,17 +10,26 @@ import IHP.ModelSupport
 import IHP.Prelude
 import IHP.QueryBuilder
 
-replaceAllForTimecard ::
+createAll ::
     (?modelContext :: ModelContext) =>
     Id TimecardEntry ->
     [Id TwilioMessage] ->
-    IO ()
-replaceAllForTimecard timecardEntryId twilioMessageIds =
+    IO [TimecardEntryMessage]
+createAll timecardEntryId twilioMessageIds =
+    let timecardEntryMessages = buildAll timecardEntryId twilioMessageIds
+     in createMany timecardEntryMessages
+
+replaceAll ::
+    (?modelContext :: ModelContext) =>
+    Id TimecardEntry ->
+    [Id TwilioMessage] ->
+    IO [TimecardEntryMessage]
+replaceAll timecardEntryId twilioMessageIds =
     let timecardEntryMessages = buildAll timecardEntryId twilioMessageIds
      in withTransaction do
             oldTimecardEntryMessages <- fetchByTimecardEntry timecardEntryId
             deleteRecords oldTimecardEntryMessages
-            mapM_ createRecord timecardEntryMessages
+            createMany timecardEntryMessages
 
 fetchByTimecardEntry ::
     (?modelContext :: ModelContext) =>

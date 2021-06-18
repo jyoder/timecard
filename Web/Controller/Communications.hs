@@ -6,6 +6,7 @@ import qualified Application.Action.ActionRunState as ActionRunState
 import qualified Application.Action.SendMessageAction as SendMessageAction
 import qualified Application.Base.People as People
 import qualified Application.Base.PhoneNumber as PhoneNumber
+import qualified Application.Timecard.Timecard as Timecard
 import qualified Application.Timecard.TimecardEntry as TimecardEntry
 import qualified Application.Timecard.TimecardEntryMessage as TimecardEntryMessage
 import qualified Application.Timecard.TimecardEntryRequest as TimecardEntryRequest
@@ -36,6 +37,7 @@ instance Controller CommunicationsController where
         let newMessage = newRecord @TwilioMessage
 
         timecardEntries <- TimecardEntry.fetchByPerson selectedPersonId
+        let timecards = Timecard.buildAll timecardEntries
 
         let personActivity = SendingMessage {..}
         let personSelection = PersonSelected {..}
@@ -121,36 +123,33 @@ instance Controller CommunicationsController where
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
 
         newRecord @TimecardEntry
-            |> buildTimecardEntry
             |> set #personId selectedPersonId
-            |> ifValid \case
-                Left timecardEntry -> do
-                    people <- People.fetchExcluding botId
-                    messages <- TwilioMessage.fetchByPeople botId selectedPersonId
-                    let selectedMessages = findSelectedMessages messages selectedMessageIds
-                    scheduledMessages <-
-                        SendMessageAction.fetchFutureByPhoneNumber
-                            (get #id toPhoneNumber)
-                    let newMessage = newRecord @TwilioMessage
+            |> buildTimecardEntry
+            |> TimecardEntry.create selectedPersonId selectedMessageIds
+                >>= either
+                    ( \timecardEntry -> do
+                        people <- People.fetchExcluding botId
+                        messages <- TwilioMessage.fetchByPeople botId selectedPersonId
+                        let selectedMessages = findSelectedMessages messages selectedMessageIds
+                        scheduledMessages <-
+                            SendMessageAction.fetchFutureByPhoneNumber (get #id toPhoneNumber)
+                        let newMessage = newRecord @TwilioMessage
 
-                    let timecardActivity = CreatingEntry
-                    let personActivity = WorkingOnTimecardEntry {..}
-                    let personSelection = PersonSelected {..}
+                        let timecardActivity = CreatingEntry
+                        let personActivity = WorkingOnTimecardEntry {..}
+                        let personSelection = PersonSelected {..}
 
-                    render IndexView {..}
-                Right timecardEntry -> do
-                    fromPhoneNumber <- PhoneNumber.fetchByPerson botId
-                    withTransaction do
-                        timecardEntry <- createRecord timecardEntry
-                        TimecardEntryMessage.replaceAllForTimecard
-                            (get #id timecardEntry)
-                            selectedMessageIds
+                        render IndexView {..}
+                    )
+                    ( \timecardEntry -> do
+                        fromPhoneNumber <- PhoneNumber.fetchByPerson botId
                         scheduleNextRequest
                             timecardEntry
                             selectedPerson
                             (get #id fromPhoneNumber)
                             (get #id toPhoneNumber)
-                    redirectTo PersonSelectionAction {..}
+                        redirectTo PersonSelectionAction {..}
+                    )
     --
     action UpdateTimecardEntryAction = do
         let selectedPersonId = param @(Id Person) "selectedPersonId"
@@ -162,34 +161,30 @@ instance Controller CommunicationsController where
         timecardEntry
             |> buildTimecardEntry
             |> set #personId selectedPersonId
-            |> ifValid \case
-                Left timecardEntry -> do
-                    botId <- People.fetchBotId
-                    people <- People.fetchExcluding botId
-                    selectedPerson <- fetch selectedPersonId
+            |> TimecardEntry.update selectedMessageIds
+                >>= either
+                    ( \timecardEntry -> do
+                        botId <- People.fetchBotId
+                        people <- People.fetchExcluding botId
+                        selectedPerson <- fetch selectedPersonId
 
-                    messages <- TwilioMessage.fetchByPeople botId selectedPersonId
-                    toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
-                    let selectedMessages = findSelectedMessages messages selectedMessageIds
-                    scheduledMessages <-
-                        SendMessageAction.fetchFutureByPhoneNumber
-                            (get #id toPhoneNumber)
-                    let newMessage = newRecord @TwilioMessage
+                        messages <- TwilioMessage.fetchByPeople botId selectedPersonId
+                        toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
+                        let selectedMessages = findSelectedMessages messages selectedMessageIds
+                        scheduledMessages <-
+                            SendMessageAction.fetchFutureByPhoneNumber
+                                (get #id toPhoneNumber)
+                        let newMessage = newRecord @TwilioMessage
 
-                    timecardEntry <- fetch timecardEntryId
-                    let timecardActivity = EditingEntry
+                        let timecardActivity = EditingEntry
+                        let personActivity = WorkingOnTimecardEntry {..}
+                        let personSelection = PersonSelected {..}
 
-                    let personActivity = WorkingOnTimecardEntry {..}
-                    let personSelection = PersonSelected {..}
-
-                    render IndexView {people, personSelection}
-                Right timecardEntry -> do
-                    withTransaction do
-                        updateRecord timecardEntry
-                        TimecardEntryMessage.replaceAllForTimecard
-                            (get #id timecardEntry)
-                            selectedMessageIds
-                    redirectTo PersonSelectionAction {..}
+                        render IndexView {people, personSelection}
+                    )
+                    ( \timecardEntry ->
+                        redirectTo PersonSelectionAction {..}
+                    )
     --
     action CreateOutgoingPhoneMessageAction = do
         let toPhoneNumberId = Id (param "toId")
@@ -252,13 +247,13 @@ buildNewTimecardEntry date timecardEntry =
         |> set #hoursWorked defaultHoursWorked
 
 buildTimecardEntry ::
-    (?context :: ControllerContext) =>
+    ( ?context :: ControllerContext
+    ) =>
     TimecardEntry ->
     TimecardEntry
-buildTimecardEntry timecardEntry = do
+buildTimecardEntry timecardEntry =
     timecardEntry
         |> fill @["date", "jobName", "hoursWorked", "workDone", "invoiceTranslation"]
-        |> TimecardEntry.validate
 
 defaultHoursWorked :: Double
 defaultHoursWorked = 8.0

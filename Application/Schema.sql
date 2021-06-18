@@ -62,7 +62,7 @@ CREATE TABLE timecard_entries (
     hours_worked DOUBLE PRECISION NOT NULL,
     work_done TEXT NOT NULL,
     invoice_translation TEXT NOT NULL,
-    timecard_id UUID DEFAULT NULL
+    timecard_id UUID NOT NULL
 );
 CREATE TABLE process_events_jobs (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
@@ -105,8 +105,19 @@ CREATE TABLE timecards (
     state TEXT DEFAULT 'created' NOT NULL,
     person_id UUID NOT NULL,
     CHECK (state = 'created'),
-    UNIQUE (person_id, week_of)
+    UNIQUE(person_id, week_of)
 );
+CREATE FUNCTION trigger_validate_timecard_entry_date() RETURNS TRIGGER AS $$
+BEGIN
+  IF date_trunc('week', NEW.date) = (SELECT timecards.week_of FROM timecards WHERE timecards.id = NEW.timecard_id) THEN
+    RETURN NEW;
+  ELSE
+    RAISE EXCEPTION 'date must fall within the timecard week';
+  END IF;
+END;
+$$ language plpgsql;
+CREATE TRIGGER validate_timecard_entry_date BEFORE UPDATE ON timecard_entries FOR EACH ROW EXECUTE PROCEDURE trigger_validate_timecard_entry_date();
+
 CREATE INDEX action_run_times_runs_at_index ON action_run_times (runs_at);
 CREATE INDEX phone_contacts_person_id_index ON phone_contacts (person_id);
 CREATE INDEX phone_contacts_phone_number_id_index ON phone_contacts (phone_number_id);
