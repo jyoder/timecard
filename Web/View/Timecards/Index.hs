@@ -88,7 +88,9 @@ renderTimecard :: Person -> PersonActivity -> Timecard.T -> Html
 renderTimecard selectedPerson personActivity timecard =
     [hsx|
         <div class="card mb-5">
-            <h5 class="card-header">{dateRange timecard}</h5>
+            <h5 class="card-header">
+                Week Of {formatDay weekOf}
+            </h5>
             
             <div class="card-body">
                 <h5 class="card-title">
@@ -118,9 +120,10 @@ renderTimecard selectedPerson personActivity timecard =
   where
     lastName = get #lastName selectedPerson
     firstName = get #firstName selectedPerson
-    downloadAction = TimecardDownloadTimecardAction (get #id selectedPerson) weekOf
-    downloadFilename = weekOf <> "-" <> lastName <> "-" <> firstName <> ".pdf"
-    weekOf = show $ get #weekOf $ get #timecard timecard
+    downloadAction = TimecardDownloadTimecardAction (get #id selectedPerson) showWeekOf
+    downloadFilename = showWeekOf <> "-" <> lastName <> "-" <> firstName <> ".pdf"
+    showWeekOf = show $ get #weekOf $ get #timecard timecard
+    weekOf = get #weekOf $ get #timecard timecard
 
 renderTimecardRow :: Person -> PersonActivity -> TimecardEntry -> Html
 renderTimecardRow selectedPerson personActivity timecardEntry =
@@ -190,17 +193,6 @@ renderLastRow hours =
             <td>{hours}</td>
         </tr>
     |]
-
-dateRange :: Timecard.T -> Html
-dateRange Timecard.T {..} =
-    case (head entries, last entries) of
-        (Just firstEntry, Just lastEntry) ->
-            [hsx|
-                <span>
-                    {formatDay $ get #date firstEntry} - {formatDay $ get #date lastEntry}
-                </span>
-            |]
-        _ -> [hsx||]
 
 totalHoursWorked :: Timecard.T -> Double
 totalHoursWorked Timecard.T {..} =

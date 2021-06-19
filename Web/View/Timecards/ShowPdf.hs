@@ -27,7 +27,9 @@ renderTimecard :: Person -> Timecard.T -> Html
 renderTimecard selectedPerson timecard =
     [hsx|
         <div class="card mb-5">
-            <h5 class="card-header">{dateRange timecard}</h5>
+            <h5 class="card-header">
+                Week Of {formatDay $ get #weekOf $ get #timecard timecard}
+            </h5>
             
             <div class="card-body">
                 <h5 class="card-title">
@@ -82,17 +84,6 @@ renderLastRow hours =
             <td>{hours}</td>
         </tr>
     |]
-
-dateRange :: Timecard.T -> Html
-dateRange Timecard.T {..} =
-    case (head entries, last entries) of
-        (Just firstEntry, Just lastEntry) ->
-            [hsx|
-                <span>
-                    {formatDay $ get #date firstEntry} - {formatDay $ get #date lastEntry}
-                </span>
-            |]
-        _ -> [hsx||]
 
 totalHoursWorked :: Timecard.T -> Double
 totalHoursWorked Timecard.T {..} =
