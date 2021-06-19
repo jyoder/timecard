@@ -101,9 +101,7 @@ CREATE TABLE timecards (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     week_of DATE NOT NULL,
-    state TEXT DEFAULT 'created' NOT NULL,
     person_id UUID NOT NULL,
-    CHECK (state = 'created'),
     UNIQUE(person_id, week_of)
 );
 CREATE FUNCTION trigger_validate_timecard_entry_date_matches_timecard() RETURNS TRIGGER AS $$
