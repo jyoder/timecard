@@ -1,24 +1,25 @@
-module Application.Timecard.Timecard where
+module Application.Timecard.Timecard (
+    T (..),
+    EntriesSort (..),
+    fetchOrCreate,
+    fetchByPerson,
+    fetchByPersonAndWeek,
+    validate,
+) where
 
-import Application.Service.Validation (validateAndCreate)
-import Data.Time.Calendar.WeekDate (fromWeekDate, toWeekDate)
+import Application.Service.Time (startOfWeek)
+import Application.Service.Validation (validateAndCreateIO)
 import Generated.Types
-import IHP.Fetch
-import IHP.ModelSupport
-import IHP.Prelude
-import IHP.QueryBuilder
-import IHP.ValidationSupport.ValidateField
+import IHP.ControllerPrelude
 
-newtype T = T
-    { timecardEntries :: [TimecardEntry]
+data T = T
+    { timecard :: !Timecard
+    , entries :: ![TimecardEntry]
     }
 
-validate :: Timecard -> Timecard
-validate timecard =
-    timecard
-        |> validateField
-            #weekOf
-            (isInList [startOfWeek (get #weekOf timecard)])
+data EntriesSort
+    = EntriesAscending
+    | EntriesDescending
 
 fetchOrCreate ::
     (?modelContext :: ModelContext) =>
@@ -40,37 +41,93 @@ fetchOrCreate personId day = do
             newRecord @Timecard
                 |> set #personId personId
                 |> set #weekOf weekOf
-                |> validateAndCreate validate
+                |> validateAndCreateIO validate
 
-buildAll :: [TimecardEntry] -> [T]
-buildAll timecardEntries =
-    T . sortEntries <$> groupBy inSameWeek timecardEntries
+fetchByPerson ::
+    (?modelContext :: ModelContext) =>
+    EntriesSort ->
+    Id Person ->
+    IO [T]
+fetchByPerson entriesSort personId = do
+    timecardEntries <-
+        query @TimecardEntry
+            |> innerJoin @Timecard (#timecardId, #id)
+            |> filterWhereJoinedTable @Timecard (#personId, personId)
+            |> fetch
+
+    let timecardIds = nub $ get #timecardId <$> timecardEntries
+    timecards <-
+        query @Timecard
+            |> filterWhereIn (#id, timecardIds)
+            |> fetch
+
+    (build entriesSort timecardEntries <$> timecards)
+        |> sortBy compareDesc
+        |> pure
+
+fetchByPersonAndWeek ::
+    (?modelContext :: ModelContext) =>
+    EntriesSort ->
+    Id Person ->
+    Day ->
+    IO T
+fetchByPersonAndWeek entriesSort personId day = do
+    timecardEntries <-
+        query @TimecardEntry
+            |> innerJoin @Timecard (#timecardId, #id)
+            |> filterWhereJoinedTable @Timecard (#personId, personId)
+            |> filterWhereJoinedTable @Timecard (#weekOf, startOfWeek day)
+            |> fetch
+
+    let timecardIds = nub $ get #timecardId <$> timecardEntries
+
+    timecard <-
+        query @Timecard
+            |> filterWhereIn (#id, timecardIds)
+            |> fetchOne
+
+    pure $ build entriesSort timecardEntries timecard
+
+validate :: (?modelContext :: ModelContext) => Timecard -> IO Timecard
+validate timecard =
+    timecard
+        |> validateField #weekOf (isInList [startOfWeek (get #weekOf timecard)])
+        |> validateFieldIO #weekOf (matchesTimecardEntries $ get #id timecard)
+
+matchesTimecardEntries ::
+    (?modelContext :: ModelContext) =>
+    Id Timecard ->
+    Day ->
+    IO ValidatorResult
+matchesTimecardEntries timecardId weekOf = do
+    maybeTimecardEntry <-
+        query @TimecardEntry
+            |> filterWhere (#timecardId, timecardId)
+            |> fetchOneOrNothing
+
+    pure $ case maybeTimecardEntry of
+        Just timecardEntry ->
+            if startOfWeek (get #date timecardEntry) == weekOf
+                then Success
+                else Failure "weekOf must match timecard entries"
+        Nothing ->
+            Success
+
+build :: EntriesSort -> [TimecardEntry] -> Timecard -> T
+build entriesSort entries timecard =
+    entries
+        |> filterEntries
+        |> sortBy (compareEntries entriesSort)
+        |> T timecard
   where
-    sortEntries entries = sortBy dateCompare entries
-    dateCompare entryA entryB = get #date entryA `compare` get #date entryB
+    filterEntries entries = filter (belongsTo timecard) entries
+    belongsTo timecard entry = get #timecardId entry == get #id timecard
 
-buildForWeek :: Day -> [TimecardEntry] -> T
-buildForWeek date timecardEntries =
-    T sortedEntriesInWeek
+compareDesc :: T -> T -> Ordering
+compareDesc t1 t2 = weekOf t2 `compare` weekOf t1
   where
-    sortedEntriesInWeek = sortBy dateCompare entriesInWeek
-    entriesInWeek = filter (\timecardEntry -> entryWeek timecardEntry == week) timecardEntries
-    week = weekOfYear date
-    entryWeek entry = weekOfYear $ get #date entry
-    dateCompare entryA entryB = get #date entryA `compare` get #date entryB
+    weekOf timecard = get #timecard timecard |> get #weekOf
 
-inSameWeek :: TimecardEntry -> TimecardEntry -> Bool
-inSameWeek timecardEntry1 timecardEntry2 =
-    let week1 = weekOfYear $ get #date timecardEntry1
-     in let week2 = weekOfYear $ get #date timecardEntry2
-         in week1 == week2
-
-weekOfYear :: Day -> (Integer, Int)
-weekOfYear day =
-    let (year, week, _) = toWeekDate day
-     in (year, week)
-
-startOfWeek :: Day -> Day
-startOfWeek day =
-    let (year, week, _) = toWeekDate day
-     in fromWeekDate year week 1
+compareEntries :: EntriesSort -> TimecardEntry -> TimecardEntry -> Ordering
+compareEntries EntriesAscending t1 t2 = get #date t1 `compare` get #date t2
+compareEntries EntriesDescending t1 t2 = get #date t2 `compare` get #date t1

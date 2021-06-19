@@ -45,7 +45,7 @@ renderTimecard selectedPerson timecard =
                         </tr>
                     </thead>
                     <tbody>
-                        {forEach (get #timecardEntries timecard) (renderTimecardRow selectedPerson)}
+                        {forEach (get #entries timecard) (renderTimecardRow selectedPerson)}
                         {renderLastRow $ totalHoursWorked timecard}
                     </tbody>
                 </table>
@@ -85,7 +85,7 @@ renderLastRow hours =
 
 dateRange :: Timecard.T -> Html
 dateRange Timecard.T {..} =
-    case (head timecardEntries, last timecardEntries) of
+    case (head entries, last entries) of
         (Just firstEntry, Just lastEntry) ->
             [hsx|
                 <span>
@@ -96,7 +96,7 @@ dateRange Timecard.T {..} =
 
 totalHoursWorked :: Timecard.T -> Double
 totalHoursWorked Timecard.T {..} =
-    sum (get #hoursWorked <$> timecardEntries)
+    sum (get #hoursWorked <$> entries)
 
 styles :: Html
 styles =

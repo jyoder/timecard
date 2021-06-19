@@ -2,6 +2,9 @@ module Application.Service.Validation (
     validateAndCreate,
     validateAndUpdate,
     ensureValid,
+    validateAndCreateIO,
+    validateAndUpdateIO,
+    ensureValidIO,
 ) where
 
 import qualified Control.Exception as Exception
@@ -48,6 +51,40 @@ ensureValid ::
     IO model
 ensureValid validate model =
     model |> validate |> ifValid \case
+        Left model -> throwIO $ toException model
+        Right model -> pure model
+
+validateAndCreateIO ::
+    ( ?modelContext :: ModelContext
+    , HasField "meta" model ModelSupport.MetaBag
+    , CanCreate model
+    ) =>
+    (model -> IO model) ->
+    model ->
+    IO model
+validateAndCreateIO validate model = do
+    validatedModel <- ensureValidIO validate model
+    createRecord validatedModel
+
+validateAndUpdateIO ::
+    ( ?modelContext :: ModelContext
+    , HasField "meta" model ModelSupport.MetaBag
+    , CanUpdate model
+    ) =>
+    (model -> IO model) ->
+    model ->
+    IO model
+validateAndUpdateIO validate model = do
+    validatedModel <- ensureValidIO validate model
+    updateRecord validatedModel
+
+ensureValidIO ::
+    (HasField "meta" model ModelSupport.MetaBag) =>
+    (model -> IO model) ->
+    model ->
+    IO model
+ensureValidIO validate model = do
+    model |> validate >>= ifValid \case
         Left model -> throwIO $ toException model
         Right model -> pure model
 

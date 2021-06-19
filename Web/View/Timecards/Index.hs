@@ -107,7 +107,7 @@ renderTimecard selectedPerson personActivity timecard =
                         </tr>
                     </thead>
                     <tbody>
-                        {forEach (get #timecardEntries timecard) (renderTimecardRow selectedPerson personActivity)}
+                        {forEach (get #entries timecard) (renderTimecardRow selectedPerson personActivity)}
                         {renderLastRow $ totalHoursWorked timecard}
                     </tbody>
                 </table>
@@ -120,11 +120,7 @@ renderTimecard selectedPerson personActivity timecard =
     firstName = get #firstName selectedPerson
     downloadAction = TimecardDownloadTimecardAction (get #id selectedPerson) weekOf
     downloadFilename = weekOf <> "-" <> lastName <> "-" <> firstName <> ".pdf"
-    weekOf =
-        let Timecard.T {..} = timecard
-         in case head timecardEntries of
-                Just timecardEntry -> show $ get #date timecardEntry
-                Nothing -> ""
+    weekOf = show $ get #weekOf $ get #timecard timecard
 
 renderTimecardRow :: Person -> PersonActivity -> TimecardEntry -> Html
 renderTimecardRow selectedPerson personActivity timecardEntry =
@@ -197,7 +193,7 @@ renderLastRow hours =
 
 dateRange :: Timecard.T -> Html
 dateRange Timecard.T {..} =
-    case (head timecardEntries, last timecardEntries) of
+    case (head entries, last entries) of
         (Just firstEntry, Just lastEntry) ->
             [hsx|
                 <span>
@@ -208,7 +204,7 @@ dateRange Timecard.T {..} =
 
 totalHoursWorked :: Timecard.T -> Double
 totalHoursWorked Timecard.T {..} =
-    sum (get #hoursWorked <$> timecardEntries)
+    sum (get #hoursWorked <$> entries)
 
 styles :: Html
 styles =

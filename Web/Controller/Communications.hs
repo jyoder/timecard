@@ -36,8 +36,10 @@ instance Controller CommunicationsController where
         scheduledMessages <- SendMessageAction.fetchFutureByPhoneNumber (get #id toPhoneNumber)
         let newMessage = newRecord @TwilioMessage
 
-        timecardEntries <- TimecardEntry.fetchByPerson selectedPersonId
-        let timecards = Timecard.buildAll timecardEntries
+        timecards <-
+            Timecard.fetchByPerson
+                Timecard.EntriesDescending
+                selectedPersonId
 
         let personActivity = SendingMessage {..}
         let personSelection = PersonSelected {..}

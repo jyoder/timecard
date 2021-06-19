@@ -28,8 +28,10 @@ instance Controller TimecardsController where
         people <- People.fetchExcluding botId
         selectedPerson <- fetch selectedPersonId
 
-        timecardEntries <- TimecardEntry.fetchByPerson selectedPersonId
-        let timecards = Timecard.buildAll timecardEntries
+        timecards <-
+            Timecard.fetchByPerson
+                Timecard.EntriesAscending
+                selectedPersonId
 
         let personActivity = Viewing
         let personSelection = PersonSelected {..}
@@ -45,8 +47,10 @@ instance Controller TimecardsController where
         let selectedPersonId = get #personId selectedTimecard
         selectedPerson <- fetch selectedPersonId
 
-        timecardEntries <- TimecardEntry.fetchByPerson selectedPersonId
-        let timecards = Timecard.buildAll timecardEntries
+        timecards <-
+            Timecard.fetchByPerson
+                Timecard.EntriesAscending
+                selectedPersonId
 
         let personActivity = Editing {..}
         let personSelection = PersonSelected {..}
@@ -62,8 +66,11 @@ instance Controller TimecardsController where
         let maybeDay = parseDay weekOf
         let day = fromMaybe today maybeDay
 
-        timecardEntries <- TimecardEntry.fetchByPersonAndWeek selectedPersonId day
-        let timecard = Timecard.buildForWeek day timecardEntries
+        timecard <-
+            Timecard.fetchByPersonAndWeek
+                Timecard.EntriesAscending
+                selectedPersonId
+                day
 
         html <- renderHtml ShowPdfView {..}
         pdf <- Pdf.render html
@@ -86,11 +93,12 @@ instance Controller TimecardsController where
                 Left selectedTimecardEntry -> do
                     botId <- People.fetchBotId
                     people <- People.fetchExcluding botId
-
                     selectedPerson <- fetch selectedPersonId
 
-                    timecardEntries <- TimecardEntry.fetchByPerson selectedPersonId
-                    let timecards = Timecard.buildAll timecardEntries
+                    timecards <-
+                        Timecard.fetchByPerson
+                            Timecard.EntriesAscending
+                            selectedPersonId
 
                     let personActivity = Editing {..}
                     let personSelection = PersonSelected {..}

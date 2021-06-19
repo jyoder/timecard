@@ -1,6 +1,7 @@
 module Web.View.Communications.Index where
 
 import qualified Application.Action.SendMessageAction as SendMessageAction
+import qualified Application.Timecard.Timecard as Timecard
 import qualified Application.Twilio.TwilioMessage as TwilioMessage
 import Data.Time.Format.ISO8601 (iso8601Show)
 import IHP.View.TimeAgo as TO
@@ -29,7 +30,7 @@ data PersonSelection
 
 data PersonActivity
     = SendingMessage
-        { timecardEntries :: ![TimecardEntry]
+        { timecards :: ![Timecard.T]
         }
     | WorkingOnTimecardEntry
         { timecardEntry :: !TimecardEntry
@@ -109,9 +110,9 @@ renderTimecardBlock IndexView {..} =
         PersonSelected {..} ->
             case personActivity of
                 SendingMessage {..} ->
-                    renderTimecardEntries
+                    renderTimecards
                         selectedPerson
-                        timecardEntries
+                        timecards
                 WorkingOnTimecardEntry {..} ->
                     renderTimecardEntryForm
                         selectedPerson
@@ -270,12 +271,20 @@ renderScheduledMessage scheduledMessage =
     body = get #body scheduledMessage
     cancelAction = CancelScheduledMessageAction (get #id scheduledMessage)
 
-renderTimecardEntries :: Person -> [TimecardEntry] -> Html
-renderTimecardEntries selectedPerson timecardEntries =
+renderTimecards :: Person -> [Timecard.T] -> Html
+renderTimecards selectedPerson timecards =
+    forEach timecards $ renderTimecardEntries selectedPerson
+
+renderTimecardEntries :: Person -> Timecard.T -> Html
+renderTimecardEntries selectedPerson Timecard.T {..} =
     [hsx|
-        <ul class="list-group">
-            {forEach timecardEntries (renderTimecardEntry selectedPerson)}
-        </ul>
+        <div class="card mb-4">
+            <div class="card-body">
+                <ul class="list-group">
+                    {forEach entries (renderTimecardEntry selectedPerson)}
+                </ul>
+            </div>
+        </div>
     |]
 
 renderTimecardEntry :: Person -> TimecardEntry -> Html

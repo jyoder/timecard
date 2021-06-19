@@ -1,50 +1,15 @@
 module Application.Timecard.TimecardEntry (
-    fetchByPerson,
-    fetchByPersonAndWeek,
     create,
     update,
 ) where
 
+import Application.Service.Time (startOfWeek)
 import qualified Application.Timecard.Timecard as Timecard
 import qualified Application.Timecard.TimecardEntryMessage as TimecardEntryMessage
-import Data.Time.Calendar.WeekDate (fromWeekDate, toWeekDate)
 import Database.PostgreSQL.Simple (Query)
 import Generated.Types
 import IHP.ControllerPrelude hiding (create)
 import Text.RawString.QQ (r)
-
-fetchByPerson ::
-    (?modelContext :: ModelContext) =>
-    Id Person ->
-    IO [TimecardEntry]
-fetchByPerson personId =
-    query @TimecardEntry
-        |> innerJoin @Timecard (#timecardId, #id)
-        |> filterWhereJoinedTable @Timecard (#personId, personId)
-        |> orderByDesc #date
-        |> fetch
-
-fetchByPersonAndWeek ::
-    (?modelContext :: ModelContext) =>
-    Id Person ->
-    Day ->
-    IO [TimecardEntry]
-fetchByPersonAndWeek person day =
-    sqlQuery fetchByPersonAndWeekQuery (person, day)
-
-fetchByPersonAndWeekQuery :: Query
-fetchByPersonAndWeekQuery =
-    [r|
-select
-    timecard_entries.*
-from
-    timecard_entries
-where
-    timecard_entries.person_id = ?
-    and date_trunc('week', timecard_entries.date) = date_trunc('week', (?)::date)
-order by
-    date desc;
-    |]
 
 create ::
     (?modelContext :: ModelContext) =>
@@ -118,8 +83,3 @@ matchesTimecard timecardId date = do
             else Failure $ "date must fall within the timecard week " <> show (weekOf timecard)
   where
     weekOf = get #weekOf
-
-startOfWeek :: Day -> Day
-startOfWeek day =
-    let (year, week, _) = toWeekDate day
-     in fromWeekDate year week 1
