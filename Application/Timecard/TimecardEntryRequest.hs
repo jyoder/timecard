@@ -1,4 +1,9 @@
-module Application.Timecard.TimecardEntryRequest where
+module Application.Timecard.TimecardEntryRequest (
+    scheduleRequest,
+    scheduledRequestExists,
+    requestBody,
+    nextRequestTime,
+) where
 
 import qualified Application.Action.SendMessageAction as SendMessageAction
 import Data.Time.Calendar.WeekDate (toWeekDate)
@@ -37,7 +42,7 @@ requestBody person lastEntry =
 
 nextRequestTime :: TimeZone -> UTCTime -> UTCTime
 nextRequestTime timeZone now =
-    if localTime < requestTimeToday localTime
+    if not (isWeekend $ localDay localTime) && localTime < requestTimeToday localTime
         then requestTimeToday localTime |> toUtc
         else requestTimeNextWorkingDay localTime |> toUtc
   where
@@ -52,10 +57,11 @@ requestTimeNextWorkingDay now =
     LocalTime (nextWorkingDay $ localDay now) requestTimeOfDay
 
 nextWorkingDay :: Day -> Day
-nextWorkingDay today = case toWeekDate today of
-    (_, _, 5) -> addDays 3 today -- Friday we add 3 days to get to Monday
-    (_, _, 6) -> addDays 2 today -- Saturday we add 2 days to get to Monday
-    _ -> addDays 1 today -- All other days we need only look to tomorrow
+nextWorkingDay today =
+    case toWeekDate today of
+        (_, _, 5) -> addDays 3 today -- Friday we add 3 days to get to Monday
+        (_, _, 6) -> addDays 2 today -- Saturday we add 2 days to get to Monday
+        _ -> addDays 1 today -- All other days we need only look to tomorrow
 
 requestTimeOfDay :: TimeOfDay
 requestTimeOfDay = TimeOfDay 15 30 0
