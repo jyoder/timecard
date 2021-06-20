@@ -14,6 +14,13 @@ SET row_security = off;
 
 SET SESSION AUTHORIZATION DEFAULT;
 
+ALTER TABLE public.access_tokens DISABLE TRIGGER ALL;
+
+
+
+ALTER TABLE public.access_tokens ENABLE TRIGGER ALL;
+
+
 ALTER TABLE public.action_run_states DISABLE TRIGGER ALL;
 
 INSERT INTO public.action_run_states (id, created_at, updated_at, state) VALUES ('f3d1863a-2bba-49b3-b814-0001a62f1970', '2021-06-10 22:27:39.194266-07', '2021-06-10 22:27:40.626427-07', 'canceled');
@@ -86,6 +93,7 @@ ALTER TABLE public.phone_contacts ENABLE TRIGGER ALL;
 
 ALTER TABLE public.process_events_jobs DISABLE TRIGGER ALL;
 
+INSERT INTO public.process_events_jobs (id, created_at, updated_at, status, last_error, attempts_count, locked_at, locked_by) VALUES ('8b38bc79-ea26-4a0a-a9c7-945b71341818', '2021-06-19 17:15:39.155856-07', '2021-06-19 17:15:39.160606-07', 'job_status_running', NULL, 1, '2021-06-19 17:15:39.160606-07', 'e27d9355-9a63-4cc5-91fc-4603378c59ce');
 
 
 ALTER TABLE public.process_events_jobs ENABLE TRIGGER ALL;
@@ -124,13 +132,18 @@ INSERT INTO public.timecards (id, created_at, updated_at, week_of, person_id) VA
 ALTER TABLE public.timecards ENABLE TRIGGER ALL;
 
 
+ALTER TABLE public.timecard_access_tokens DISABLE TRIGGER ALL;
+
+
+
+ALTER TABLE public.timecard_access_tokens ENABLE TRIGGER ALL;
+
+
 ALTER TABLE public.timecard_entries DISABLE TRIGGER ALL;
 
 INSERT INTO public.timecard_entries (id, created_at, updated_at, date, job_name, hours_worked, work_done, invoice_translation, timecard_id) VALUES ('0035ef10-3209-4e0f-b2b2-79998fa08b0d', '2021-06-12 20:29:31.640698-07', '2021-06-14 23:19:24.850108-07', '2021-06-01', 'Loopy', 8, 'Hey John - I''ve got you at Goober today. Let me know what hours you worked and what you did when you have a chance. Thanks!', 'Hey John - I''ve got you at Goober today. Let me know what hours you worked and what you did when you have a chance. Thanks!', '39ad8142-8d6d-4a64-abc0-6eb6b1d78cb4');
 INSERT INTO public.timecard_entries (id, created_at, updated_at, date, job_name, hours_worked, work_done, invoice_translation, timecard_id) VALUES ('a44c88be-f516-47dc-812a-8c75c3b42c0d', '2021-06-11 14:49:25.814912-07', '2021-06-14 23:19:24.850108-07', '2021-06-10', '722 Villa Mañana', 8, 'Hey John - I''ve got you at Garbe today. Let me know what hours you worked and what you did when you have a chance. Thanks!', 'Hey John - I''ve got you at Garbe today. Let me know what hours you worked and what you did when you have a chance. Thanks!', '8d0ced99-10d9-4eb6-be6c-03f521571b5c');
 INSERT INTO public.timecard_entries (id, created_at, updated_at, date, job_name, hours_worked, work_done, invoice_translation, timecard_id) VALUES ('86bc52ee-95db-4c9d-b375-929ec9ac0c27', '2021-06-13 22:05:48.485886-07', '2021-06-14 23:19:24.850108-07', '2021-06-10', 'Another job', 8, 'Hey John - I''ve got you at Garbe today. Let me know what hours you worked and what you did when you have a chance. Thanks!', 'Hey John - I''ve got you at Garbe today. Let me know what hours you worked and what you did when you have a chance. Thanks!', '8d0ced99-10d9-4eb6-be6c-03f521571b5c');
-INSERT INTO public.timecard_entries (id, created_at, updated_at, date, job_name, hours_worked, work_done, invoice_translation, timecard_id) VALUES ('f682dae2-f9cf-4360-b5e5-b00fa344d063', '2021-06-13 22:05:58.199081-07', '2021-06-14 23:19:24.850108-07', '2021-06-11', 'Yet Another job', 8, 'Hey John - I''ve got you at Goober today. Let me know what hours you worked and what you did when you have a chance. Thanks!', 'Hey John - I''ve got you at Goober today. Let me know what hours you worked and what you did when you have a chance. Thanks!', '8d0ced99-10d9-4eb6-be6c-03f521571b5c');
-INSERT INTO public.timecard_entries (id, created_at, updated_at, date, job_name, hours_worked, work_done, invoice_translation, timecard_id) VALUES ('d5680e1b-3913-4f5c-80f3-28b512380df2', '2021-06-13 22:06:10.918325-07', '2021-06-14 23:19:24.850108-07', '2021-06-11', 'Steve Jobs', 8, 'Hey John - I''ve got you at Goober today. Let me know what hours you worked and what you did when you have a chance. Thanks!', 'Hey John - I''ve got you at Goober today. Let me know what hours you worked and what you did when you have a chance. Thanks!', '8d0ced99-10d9-4eb6-be6c-03f521571b5c');
 INSERT INTO public.timecard_entries (id, created_at, updated_at, date, job_name, hours_worked, work_done, invoice_translation, timecard_id) VALUES ('90387e61-0592-46a9-9b70-a6fa03a644e8', '2021-06-13 22:06:20.665202-07', '2021-06-14 23:19:24.850108-07', '2021-06-11', 'Blob Job', 8, 'Hey John - I''ve got you at Goober today. Let me know what hours you worked and what you did when you have a chance. Thanks!', 'Hey John - I''ve got you at Goober today. Let me know what hours you worked and what you did when you have a chance. Thanks!', '8d0ced99-10d9-4eb6-be6c-03f521571b5c');
 INSERT INTO public.timecard_entries (id, created_at, updated_at, date, job_name, hours_worked, work_done, invoice_translation, timecard_id) VALUES ('e1a15163-5f52-41fd-b663-c80645cc84c3', '2021-06-13 22:06:44.362143-07', '2021-06-14 23:19:24.850108-07', '2021-06-01', 'Happy Job', 8, 'Hey John - I''ve got you at Goober today. Let me know what hours you worked and what you did when you have a chance. Thanks!', 'Hey John - I''ve got you at Goober today. Let me know what hours you worked and what you did when you have a chance. Thanks!', '39ad8142-8d6d-4a64-abc0-6eb6b1d78cb4');
 INSERT INTO public.timecard_entries (id, created_at, updated_at, date, job_name, hours_worked, work_done, invoice_translation, timecard_id) VALUES ('f663dcd3-84c8-4c67-8164-cd60644cdb15', '2021-06-13 22:06:50.55913-07', '2021-06-14 23:19:24.850108-07', '2021-06-01', 'Sad Job', 8, 'Hey John - I''ve got you at Goober today. Let me know what hours you worked and what you did when you have a chance. Thanks!', 'Hey John - I''ve got you at Goober today. Let me know what hours you worked and what you did when you have a chance. Thanks!', '39ad8142-8d6d-4a64-abc0-6eb6b1d78cb4');
@@ -146,6 +159,8 @@ Hey John - I''ve got you at Another job today. Let me know what hours you worked
 INSERT INTO public.timecard_entries (id, created_at, updated_at, date, job_name, hours_worked, work_done, invoice_translation, timecard_id) VALUES ('dc67aec4-57ab-4826-950f-f760f0c00dc4', '2021-06-17 22:19:09.873572-07', '2021-06-18 23:39:51.689006-07', '2021-06-11', 'Fooglea', 8, 'Hey John - I''ve got you at Another job today. Let me know what hours you worked and what you did when you have a chance. Thanks!', 'Hey John - I''ve got you at Another job today. Let me know what hours you worked and what you did when you have a chance. Thanks!', '8d0ced99-10d9-4eb6-be6c-03f521571b5c');
 INSERT INTO public.timecard_entries (id, created_at, updated_at, date, job_name, hours_worked, work_done, invoice_translation, timecard_id) VALUES ('2747f04c-6b7b-40eb-8832-29b8341be482', '2021-06-12 20:29:18.345754-07', '2021-06-18 23:42:12.678992-07', '2021-06-07', 'Goopy', 8, 'Hey John - I''ve got you at Goober today. Let me know what hours you worked and what you did when you have a chance. Thanks!', 'aHey John - I''ve got you at Goober today. Let me know what hours you worked and what you did when you have a chance. Thanks!', '8d0ced99-10d9-4eb6-be6c-03f521571b5c');
 INSERT INTO public.timecard_entries (id, created_at, updated_at, date, job_name, hours_worked, work_done, invoice_translation, timecard_id) VALUES ('7ff7d66c-689a-40d9-a6d9-c557dd11e1c9', '2021-06-13 22:06:05.055515-07', '2021-06-18 23:42:20.986854-07', '2021-06-11', 'Job', 8, 'Hey John - I''ve got you at Goober today. Let me know what hours you worked and what you did when you have a chance. Thanks!', 'Hey John - I''ve got you at Goober today. Let me know what hours you worked and what you did when you have a chance. Thanks!', '8d0ced99-10d9-4eb6-be6c-03f521571b5c');
+INSERT INTO public.timecard_entries (id, created_at, updated_at, date, job_name, hours_worked, work_done, invoice_translation, timecard_id) VALUES ('f682dae2-f9cf-4360-b5e5-b00fa344d063', '2021-06-13 22:05:58.199081-07', '2021-06-19 17:09:33.649029-07', '2021-06-11', 'Yet Another job', 8, 'Hey John - I''ve got you at Goober today. Let me know what hours you worked and what you did when you have a chance. Thanks!', 'aHey John - I''ve got you at Goober today. Let me know what hours you worked and what you did when you have a chance. Thanks!', '8d0ced99-10d9-4eb6-be6c-03f521571b5c');
+INSERT INTO public.timecard_entries (id, created_at, updated_at, date, job_name, hours_worked, work_done, invoice_translation, timecard_id) VALUES ('d5680e1b-3913-4f5c-80f3-28b512380df2', '2021-06-13 22:06:10.918325-07', '2021-06-19 17:09:51.727126-07', '2021-06-11', 'aSteve Jobs', 8, 'Hey John - I''ve got you at Goober today. Let me know what hours you worked and what you did when you have a chance. Thanks!', 'Hey John - I''ve got you at Goober today. Let me know what hours you worked and what you did when you have a chance. Thanks!', '8d0ced99-10d9-4eb6-be6c-03f521571b5c');
 
 
 ALTER TABLE public.timecard_entries ENABLE TRIGGER ALL;
@@ -272,9 +287,7 @@ INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard
 INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('a29fd810-5308-4ab4-8f0b-08e1d485c881', '2021-06-12 20:29:31.640698-07', '2021-06-12 20:29:31.640698-07', '0035ef10-3209-4e0f-b2b2-79998fa08b0d', 'ac1d3339-c20e-4bc2-b708-aff396c5ae10');
 INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('a922ab74-2f6f-40e8-b50d-4a8291c65107', '2021-06-13 21:41:34.668199-07', '2021-06-13 21:41:34.668199-07', 'a44c88be-f516-47dc-812a-8c75c3b42c0d', '9d2fd2f5-ac59-4de4-aca4-7c6eafcd9c6b');
 INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('c71778bf-e307-4664-b233-98b06b88f13a', '2021-06-13 22:05:48.485886-07', '2021-06-13 22:05:48.485886-07', '86bc52ee-95db-4c9d-b375-929ec9ac0c27', '9d2fd2f5-ac59-4de4-aca4-7c6eafcd9c6b');
-INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('e765b1d8-81f5-47ae-8739-fd0bda45cf98', '2021-06-13 22:05:58.199081-07', '2021-06-13 22:05:58.199081-07', 'f682dae2-f9cf-4360-b5e5-b00fa344d063', 'ac1d3339-c20e-4bc2-b708-aff396c5ae10');
 INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('c44173fa-2341-4eb6-9a53-8e4186ffe2db', '2021-06-13 22:06:05.055515-07', '2021-06-13 22:06:05.055515-07', '7ff7d66c-689a-40d9-a6d9-c557dd11e1c9', 'ac1d3339-c20e-4bc2-b708-aff396c5ae10');
-INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('527d8885-1c8b-4e20-8630-46f5460623bf', '2021-06-13 22:06:10.918325-07', '2021-06-13 22:06:10.918325-07', 'd5680e1b-3913-4f5c-80f3-28b512380df2', 'ac1d3339-c20e-4bc2-b708-aff396c5ae10');
 INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('8481742f-b0a0-4838-9ba1-6ea2b2616e08', '2021-06-13 22:06:20.665202-07', '2021-06-13 22:06:20.665202-07', '90387e61-0592-46a9-9b70-a6fa03a644e8', 'ac1d3339-c20e-4bc2-b708-aff396c5ae10');
 INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('9c1b80dd-dfb5-4b62-9f5f-f61021a78eb3', '2021-06-13 22:06:44.362143-07', '2021-06-13 22:06:44.362143-07', 'e1a15163-5f52-41fd-b663-c80645cc84c3', 'ac1d3339-c20e-4bc2-b708-aff396c5ae10');
 INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('7fc96c3f-5337-4605-a9f1-87888972c138', '2021-06-13 22:06:50.55913-07', '2021-06-13 22:06:50.55913-07', 'f663dcd3-84c8-4c67-8164-cd60644cdb15', 'ac1d3339-c20e-4bc2-b708-aff396c5ae10');
@@ -287,6 +300,8 @@ INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard
 INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('34ee2bbd-c1fe-4fb6-b0f7-683f51f2c463', '2021-06-18 14:12:06.218282-07', '2021-06-18 14:12:06.218282-07', '8ba5198c-6f97-400c-a259-82dd684fc1c5', 'e12d6495-1310-4f8d-9dcb-178dcae1d154');
 INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('c471ee40-6be6-4d3a-8749-32abacac445e', '2021-06-18 23:39:51.689006-07', '2021-06-18 23:39:51.689006-07', 'dc67aec4-57ab-4826-950f-f760f0c00dc4', 'ac1d3339-c20e-4bc2-b708-aff396c5ae10');
 INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('e3cd5bb6-43b9-4eb9-8454-f7f54587955e', '2021-06-18 23:39:51.689006-07', '2021-06-18 23:39:51.689006-07', 'dc67aec4-57ab-4826-950f-f760f0c00dc4', 'e12d6495-1310-4f8d-9dcb-178dcae1d154');
+INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('011ade42-ee3b-43dc-8622-e545706d3644', '2021-06-19 17:09:33.649029-07', '2021-06-19 17:09:33.649029-07', 'f682dae2-f9cf-4360-b5e5-b00fa344d063', 'ac1d3339-c20e-4bc2-b708-aff396c5ae10');
+INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('509d0fdc-c338-4424-8e36-8b0799e6ad5b', '2021-06-19 17:09:51.727126-07', '2021-06-19 17:09:51.727126-07', 'd5680e1b-3913-4f5c-80f3-28b512380df2', 'ac1d3339-c20e-4bc2-b708-aff396c5ae10');
 
 
 ALTER TABLE public.timecard_entry_messages ENABLE TRIGGER ALL;

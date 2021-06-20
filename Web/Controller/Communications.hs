@@ -10,6 +10,7 @@ import qualified Application.Timecard.Timecard as Timecard
 import qualified Application.Timecard.TimecardEntry as TimecardEntry
 import qualified Application.Timecard.TimecardEntryMessage as TimecardEntryMessage
 import qualified Application.Timecard.TimecardEntryRequest as TimecardEntryRequest
+import qualified Application.Timecard.TimecardQueries as TimecardQueries
 import qualified Application.Twilio.TwilioMessage as TwilioMessage
 import Data.Text (strip)
 import Text.Read (read)
@@ -37,8 +38,8 @@ instance Controller CommunicationsController where
         let newMessage = newRecord @TwilioMessage
 
         timecards <-
-            Timecard.fetchByPerson
-                Timecard.EntriesDescending
+            TimecardQueries.fetchByPerson
+                TimecardQueries.EntriesDateDescending
                 selectedPersonId
 
         let personActivity = SendingMessage {..}
@@ -209,6 +210,9 @@ instance Controller CommunicationsController where
         ActionRunState.updateCanceled actionRunState
 
         redirectTo $ PersonSelectionAction (get #id toPerson)
+    --
+    action CreateTimecardReview {..} = do
+        redirectTo $ PersonSelectionAction selectedPersonId
 
 findSelectedMessages ::
     [TwilioMessage.T] ->

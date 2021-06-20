@@ -13,3 +13,4 @@ instance AutoRoute PhoneContactsController
 instance AutoRoute CommunicationsController
 instance AutoRoute TwilioCallbacksController
 instance AutoRoute TimecardsController
+instance AutoRoute TimecardReviewsController

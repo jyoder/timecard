@@ -74,6 +74,10 @@ data CommunicationsController
     | CancelScheduledMessageAction
         { sendMessageActionId :: !(Id SendMessageAction)
         }
+    | CreateTimecardReview
+        { selectedPersonId :: !(Id Person)
+        , timecardId :: !(Id Timecard)
+        }
     deriving (Eq, Show, Data)
 
 data TwilioCallbacksController
@@ -94,4 +98,8 @@ data TimecardsController
         , weekOf :: !Text
         }
     | TimecardUpdateTimecardEntryAction
+    deriving (Eq, Show, Data)
+
+data TimecardReviewsController
+    = ShowTimecardReviewAction
     deriving (Eq, Show, Data)

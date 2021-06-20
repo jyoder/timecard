@@ -2,6 +2,7 @@ module Web.View.Communications.Index where
 
 import qualified Application.Action.SendMessageAction as SendMessageAction
 import qualified Application.Timecard.Timecard as Timecard
+import qualified Application.Timecard.TimecardQueries as Q
 import qualified Application.Twilio.TwilioMessage as TwilioMessage
 import Data.Time.Format.ISO8601 (iso8601Show)
 import IHP.View.TimeAgo as TO
@@ -30,7 +31,7 @@ data PersonSelection
 
 data PersonActivity
     = SendingMessage
-        { timecards :: ![Timecard.T]
+        { timecards :: ![Q.Timecard]
         }
     | WorkingOnTimecardEntry
         { timecardEntry :: !TimecardEntry
@@ -271,12 +272,12 @@ renderScheduledMessage scheduledMessage =
     body = get #body scheduledMessage
     cancelAction = CancelScheduledMessageAction (get #id scheduledMessage)
 
-renderTimecards :: Person -> [Timecard.T] -> Html
+renderTimecards :: Person -> [Q.Timecard] -> Html
 renderTimecards selectedPerson timecards =
     forEach timecards $ renderTimecardEntries selectedPerson
 
-renderTimecardEntries :: Person -> Timecard.T -> Html
-renderTimecardEntries selectedPerson Timecard.T {..} =
+renderTimecardEntries :: Person -> Q.Timecard -> Html
+renderTimecardEntries selectedPerson Q.Timecard {..} =
     [hsx|
         <div class="card mb-4">
             <div class="card-body">
@@ -287,7 +288,7 @@ renderTimecardEntries selectedPerson Timecard.T {..} =
         </div>
     |]
 
-renderTimecardEntry :: Person -> TimecardEntry -> Html
+renderTimecardEntry :: Person -> Q.TimecardEntry -> Html
 renderTimecardEntry selectedPerson timecardEntry =
     [hsx|
         <div class="card mb-4">

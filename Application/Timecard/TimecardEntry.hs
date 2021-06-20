@@ -1,12 +1,12 @@
 module Application.Timecard.TimecardEntry (
     create,
     update,
+    validate,
 ) where
 
 import Application.Service.Time (startOfWeek)
 import qualified Application.Timecard.Timecard as Timecard
-import qualified Application.Timecard.TimecardEntryMessage as TimecardEntryMessage
-import Database.PostgreSQL.Simple (Query)
+import Application.Timecard.TimecardEntryMessage as TimecardEntryMessage
 import Generated.Types
 import IHP.ControllerPrelude hiding (create)
 import Text.RawString.QQ (r)

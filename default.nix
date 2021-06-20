@@ -6,22 +6,22 @@ let
     haskellEnv = import "${ihp}/NixSupport/default.nix" {
         ihp = ihp;
         haskellDeps = p: with p; [
-            cabal-install
             base
-            wai
-            text
+            base64-bytestring
+            bytestring
+            cabal-install
+            cryptonite
             hlint
+            lens-aeson
+            memory
+            monad-loops
             p.ihp
             raw-strings-qq
             req
-            lens-aeson
-            cryptonite
-            memory
-            base64-bytestring
-            bytestring
+            string-interpolate
+            text
             time
-            monad-loops
-            pandoc
+            wai
         ];
         otherDeps = p: with p; builtins.concatLists [[
         ]

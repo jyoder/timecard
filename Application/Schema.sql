@@ -104,6 +104,22 @@ CREATE TABLE timecards (
     person_id UUID NOT NULL,
     UNIQUE(person_id, week_of)
 );
+CREATE TABLE access_tokens (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    value TEXT NOT NULL,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    is_revoked BOOLEAN DEFAULT false NOT NULL
+);
+CREATE TABLE timecard_access_tokens (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    timecard_id UUID NOT NULL,
+    access_token_id UUID NOT NULL,
+    UNIQUE(access_token_id)
+);
 CREATE FUNCTION trigger_validate_timecard_entry_date_matches_timecard() RETURNS TRIGGER AS $$
 BEGIN
   IF date_trunc('week', NEW.date) = (SELECT timecards.week_of FROM timecards WHERE timecards.id = NEW.timecard_id) THEN
@@ -114,7 +130,6 @@ BEGIN
 END;
 $$ language plpgsql;
 CREATE TRIGGER validate_timecard_entry_date_matches_timecard BEFORE INSERT OR UPDATE ON timecard_entries FOR EACH ROW EXECUTE PROCEDURE trigger_validate_timecard_entry_date_matches_timecard();
-
 CREATE FUNCTION trigger_validate_timecard_week_of_matches_timecard_entries() RETURNS TRIGGER AS $$
 DECLARE
   week_of DATE;
@@ -128,7 +143,6 @@ BEGIN
 END;
 $$ language plpgsql;
 CREATE TRIGGER validate_timecard_week_of_matches_timecard_entries BEFORE INSERT OR UPDATE ON timecards FOR EACH ROW EXECUTE PROCEDURE trigger_validate_timecard_week_of_matches_timecard_entries();
-
 CREATE FUNCTION trigger_validate_timecard_week_of_is_start_of_week() RETURNS TRIGGER AS $$
 BEGIN
   IF NEW.week_of = date_trunc('week', NEW.week_of)::date THEN
@@ -154,6 +168,9 @@ CREATE INDEX send_message_actions_action_run_state_id_index ON send_message_acti
 CREATE INDEX action_run_states_state_index ON action_run_states (state);
 CREATE INDEX timecard_entries_timecard_id_index ON timecard_entries (timecard_id);
 CREATE INDEX timecards_person_id_index ON timecards (person_id);
+CREATE INDEX timecard_access_tokens_timecard_id_index ON timecard_access_tokens (timecard_id);
+CREATE INDEX timecard_access_tokens_access_token_id_index ON timecard_access_tokens (access_token_id);
+
 CREATE FUNCTION trigger_set_updated_at() RETURNS TRIGGER AS $$
 BEGIN
   NEW.updated_at = NOW();
@@ -172,12 +189,17 @@ CREATE TRIGGER set_updated_at BEFORE UPDATE ON action_run_times FOR EACH ROW EXE
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON send_message_actions FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON action_run_states FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON timecards FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
+CREATE TRIGGER set_updated_at BEFORE UPDATE ON access_tokens FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
+CREATE TRIGGER set_updated_at BEFORE UPDATE ON timecard_access_tokens FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
+
 ALTER TABLE action_run_times ADD CONSTRAINT action_run_times_ref_action_run_state_id FOREIGN KEY (action_run_state_id) REFERENCES action_run_states (id) ON DELETE NO ACTION;
 ALTER TABLE phone_contacts ADD CONSTRAINT phone_contacts_ref_person_id FOREIGN KEY (person_id) REFERENCES people (id) ON DELETE NO ACTION;
 ALTER TABLE phone_contacts ADD CONSTRAINT phone_contacts_ref_phone_number_id FOREIGN KEY (phone_number_id) REFERENCES phone_numbers (id) ON DELETE NO ACTION;
 ALTER TABLE send_message_actions ADD CONSTRAINT send_message_actions_ref_action_run_state_id FOREIGN KEY (action_run_state_id) REFERENCES action_run_states (id) ON DELETE NO ACTION;
 ALTER TABLE send_message_actions ADD CONSTRAINT send_message_actions_ref_from_id FOREIGN KEY (from_id) REFERENCES phone_numbers (id) ON DELETE NO ACTION;
 ALTER TABLE send_message_actions ADD CONSTRAINT send_message_actions_ref_to_id FOREIGN KEY (to_id) REFERENCES phone_numbers (id) ON DELETE NO ACTION;
+ALTER TABLE timecard_access_tokens ADD CONSTRAINT timecard_access_tokens_ref_access_token_id FOREIGN KEY (access_token_id) REFERENCES access_tokens (id) ON DELETE NO ACTION;
+ALTER TABLE timecard_access_tokens ADD CONSTRAINT timecard_access_tokens_ref_timecard_id FOREIGN KEY (timecard_id) REFERENCES timecards (id) ON DELETE NO ACTION;
 ALTER TABLE timecard_entries ADD CONSTRAINT timecard_entries_ref_timecard_id FOREIGN KEY (timecard_id) REFERENCES timecards (id) ON DELETE NO ACTION;
 ALTER TABLE timecard_entry_messages ADD CONSTRAINT timecard_entry_messages_ref_timecard_entry_id FOREIGN KEY (timecard_entry_id) REFERENCES timecard_entries (id) ON DELETE NO ACTION;
 ALTER TABLE timecard_entry_messages ADD CONSTRAINT timecard_entry_messages_ref_twilio_message_id FOREIGN KEY (twilio_message_id) REFERENCES twilio_messages (id) ON DELETE NO ACTION;

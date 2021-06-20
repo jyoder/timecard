@@ -15,7 +15,7 @@ renderNavigation currentSection selectedPerson =
             <div class="container-fluid">
                 <span class="navbar-brand mb-0 h1" href="#">Constructable</span>
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <ul class="navbar-nav mb-0">
                         {renderItem communicationsAction Communications "Communications" currentSection}
                         {renderItem timecardsAction Timecards "Timecards" currentSection}
                     </ul>
