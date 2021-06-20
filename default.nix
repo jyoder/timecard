@@ -12,6 +12,8 @@ let
             cabal-install
             cryptonite
             hlint
+            hspec
+            hspec-discover
             lens-aeson
             memory
             monad-loops
@@ -24,6 +26,7 @@ let
             wai
         ];
         otherDeps = p: with p; builtins.concatLists [[
+            ghcid
         ]
         (if pkgs.stdenv.isDarwin then [] else [
             wkhtmltopdf
