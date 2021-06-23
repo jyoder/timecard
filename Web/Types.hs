@@ -75,9 +75,6 @@ data CommunicationsController
         { sendMessageActionId :: !(Id SendMessageAction)
         }
     | CreateTimecardReview
-        { selectedPersonId :: !(Id Person)
-        , timecardId :: !(Id Timecard)
-        }
     deriving (Eq, Show, Data)
 
 data TwilioCallbacksController
@@ -102,4 +99,7 @@ data TimecardsController
 
 data TimecardReviewsController
     = ShowTimecardReviewAction
+        { accessToken :: !Text
+        }
+    | CreateSigningAction
     deriving (Eq, Show, Data)

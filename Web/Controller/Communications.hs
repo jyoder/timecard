@@ -211,7 +211,25 @@ instance Controller CommunicationsController where
 
         redirectTo $ PersonSelectionAction (get #id toPerson)
     --
-    action CreateTimecardReview {..} = do
+    action CreateTimecardReview = do
+        let selectedPersonId = param @(Id Person) "selectedPersonId"
+        let timecardId = param @(Id Timecard) "timecardId"
+
+        now <- getCurrentTime
+        let expiresAt = addUTCTime (nominalDay + (7 * 3)) now
+        tokenValue <- generateAuthenticationToken
+
+        withTransaction do
+            accessToken <-
+                newRecord @AccessToken
+                    |> set #expiresAt expiresAt
+                    |> set #value tokenValue
+                    |> createRecord
+            newRecord @TimecardAccessToken
+                |> set #timecardId timecardId
+                |> set #accessTokenId (get #id accessToken)
+                |> createRecord
+
         redirectTo $ PersonSelectionAction selectedPersonId
 
 findSelectedMessages ::

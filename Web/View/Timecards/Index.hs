@@ -88,9 +88,12 @@ renderTimecard :: Person -> PersonActivity -> Q.Timecard -> Html
 renderTimecard selectedPerson personActivity timecard =
     [hsx|
         <div class="card mb-5">
-            <h5 class="card-header">
-                Week Of {formatDay weekOf}
-            </h5>
+            <div class="card-header d-flex justify-content-start mb-2">
+                <h5>Week Of {formatDay weekOf}</h5>
+                <div class="ml-2">
+                    {renderTimecardStatus timecard}
+                </div>
+            </div>
             
             <div class="card-body">
                 <h5 class="card-title">
@@ -124,6 +127,26 @@ renderTimecard selectedPerson personActivity timecard =
     downloadFilename = showWeekOf <> "-" <> lastName <> "-" <> firstName <> ".pdf"
     showWeekOf = show $ get #weekOf timecard
     weekOf = get #weekOf timecard
+
+renderTimecardStatus :: Q.Timecard -> Html
+renderTimecardStatus timecard =
+    case get #status timecard of
+        Q.TimecardInProgress ->
+            [hsx|
+                <span class="badge badge-pill badge-secondary">In Progress</span>
+            |]
+        Q.TimecardReadyForReview ->
+            [hsx|
+                <span class="badge badge-pill badge-primary">Ready for Review</span>
+            |]
+        Q.TimecardUnderReview _ ->
+            [hsx|
+                <span class="badge badge-pill badge-primary">Under Review</span>
+            |]
+        Q.TimecardSigned _ ->
+            [hsx|
+                <span class="badge badge-pill badge-success">Signed</span>
+            |]
 
 renderTimecardRow :: Person -> PersonActivity -> Q.TimecardEntry -> Html
 renderTimecardRow selectedPerson personActivity timecardEntry =

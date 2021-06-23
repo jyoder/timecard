@@ -120,6 +120,22 @@ CREATE TABLE timecard_access_tokens (
     access_token_id UUID NOT NULL,
     UNIQUE(access_token_id)
 );
+CREATE TABLE signings (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    signed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    name TEXT NOT NULL,
+    ip_address TEXT NOT NULL
+);
+CREATE TABLE timecard_signings (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    timecard_id UUID NOT NULL,
+    signing_id UUID NOT NULL,
+    UNIQUE(timecard_id, signing_id)
+);
 CREATE FUNCTION trigger_validate_timecard_entry_date_matches_timecard() RETURNS TRIGGER AS $$
 BEGIN
   IF date_trunc('week', NEW.date) = (SELECT timecards.week_of FROM timecards WHERE timecards.id = NEW.timecard_id) THEN
@@ -153,7 +169,6 @@ BEGIN
 END;
 $$ language plpgsql;
 CREATE TRIGGER validate_timecard_week_of_is_start_of_week BEFORE INSERT OR UPDATE ON timecards FOR EACH ROW EXECUTE PROCEDURE trigger_validate_timecard_week_of_is_start_of_week();
-
 CREATE INDEX action_run_times_runs_at_index ON action_run_times (runs_at);
 CREATE INDEX phone_contacts_person_id_index ON phone_contacts (person_id);
 CREATE INDEX phone_contacts_phone_number_id_index ON phone_contacts (phone_number_id);
@@ -170,7 +185,8 @@ CREATE INDEX timecard_entries_timecard_id_index ON timecard_entries (timecard_id
 CREATE INDEX timecards_person_id_index ON timecards (person_id);
 CREATE INDEX timecard_access_tokens_timecard_id_index ON timecard_access_tokens (timecard_id);
 CREATE INDEX timecard_access_tokens_access_token_id_index ON timecard_access_tokens (access_token_id);
-
+CREATE INDEX timecard_signings_timecard_id_index ON timecard_signings (timecard_id);
+CREATE INDEX timecard_signings_signing_id_index ON timecard_signings (signing_id);
 CREATE FUNCTION trigger_set_updated_at() RETURNS TRIGGER AS $$
 BEGIN
   NEW.updated_at = NOW();
@@ -203,6 +219,8 @@ ALTER TABLE timecard_access_tokens ADD CONSTRAINT timecard_access_tokens_ref_tim
 ALTER TABLE timecard_entries ADD CONSTRAINT timecard_entries_ref_timecard_id FOREIGN KEY (timecard_id) REFERENCES timecards (id) ON DELETE NO ACTION;
 ALTER TABLE timecard_entry_messages ADD CONSTRAINT timecard_entry_messages_ref_timecard_entry_id FOREIGN KEY (timecard_entry_id) REFERENCES timecard_entries (id) ON DELETE NO ACTION;
 ALTER TABLE timecard_entry_messages ADD CONSTRAINT timecard_entry_messages_ref_twilio_message_id FOREIGN KEY (twilio_message_id) REFERENCES twilio_messages (id) ON DELETE NO ACTION;
+ALTER TABLE timecard_signings ADD CONSTRAINT timecard_signings_ref_signing_id FOREIGN KEY (signing_id) REFERENCES signings (id) ON DELETE NO ACTION;
+ALTER TABLE timecard_signings ADD CONSTRAINT timecard_signings_ref_timecard_id FOREIGN KEY (timecard_id) REFERENCES timecards (id) ON DELETE NO ACTION;
 ALTER TABLE timecards ADD CONSTRAINT timecards_ref_person_id FOREIGN KEY (person_id) REFERENCES people (id) ON DELETE NO ACTION;
 ALTER TABLE twilio_messages ADD CONSTRAINT twilio_messages_ref_from_id FOREIGN KEY (from_id) REFERENCES phone_numbers (id) ON DELETE NO ACTION;
 ALTER TABLE twilio_messages ADD CONSTRAINT twilio_messages_ref_to_id FOREIGN KEY (to_id) REFERENCES phone_numbers (id) ON DELETE NO ACTION;

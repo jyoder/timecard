@@ -274,18 +274,76 @@ renderScheduledMessage scheduledMessage =
 
 renderTimecards :: Person -> [Q.Timecard] -> Html
 renderTimecards selectedPerson timecards =
-    forEach timecards $ renderTimecardEntries selectedPerson
+    forEach timecards $ renderTimecard selectedPerson
+
+renderTimecard :: Person -> Q.Timecard -> Html
+renderTimecard selectedPerson timecard =
+    [hsx|
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <h5 class="card-title">Timecard for week of {formatDay $ get #weekOf timecard}</h5>
+                    <div>
+                        {renderTimecardStatus timecard}
+                    </div>
+                </div>
+                <div class="mb-4">
+                    {renderTimecardActions selectedPerson timecard}
+                </div>
+            
+                <div>
+                    {renderTimecardEntries selectedPerson timecard}
+                </div>
+            </div>
+        </div>
+    |]
+
+renderTimecardStatus :: Q.Timecard -> Html
+renderTimecardStatus timecard =
+    case get #status timecard of
+        Q.TimecardInProgress ->
+            [hsx|
+                <span class="badge badge-pill badge-secondary">In Progress</span>
+            |]
+        Q.TimecardReadyForReview ->
+            [hsx|
+                <span class="badge badge-pill badge-primary">Ready for Review</span>
+            |]
+        Q.TimecardUnderReview _ ->
+            [hsx|
+                <span class="badge badge-pill badge-primary">Under Review</span>
+            |]
+        Q.TimecardSigned _ ->
+            [hsx|
+                <span class="badge badge-pill badge-success">Signed</span>
+            |]
+
+renderTimecardActions :: Person -> Q.Timecard -> Html
+renderTimecardActions selectedPerson timecard =
+    case get #status timecard of
+        Q.TimecardInProgress ->
+            [hsx||]
+        Q.TimecardReadyForReview ->
+            [hsx|
+                <form action={CreateTimecardReview} method="post">
+                    <input type="hidden" name="selectedPersonId" value={show $ get #id selectedPerson} />
+                    <input type="hidden" name="timecardId" value={show $ get #id timecard} />
+                    <input type="submit" class="btn btn-outline-primary col-12" value="Send for Review">
+                </form>
+            |]
+        Q.TimecardUnderReview Q.AccessToken {..} ->
+            [hsx|
+                <a href={ShowTimecardReviewAction value}>Timecard Review Link</a>
+            |]
+        Q.TimecardSigned _ ->
+            [hsx||]
 
 renderTimecardEntries :: Person -> Q.Timecard -> Html
 renderTimecardEntries selectedPerson Q.Timecard {..} =
     [hsx|
-        <div class="card mb-4">
-            <div class="card-body">
-                <ul class="list-group">
-                    {forEach entries (renderTimecardEntry selectedPerson)}
-                </ul>
-            </div>
-        </div>
+        <ul class="list-group">
+            {forEach entries (renderTimecardEntry selectedPerson)}
+        </ul>
     |]
 
 renderTimecardEntry :: Person -> Q.TimecardEntry -> Html
