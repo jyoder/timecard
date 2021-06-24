@@ -192,10 +192,7 @@ renderSignatureComplete signing =
             <strong>Signed by:</strong> {get #name signing}
         </p>
         <p>
-            <strong>Signed at:</strong>&nbsp
-            <time class="date-time" datetime={show signedAt}>
-                {show signedAt}
-            </time>
+            <strong>Signed at:</strong> {get #signedAt signing}
         </p>
         <p>
             <strong>IP address:</strong> {get #ipAddress signing}
