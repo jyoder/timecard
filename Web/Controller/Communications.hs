@@ -251,9 +251,11 @@ scheduleNextRequest ::
 scheduleNextRequest lastEntry person fromId toId = do
     now <- getCurrentTime
     alreadyScheduled <- TimecardEntryRequest.scheduledRequestExists toId
+    workerPreference <- query @WorkerPreference |> filterWhere (#personId, get #id person) |> fetchOne
+    let sendTimeOfDay = get #sendDailyReminderAt workerPreference
 
     let body = TimecardEntryRequest.requestBody person lastEntry
-    let sendAt = TimecardEntryRequest.nextRequestTime companyTimeZone now
+    let sendAt = TimecardEntryRequest.nextRequestTime companyTimeZone sendTimeOfDay now
 
     if not alreadyScheduled
         then SendMessageAction.schedule fromId toId body sendAt >> pure ()

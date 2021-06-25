@@ -40,20 +40,20 @@ requestBody person lastEntry =
         <> get #jobName lastEntry
         <> " today. Let me know what hours you worked and what you did when you have a chance. Thanks!"
 
-nextRequestTime :: TimeZone -> UTCTime -> UTCTime
-nextRequestTime timeZone now =
-    if not (isWeekend $ localDay localTime) && localTime < requestTimeToday localTime
-        then requestTimeToday localTime |> toUtc
-        else requestTimeNextWorkingDay localTime |> toUtc
+nextRequestTime :: TimeZone -> TimeOfDay -> UTCTime -> UTCTime
+nextRequestTime timeZone requestTimeOfDay now =
+    if not (isWeekend $ localDay localTime) && localTime < requestTimeToday requestTimeOfDay localTime
+        then requestTimeToday requestTimeOfDay localTime |> toUtc
+        else requestTimeNextWorkingDay requestTimeOfDay localTime |> toUtc
   where
     localTime = utcToLocalTime timeZone now
     toUtc = localTimeToUTC timeZone
 
-requestTimeToday :: LocalTime -> LocalTime
-requestTimeToday now = LocalTime (localDay now) requestTimeOfDay
+requestTimeToday :: TimeOfDay -> LocalTime -> LocalTime
+requestTimeToday requestTimeOfDay now = LocalTime (localDay now) requestTimeOfDay
 
-requestTimeNextWorkingDay :: LocalTime -> LocalTime
-requestTimeNextWorkingDay now =
+requestTimeNextWorkingDay :: TimeOfDay -> LocalTime -> LocalTime
+requestTimeNextWorkingDay requestTimeOfDay now =
     LocalTime (nextWorkingDay $ localDay now) requestTimeOfDay
 
 nextWorkingDay :: Day -> Day
@@ -62,6 +62,3 @@ nextWorkingDay today =
         (_, _, 5) -> addDays 3 today -- Friday we add 3 days to get to Monday
         (_, _, 6) -> addDays 2 today -- Saturday we add 2 days to get to Monday
         _ -> addDays 1 today -- All other days we need only look to tomorrow
-
-requestTimeOfDay :: TimeOfDay
-requestTimeOfDay = TimeOfDay 15 30 0

@@ -8,6 +8,7 @@ import Web.View.Layout (defaultLayout)
 import Web.Controller.TimecardReviews
 import Web.Controller.Timecards
 import Web.Controller.TwilioCallbacks
+import Web.Controller.WorkerPreferences
 
 import IHP.LoginSupport.Middleware
 import Web.Controller.Communications
@@ -22,7 +23,8 @@ instance FrontController WebApplication where
         [ startPage WelcomeAction
         , parseRoute @SessionsController
         , -- Generator Marker
-          parseRoute @TimecardReviewsController
+          parseRoute @WorkerPreferencesController
+        , parseRoute @TimecardReviewsController
         , parseRoute @TimecardsController
         , parseRoute @TwilioCallbacksController
         , parseRoute @CommunicationsController

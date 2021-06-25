@@ -16,7 +16,7 @@ SET SESSION AUTHORIZATION DEFAULT;
 
 ALTER TABLE public.access_tokens DISABLE TRIGGER ALL;
 
-INSERT INTO public.access_tokens (id, created_at, updated_at, value, expires_at, is_revoked) VALUES ('c67ce1a5-13d6-428c-8694-8a309c15cd56', '2021-06-22 15:50:55.116609-07', '2021-06-22 15:50:55.116609-07', 'USlBNTsCNMODbSWffRTwKiGLFAJnmsLb', '2021-06-23 15:51:16.114454-07', false);
+INSERT INTO public.access_tokens (id, created_at, updated_at, value, expires_at, is_revoked) VALUES ('a51e1083-96f3-43e0-bc76-73e86de9dc65', '2021-06-23 21:56:03.265485-07', '2021-06-23 21:56:03.265485-07', 'zcTZGptIZgMjtrQpePwmXSCXyuPwqxLp', '2021-06-24 21:56:24.265323-07', false);
 
 
 ALTER TABLE public.access_tokens ENABLE TRIGGER ALL;
@@ -34,6 +34,7 @@ INSERT INTO public.action_run_states (id, created_at, updated_at, state) VALUES 
 INSERT INTO public.action_run_states (id, created_at, updated_at, state) VALUES ('53588cbd-d1c5-45cd-83b1-e403d79bfd2f', '2021-06-17 22:19:09.880225-07', '2021-06-17 22:19:14.442847-07', 'canceled');
 INSERT INTO public.action_run_states (id, created_at, updated_at, state) VALUES ('6f0903cf-bb11-4c62-a6a2-71bf19874d4b', '2021-06-17 22:23:14.235317-07', '2021-06-17 22:43:38.708466-07', 'canceled');
 INSERT INTO public.action_run_states (id, created_at, updated_at, state) VALUES ('b6a5384f-3815-4e43-a360-87befde280df', '2021-06-18 11:32:42.919839-07', '2021-06-18 11:32:46.262089-07', 'canceled');
+INSERT INTO public.action_run_states (id, created_at, updated_at, state) VALUES ('4403528f-cda4-435a-a3f4-ca310c931046', '2021-06-24 18:56:42.167395-07', '2021-06-24 19:00:53.629832-07', 'finished');
 
 
 ALTER TABLE public.action_run_states ENABLE TRIGGER ALL;
@@ -51,6 +52,7 @@ INSERT INTO public.action_run_times (id, created_at, updated_at, runs_at, action
 INSERT INTO public.action_run_times (id, created_at, updated_at, runs_at, action_run_state_id) VALUES ('648e611f-8754-4cdb-af8e-c0bf7e09ba3c', '2021-06-17 22:19:09.880225-07', '2021-06-17 22:19:09.880225-07', '2021-06-18 15:30:00-07', '53588cbd-d1c5-45cd-83b1-e403d79bfd2f');
 INSERT INTO public.action_run_times (id, created_at, updated_at, runs_at, action_run_state_id) VALUES ('1996d1de-e89e-448b-be16-1d38926d9096', '2021-06-17 22:23:14.235317-07', '2021-06-17 22:23:14.235317-07', '2021-06-18 15:30:00-07', '6f0903cf-bb11-4c62-a6a2-71bf19874d4b');
 INSERT INTO public.action_run_times (id, created_at, updated_at, runs_at, action_run_state_id) VALUES ('c6898479-7e4a-4640-9a58-4dbc691e83c3', '2021-06-18 11:32:42.919839-07', '2021-06-18 11:32:42.919839-07', '2021-06-18 15:30:00-07', 'b6a5384f-3815-4e43-a360-87befde280df');
+INSERT INTO public.action_run_times (id, created_at, updated_at, runs_at, action_run_state_id) VALUES ('bc7237a5-666b-452b-a49f-d803ab24552c', '2021-06-24 18:56:42.167395-07', '2021-06-24 18:56:42.167395-07', '2021-06-24 19:00:00-07', '4403528f-cda4-435a-a3f4-ca310c931046');
 
 
 ALTER TABLE public.action_run_times ENABLE TRIGGER ALL;
@@ -94,7 +96,7 @@ ALTER TABLE public.phone_contacts ENABLE TRIGGER ALL;
 
 ALTER TABLE public.process_events_jobs DISABLE TRIGGER ALL;
 
-INSERT INTO public.process_events_jobs (id, created_at, updated_at, status, last_error, attempts_count, locked_at, locked_by) VALUES ('174089bf-53a9-430c-9492-549b44380633', '2021-06-22 21:12:58.36415-07', '2021-06-22 21:12:58.36415-07', 'job_status_not_started', NULL, 0, NULL, NULL);
+INSERT INTO public.process_events_jobs (id, created_at, updated_at, status, last_error, attempts_count, locked_at, locked_by) VALUES ('3e75a113-bc0a-428b-9a2e-a39eb80b75da', '2021-06-24 19:04:05.154566-07', '2021-06-24 19:04:05.160066-07', 'job_status_running', NULL, 1, '2021-06-24 19:04:05.160066-07', 'd0e9d4d2-5887-42cb-9351-73253b087626');
 
 
 ALTER TABLE public.process_events_jobs ENABLE TRIGGER ALL;
@@ -112,6 +114,7 @@ INSERT INTO public.send_message_actions (id, created_at, updated_at, body, from_
 INSERT INTO public.send_message_actions (id, created_at, updated_at, body, from_id, to_id, action_run_state_id) VALUES ('469d49b9-0a4e-46d0-95f4-56301ff2cbae', '2021-06-17 22:19:09.880225-07', '2021-06-17 22:19:09.880225-07', 'Hey John - I''ve got you at Foogle today. Let me know what hours you worked and what you did when you have a chance. Thanks!', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'c1375981-0102-4132-8799-54f4fe3e0fbd', '53588cbd-d1c5-45cd-83b1-e403d79bfd2f');
 INSERT INTO public.send_message_actions (id, created_at, updated_at, body, from_id, to_id, action_run_state_id) VALUES ('1942b386-83f4-404c-ad20-67be5c92fa97', '2021-06-17 22:23:14.235317-07', '2021-06-17 22:23:14.235317-07', 'Hey John - I''ve got you at Really future today. Let me know what hours you worked and what you did when you have a chance. Thanks!', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'c1375981-0102-4132-8799-54f4fe3e0fbd', '6f0903cf-bb11-4c62-a6a2-71bf19874d4b');
 INSERT INTO public.send_message_actions (id, created_at, updated_at, body, from_id, to_id, action_run_state_id) VALUES ('862056c4-1506-47e9-bf52-7197d3f302b5', '2021-06-18 11:32:42.919839-07', '2021-06-18 11:32:42.919839-07', 'Hey John - I''ve got you at Goober today. Let me know what hours you worked and what you did when you have a chance. Thanks!', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'c1375981-0102-4132-8799-54f4fe3e0fbd', 'b6a5384f-3815-4e43-a360-87befde280df');
+INSERT INTO public.send_message_actions (id, created_at, updated_at, body, from_id, to_id, action_run_state_id) VALUES ('26a1af75-f7a1-4a0a-b221-c453cbd61da7', '2021-06-24 18:56:42.167395-07', '2021-06-24 18:56:42.167395-07', 'Hey John - I''ve got you at Good! today. Let me know what hours you worked and what you did when you have a chance. Thanks!', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'c1375981-0102-4132-8799-54f4fe3e0fbd', '4403528f-cda4-435a-a3f4-ca310c931046');
 
 
 ALTER TABLE public.send_message_actions ENABLE TRIGGER ALL;
@@ -119,6 +122,7 @@ ALTER TABLE public.send_message_actions ENABLE TRIGGER ALL;
 
 ALTER TABLE public.signings DISABLE TRIGGER ALL;
 
+INSERT INTO public.signings (id, created_at, updated_at, signed_at, name, ip_address) VALUES ('4ba51a87-9989-4883-aa97-daf5aff8e1f9', '2021-06-23 21:57:28.177095-07', '2021-06-23 21:57:28.177095-07', '2021-06-23 21:57:28.170477-07', 'John Yoder', '127.0.0.1:58419');
 
 
 ALTER TABLE public.signings ENABLE TRIGGER ALL;
@@ -142,7 +146,7 @@ ALTER TABLE public.timecards ENABLE TRIGGER ALL;
 
 ALTER TABLE public.timecard_access_tokens DISABLE TRIGGER ALL;
 
-INSERT INTO public.timecard_access_tokens (id, created_at, updated_at, timecard_id, access_token_id) VALUES ('477634f4-4cf5-4693-ae56-91349639029e', '2021-06-22 15:50:55.116609-07', '2021-06-22 15:50:55.116609-07', '8d0ced99-10d9-4eb6-be6c-03f521571b5c', 'c67ce1a5-13d6-428c-8694-8a309c15cd56');
+INSERT INTO public.timecard_access_tokens (id, created_at, updated_at, timecard_id, access_token_id) VALUES ('84e6db44-3ffa-41b2-b1ca-11c908fd2eb3', '2021-06-23 21:56:03.265485-07', '2021-06-23 21:56:03.265485-07', '8d0ced99-10d9-4eb6-be6c-03f521571b5c', 'a51e1083-96f3-43e0-bc76-73e86de9dc65');
 
 
 ALTER TABLE public.timecard_access_tokens ENABLE TRIGGER ALL;
@@ -170,6 +174,7 @@ INSERT INTO public.timecard_entries (id, created_at, updated_at, date, job_name,
 INSERT INTO public.timecard_entries (id, created_at, updated_at, date, job_name, hours_worked, work_done, invoice_translation, timecard_id) VALUES ('90387e61-0592-46a9-9b70-a6fa03a644e8', '2021-06-13 22:06:20.665202-07', '2021-06-22 14:47:39.305166-07', '2021-06-09', 'Blob Job', 8, 'Hey John - I''ve got you at Goober today. Let me know what hours you worked and what you did when you have a chance. Thanks!', 'Hey John - I''ve got you at Goober today. Let me know what hours you worked and what you did when you have a chance. Thanks!', '8d0ced99-10d9-4eb6-be6c-03f521571b5c');
 INSERT INTO public.timecard_entries (id, created_at, updated_at, date, job_name, hours_worked, work_done, invoice_translation, timecard_id) VALUES ('d5680e1b-3913-4f5c-80f3-28b512380df2', '2021-06-13 22:06:10.918325-07', '2021-06-22 14:47:46.125912-07', '2021-06-08', 'aSteve Jobs', 8, 'Hey John - I''ve got you at Goober today. Let me know what hours you worked and what you did when you have a chance. Thanks!', 'Hey John - I''ve got you at Goober today. Let me know what hours you worked and what you did when you have a chance. Thanks!', '8d0ced99-10d9-4eb6-be6c-03f521571b5c');
 INSERT INTO public.timecard_entries (id, created_at, updated_at, date, job_name, hours_worked, work_done, invoice_translation, timecard_id) VALUES ('7ff7d66c-689a-40d9-a6d9-c557dd11e1c9', '2021-06-13 22:06:05.055515-07', '2021-06-22 14:47:53.958724-07', '2021-06-07', 'Job', 8, 'Hey John - I''ve got you at Goober today. Let me know what hours you worked and what you did when you have a chance. Thanks!', 'Hey John - I''ve got you at Goober today. Let me know what hours you worked and what you did when you have a chance. Thanks!', '8d0ced99-10d9-4eb6-be6c-03f521571b5c');
+INSERT INTO public.timecard_entries (id, created_at, updated_at, date, job_name, hours_worked, work_done, invoice_translation, timecard_id) VALUES ('82cfde90-65a3-4369-8e3a-62d8122f9d03', '2021-06-24 18:56:42.156959-07', '2021-06-24 18:56:42.156959-07', '2021-06-24', 'Good!', 8, 'Test3', 'Test3', '179a0157-7442-4ec7-a230-c78eeb7469c9');
 
 
 ALTER TABLE public.timecard_entries ENABLE TRIGGER ALL;
@@ -247,6 +252,15 @@ INSERT INTO public.twilio_messages (id, created_at, updated_at, api_version, mes
 INSERT INTO public.twilio_messages (id, created_at, updated_at, api_version, message_sid, account_sid, messaging_service_sid, to_id, from_id, status, body, num_media) VALUES ('2ecef2f4-6f72-474c-bb35-db5e0be1f020', '2021-06-18 10:48:18.631495-07', '2021-06-18 10:48:19.350756-07', '2010-04-01', 'SM7163519d0a654a80b17b9e4eb9cfe2fd', 'AC828cf7fa609e74ef78861e56ad166f42', NULL, 'c1375981-0102-4132-8799-54f4fe3e0fbd', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'delivered', 'Abc', 0);
 INSERT INTO public.twilio_messages (id, created_at, updated_at, api_version, message_sid, account_sid, messaging_service_sid, to_id, from_id, status, body, num_media) VALUES ('b3fac48f-4e36-48b1-8884-bb25c54cd2e9', '2021-06-18 12:54:31.379044-07', '2021-06-18 12:54:32.323534-07', '2010-04-01', 'SM2c4fe597177e4529a0a54d1b20a4afe3', 'AC828cf7fa609e74ef78861e56ad166f42', NULL, 'c1375981-0102-4132-8799-54f4fe3e0fbd', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'delivered', 'Test', 0);
 INSERT INTO public.twilio_messages (id, created_at, updated_at, api_version, message_sid, account_sid, messaging_service_sid, to_id, from_id, status, body, num_media) VALUES ('090d17ef-b4bb-4637-a062-08526ef46eff', '2021-06-18 12:54:40.51011-07', '2021-06-18 12:54:40.51011-07', '2010-04-01', 'SM6341a073fb2e6fd6967499ec5d7830ba', 'AC828cf7fa609e74ef78861e56ad166f42', NULL, 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'c1375981-0102-4132-8799-54f4fe3e0fbd', 'received', 'Best', 0);
+INSERT INTO public.twilio_messages (id, created_at, updated_at, api_version, message_sid, account_sid, messaging_service_sid, to_id, from_id, status, body, num_media) VALUES ('4cfdb563-d395-4c61-8aaf-5a17dbb69c1a', '2021-06-22 23:38:30.660238-07', '2021-06-22 23:38:31.673882-07', '2010-04-01', 'SM50f6f2867ccb4a69ba4b80304cff1d32', 'AC828cf7fa609e74ef78861e56ad166f42', NULL, 'c1375981-0102-4132-8799-54f4fe3e0fbd', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'delivered', 'Test', 0);
+INSERT INTO public.twilio_messages (id, created_at, updated_at, api_version, message_sid, account_sid, messaging_service_sid, to_id, from_id, status, body, num_media) VALUES ('5593901d-770b-46cb-b0b0-bdb56973d096', '2021-06-22 23:38:58.302224-07', '2021-06-22 23:38:58.302224-07', '2010-04-01', 'SMf3c2426273e99cc11b2ed184624f6dac', 'AC828cf7fa609e74ef78861e56ad166f42', NULL, 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'c1375981-0102-4132-8799-54f4fe3e0fbd', 'received', 'Yup', 0);
+INSERT INTO public.twilio_messages (id, created_at, updated_at, api_version, message_sid, account_sid, messaging_service_sid, to_id, from_id, status, body, num_media) VALUES ('e6318695-99fd-4ae0-9b00-ea88a9082563', '2021-06-23 21:56:40.221892-07', '2021-06-23 21:56:41.641643-07', '2010-04-01', 'SMc6494abc61bf45b9ad0629983f32a4e5', 'AC828cf7fa609e74ef78861e56ad166f42', NULL, 'c1375981-0102-4132-8799-54f4fe3e0fbd', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'delivered', 'Hi John, your timecard is ready to sign. Please click this link to review and sign:
+http://localhost:8000/ShowTimecardReview?accessToken=zcTZGptIZgMjtrQpePwmXSCXyuPwqxLp', 0);
+INSERT INTO public.twilio_messages (id, created_at, updated_at, api_version, message_sid, account_sid, messaging_service_sid, to_id, from_id, status, body, num_media) VALUES ('ff385cd0-820d-49dc-82ca-025e2f91dcec', '2021-06-24 18:51:19.513487-07', '2021-06-24 18:51:19.513487-07', '2010-04-01', 'SM1b2003dbcb9e47b7890db2ec010b79ce', 'AC828cf7fa609e74ef78861e56ad166f42', NULL, 'c1375981-0102-4132-8799-54f4fe3e0fbd', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'queued', 'Test', 0);
+INSERT INTO public.twilio_messages (id, created_at, updated_at, api_version, message_sid, account_sid, messaging_service_sid, to_id, from_id, status, body, num_media) VALUES ('d32c34f3-22ab-41af-aeb3-13a39cd78773', '2021-06-24 18:53:15.273809-07', '2021-06-24 18:53:15.273809-07', '2010-04-01', 'SM36af028c9bd6f69d9fbd63bfdfd80bcc', 'AC828cf7fa609e74ef78861e56ad166f42', NULL, 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'c1375981-0102-4132-8799-54f4fe3e0fbd', 'received', 'Hello', 0);
+INSERT INTO public.twilio_messages (id, created_at, updated_at, api_version, message_sid, account_sid, messaging_service_sid, to_id, from_id, status, body, num_media) VALUES ('4dbd9180-bbb5-4e55-a317-67a584b215c5', '2021-06-24 18:53:23.615028-07', '2021-06-24 18:53:23.615028-07', '2010-04-01', 'SM593d79c7f386432492847a157174dab3', 'AC828cf7fa609e74ef78861e56ad166f42', NULL, 'c1375981-0102-4132-8799-54f4fe3e0fbd', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'queued', 'Test2', 0);
+INSERT INTO public.twilio_messages (id, created_at, updated_at, api_version, message_sid, account_sid, messaging_service_sid, to_id, from_id, status, body, num_media) VALUES ('5cec0741-1813-4449-8e38-b9b8afff1294', '2021-06-24 18:55:06.238761-07', '2021-06-24 18:55:07.294383-07', '2010-04-01', 'SM3a7215ee23564837b230b4e94a44a460', 'AC828cf7fa609e74ef78861e56ad166f42', NULL, 'c1375981-0102-4132-8799-54f4fe3e0fbd', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'delivered', 'Test3', 0);
+INSERT INTO public.twilio_messages (id, created_at, updated_at, api_version, message_sid, account_sid, messaging_service_sid, to_id, from_id, status, body, num_media) VALUES ('1a34a096-fe8c-43f7-93c1-9c9debedc533', '2021-06-24 19:00:53.62735-07', '2021-06-24 19:00:54.658267-07', '2010-04-01', 'SM106c8d66ca5c445c87157d5fd8a0a79e', 'AC828cf7fa609e74ef78861e56ad166f42', NULL, 'c1375981-0102-4132-8799-54f4fe3e0fbd', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'delivered', 'Hey John - I''ve got you at Good! today. Let me know what hours you worked and what you did when you have a chance. Thanks!', 0);
 
 
 ALTER TABLE public.twilio_messages ENABLE TRIGGER ALL;
@@ -311,6 +325,7 @@ INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard
 INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('3eff1865-9fb8-4fdb-ae2d-e11204e28335', '2021-06-22 14:47:39.305166-07', '2021-06-22 14:47:39.305166-07', '90387e61-0592-46a9-9b70-a6fa03a644e8', 'ac1d3339-c20e-4bc2-b708-aff396c5ae10');
 INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('6542f6e7-8240-4414-9fde-b8051439ed4c', '2021-06-22 14:47:46.125912-07', '2021-06-22 14:47:46.125912-07', 'd5680e1b-3913-4f5c-80f3-28b512380df2', 'ac1d3339-c20e-4bc2-b708-aff396c5ae10');
 INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('6856daa7-8ec8-4e8f-a711-38bf4634d937', '2021-06-22 14:47:53.958724-07', '2021-06-22 14:47:53.958724-07', '7ff7d66c-689a-40d9-a6d9-c557dd11e1c9', 'ac1d3339-c20e-4bc2-b708-aff396c5ae10');
+INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('5267c1d7-e6cf-44c8-87f4-dc890a547444', '2021-06-24 18:56:42.156959-07', '2021-06-24 18:56:42.156959-07', '82cfde90-65a3-4369-8e3a-62d8122f9d03', '5cec0741-1813-4449-8e38-b9b8afff1294');
 
 
 ALTER TABLE public.timecard_entry_messages ENABLE TRIGGER ALL;
@@ -318,6 +333,7 @@ ALTER TABLE public.timecard_entry_messages ENABLE TRIGGER ALL;
 
 ALTER TABLE public.timecard_signings DISABLE TRIGGER ALL;
 
+INSERT INTO public.timecard_signings (id, created_at, updated_at, timecard_id, signing_id) VALUES ('3b814636-f68f-4c9e-ac44-08d4e4692435', '2021-06-23 21:57:28.177095-07', '2021-06-23 21:57:28.177095-07', '8d0ced99-10d9-4eb6-be6c-03f521571b5c', '4ba51a87-9989-4883-aa97-daf5aff8e1f9');
 
 
 ALTER TABLE public.timecard_signings ENABLE TRIGGER ALL;
@@ -329,5 +345,16 @@ INSERT INTO public.users (id, email, password_hash, locked_at, failed_login_atte
 
 
 ALTER TABLE public.users ENABLE TRIGGER ALL;
+
+
+ALTER TABLE public.worker_preferences DISABLE TRIGGER ALL;
+
+INSERT INTO public.worker_preferences (id, created_at, updated_at, person_id, send_daily_reminder_at) VALUES ('ade22074-a9a7-4ac1-80b9-a7b92eb40504', '2021-06-24 18:56:06.349431-07', '2021-06-24 18:56:06.349431-07', 'c8a20c60-1c95-4a9e-bb6a-57ca2670115d', '19:00:00');
+INSERT INTO public.worker_preferences (id, created_at, updated_at, person_id, send_daily_reminder_at) VALUES ('9652722d-5227-4c39-92f5-4adb32f6d5a6', '2021-06-24 18:57:37.004369-07', '2021-06-24 18:57:37.004369-07', '6e41e1a0-7f59-4195-ad39-546fcf1e6b79', '00:15:30');
+INSERT INTO public.worker_preferences (id, created_at, updated_at, person_id, send_daily_reminder_at) VALUES ('a4fad215-6ac9-437b-bc8d-b7a5b32275a6', '2021-06-24 18:57:59.718703-07', '2021-06-24 18:57:59.718703-07', 'cfce1f7b-7617-4c5d-8349-e6640378e01e', '00:15:30');
+INSERT INTO public.worker_preferences (id, created_at, updated_at, person_id, send_daily_reminder_at) VALUES ('23885399-9925-48dd-b922-41ff619eb0cd', '2021-06-24 18:58:16.658285-07', '2021-06-24 18:58:16.658285-07', '4383aa8e-d200-45cb-9c8e-0090f14457ef', '00:15:30');
+
+
+ALTER TABLE public.worker_preferences ENABLE TRIGGER ALL;
 
 
