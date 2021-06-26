@@ -1,6 +1,6 @@
 module Application.Base.People (
     validate,
-    fetchExcluding,
+    fetchExcludingId,
     fetchBotId,
     fetchBot,
     fetchByPhoneNumber,
@@ -13,15 +13,8 @@ import IHP.Prelude
 import IHP.QueryBuilder
 import IHP.ValidationSupport.ValidateField
 
-validate :: Person -> Person
-validate person =
-    person
-        |> validateField #firstName nonEmpty
-        |> validateField #lastName nonEmpty
-        |> validateField #goesBy nonEmpty
-
-fetchExcluding :: (?modelContext :: ModelContext) => Id Person -> IO [Person]
-fetchExcluding idToExclude = do
+fetchExcludingId :: (?modelContext :: ModelContext) => Id Person -> IO [Person]
+fetchExcludingId idToExclude = do
     people <- query @Person |> orderByAsc #lastName |> fetch
     filter (\person -> get #id person /= idToExclude) people |> pure
 
@@ -44,3 +37,10 @@ fetchByPhoneNumber phoneNumberId = do
 
 botName :: Text
 botName = "Tim the Bot"
+
+validate :: Person -> Person
+validate person =
+    person
+        |> validateField #firstName nonEmpty
+        |> validateField #lastName nonEmpty
+        |> validateField #goesBy nonEmpty

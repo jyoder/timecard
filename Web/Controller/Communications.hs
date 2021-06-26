@@ -23,14 +23,14 @@ instance Controller CommunicationsController where
 
     action CommunicationsAction = autoRefresh do
         botId <- People.fetchBotId
-        people <- People.fetchExcluding botId
+        people <- People.fetchExcludingId botId
         let personSelection = NoPersonSelected
 
         render IndexView {..}
     --
     action PersonSelectionAction {..} = autoRefresh do
         botId <- People.fetchBotId
-        people <- People.fetchExcluding botId
+        people <- People.fetchExcludingId botId
         selectedPerson <- fetch selectedPersonId
 
         messages <- TwilioMessage.fetchByPeople botId selectedPersonId
@@ -50,7 +50,7 @@ instance Controller CommunicationsController where
     --
     action NewTimecardEntryAction {..} = autoRefresh do
         botId <- People.fetchBotId
-        people <- People.fetchExcluding botId
+        people <- People.fetchExcludingId botId
         selectedPerson <- fetch selectedPersonId
 
         messages <- TwilioMessage.fetchByPeople botId selectedPersonId
@@ -76,7 +76,7 @@ instance Controller CommunicationsController where
     --
     action EditTimecardEntryAction {..} = autoRefresh do
         botId <- People.fetchBotId
-        people <- People.fetchExcluding botId
+        people <- People.fetchExcludingId botId
         selectedPerson <- fetch selectedPersonId
 
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
@@ -99,7 +99,7 @@ instance Controller CommunicationsController where
     --
     action EditModifiedTimecardEntryAction {..} = autoRefresh do
         botId <- People.fetchBotId
-        people <- People.fetchExcluding botId
+        people <- People.fetchExcludingId botId
         selectedPerson <- fetch selectedPersonId
 
         messages <- TwilioMessage.fetchByPeople botId selectedPersonId
@@ -131,7 +131,7 @@ instance Controller CommunicationsController where
             |> TimecardEntry.create selectedPersonId selectedMessageIds
                 >>= either
                     ( \timecardEntry -> do
-                        people <- People.fetchExcluding botId
+                        people <- People.fetchExcludingId botId
                         messages <- TwilioMessage.fetchByPeople botId selectedPersonId
                         let selectedMessages = findSelectedMessages messages selectedMessageIds
                         scheduledMessages <-
@@ -168,7 +168,7 @@ instance Controller CommunicationsController where
                 >>= either
                     ( \timecardEntry -> do
                         botId <- People.fetchBotId
-                        people <- People.fetchExcluding botId
+                        people <- People.fetchExcludingId botId
                         selectedPerson <- fetch selectedPersonId
 
                         messages <- TwilioMessage.fetchByPeople botId selectedPersonId
@@ -219,7 +219,7 @@ instance Controller CommunicationsController where
 
         now <- getCurrentTime
         let expiresAt = TimecardAccessToken.expirationFrom now
-        TimecardAccessToken.create now timecardId
+        TimecardAccessToken.create expiresAt timecardId
 
         redirectTo $ PersonSelectionAction selectedPersonId
 

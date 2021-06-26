@@ -1,6 +1,6 @@
 module Application.Timecard.TimecardAccessToken (
-    validate,
     create,
+    validate,
     expirationFrom,
 ) where
 
@@ -8,9 +8,6 @@ import qualified Application.Base.AccessToken as AccessToken
 import Application.Service.Validation
 import Generated.Types hiding (expiresAt)
 import IHP.ControllerPrelude hiding (create)
-
-validate :: TimecardAccessToken -> TimecardAccessToken
-validate timecardAccessToken = timecardAccessToken
 
 create ::
     (?modelContext :: ModelContext) =>
@@ -26,6 +23,9 @@ create expiresAt timecardId =
             |> set #timecardId timecardId
             |> set #accessTokenId (get #id accessToken)
             |> validateAndCreate validate
+
+validate :: TimecardAccessToken -> TimecardAccessToken
+validate timecardAccessToken = timecardAccessToken
 
 expirationFrom :: UTCTime -> UTCTime
 expirationFrom = threeWeeksFrom

@@ -1,22 +1,25 @@
 module Web.Controller.TimecardReviews where
 
+import qualified Application.Base.AccessToken as AccessToken
+import qualified Application.Base.People as People
+import qualified Application.Base.Signing as Signing
+import qualified Application.Timecard.TimecardAccessToken as TimecardAccessToken
 import qualified Application.Timecard.TimecardQueries as TimecardQueries
+import qualified Application.Timecard.TimecardSigning as TimecardSigning
 import Network.Wai (remoteHost)
 import Web.Controller.Prelude
 import Web.View.TimecardReviews.Show
 
 instance Controller TimecardReviewsController where
     action ShowTimecardReviewAction {..} = do
-        now <- getCurrentTime
-
         maybeAccessToken <-
             query @AccessToken
                 |> filterWhere (#value, accessToken)
                 |> fetchOneOrNothing
-
         reviewStatus <- case maybeAccessToken of
-            Just accessToken ->
-                if now < get #expiresAt accessToken && not (get #isRevoked accessToken)
+            Just accessToken -> do
+                now <- getCurrentTime
+                if AccessToken.isValidAsOf now accessToken
                     then do
                         timecardAccessToken <-
                             query @TimecardAccessToken
@@ -49,12 +52,9 @@ instance Controller TimecardReviewsController where
         render ShowView {..}
     --
     action CreateSigningAction = do
-        -- TODO: ensure there are no existing signings
-
         let name = param @Text "name"
         let accessTokenValue = param @Text "accessTokenValue"
         let ipAddress = show $ remoteHost request
-        now <- getCurrentTime
 
         accessToken <-
             query @AccessToken
@@ -74,26 +74,20 @@ instance Controller TimecardReviewsController where
         person <- fetch (get #personId timecard)
 
         withTransaction do
+            now <- getCurrentTime
             newRecord @Signing
                 |> set #name name
                 |> set #signedAt now
                 |> set #ipAddress ipAddress
-                |> validateSigning
+                |> Signing.validate
                 |> ifValid \case
                     Left signing ->
                         let reviewStatus = ReviewFound {..}
                          in render ShowView {..}
                     Right signing -> do
                         signing <- createRecord signing
-                        newRecord @TimecardSigning
-                            |> set #timecardId (get #id timecard)
-                            |> set #signingId (get #id signing)
-                            |> createRecord
-                            >> pure ()
+                        let timecardId = get #id timecard
+                        let signingId = get #id signing
+                        TimecardSigning.create timecardId signingId >> pure ()
 
         redirectTo $ ShowTimecardReviewAction accessTokenValue
-
-validateSigning :: Signing -> Signing
-validateSigning signing =
-    signing
-        |> validateField #name nonEmpty

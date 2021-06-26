@@ -18,14 +18,14 @@ instance Controller TimecardsController where
 
     action TimecardsAction = do
         botId <- People.fetchBotId
-        people <- People.fetchExcluding botId
+        people <- People.fetchExcludingId botId
         let personSelection = NoPersonSelected
 
         render IndexView {..}
     --
     action TimecardPersonSelectionAction {..} = do
         botId <- People.fetchBotId
-        people <- People.fetchExcluding botId
+        people <- People.fetchExcludingId botId
         selectedPerson <- fetch selectedPersonId
 
         timecards <-
@@ -40,7 +40,7 @@ instance Controller TimecardsController where
     --
     action TimecardEditTimecardEntryAction {..} = do
         botId <- People.fetchBotId
-        people <- People.fetchExcluding botId
+        people <- People.fetchExcludingId botId
 
         selectedTimecardEntry <- fetch timecardEntryId
         selectedTimecard <- fetch (get #timecardId selectedTimecardEntry)
@@ -59,7 +59,7 @@ instance Controller TimecardsController where
     --
     action TimecardDownloadTimecardAction {..} = do
         botId <- People.fetchBotId
-        people <- People.fetchExcluding botId
+        people <- People.fetchExcludingId botId
         selectedPerson <- fetch selectedPersonId
         today <- utctDay <$> getCurrentTime
 
@@ -92,7 +92,7 @@ instance Controller TimecardsController where
             |> ifValid \case
                 Left selectedTimecardEntry -> do
                     botId <- People.fetchBotId
-                    people <- People.fetchExcluding botId
+                    people <- People.fetchExcludingId botId
                     selectedPerson <- fetch selectedPersonId
 
                     timecards <-
