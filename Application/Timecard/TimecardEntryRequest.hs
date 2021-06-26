@@ -1,4 +1,5 @@
 module Application.Timecard.TimecardEntryRequest (
+    scheduleNextRequest,
     scheduleRequest,
     scheduledRequestExists,
     requestBody,
@@ -8,8 +9,30 @@ module Application.Timecard.TimecardEntryRequest (
 import qualified Application.Action.SendMessageAction as SendMessageAction
 import Data.Time.Calendar.WeekDate (toWeekDate)
 import Generated.Types
+import IHP.ControllerPrelude
 import IHP.ModelSupport
 import IHP.Prelude
+
+scheduleNextRequest ::
+    (?modelContext :: ModelContext) =>
+    TimeZone ->
+    TimecardEntry ->
+    Person ->
+    Id PhoneNumber ->
+    Id PhoneNumber ->
+    IO ()
+scheduleNextRequest timeZone lastEntry person fromId toId = do
+    now <- getCurrentTime
+    alreadyScheduled <- scheduledRequestExists toId
+    workerPreference <- query @WorkerPreference |> filterWhere (#personId, get #id person) |> fetchOne
+    let sendTimeOfDay = get #sendDailyReminderAt workerPreference
+
+    let body = requestBody person lastEntry
+    let sendAt = nextRequestTime timeZone sendTimeOfDay now
+
+    if not alreadyScheduled
+        then SendMessageAction.schedule fromId toId body sendAt >> pure ()
+        else pure ()
 
 scheduleRequest ::
     (?modelContext :: ModelContext) =>

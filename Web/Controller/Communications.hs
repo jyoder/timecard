@@ -7,6 +7,7 @@ import qualified Application.Action.SendMessageAction as SendMessageAction
 import qualified Application.Base.People as People
 import qualified Application.Base.PhoneNumber as PhoneNumber
 import qualified Application.Timecard.Timecard as Timecard
+import qualified Application.Timecard.TimecardAccessToken as TimecardAccessToken
 import qualified Application.Timecard.TimecardEntry as TimecardEntry
 import qualified Application.Timecard.TimecardEntryMessage as TimecardEntryMessage
 import qualified Application.Timecard.TimecardEntryRequest as TimecardEntryRequest
@@ -145,7 +146,8 @@ instance Controller CommunicationsController where
                     )
                     ( \timecardEntry -> do
                         fromPhoneNumber <- PhoneNumber.fetchByPerson botId
-                        scheduleNextRequest
+                        TimecardEntryRequest.scheduleNextRequest
+                            companyTimeZone
                             timecardEntry
                             selectedPerson
                             (get #id fromPhoneNumber)
@@ -216,19 +218,8 @@ instance Controller CommunicationsController where
         let timecardId = param @(Id Timecard) "timecardId"
 
         now <- getCurrentTime
-        let expiresAt = addUTCTime (nominalDay + (7 * 3)) now
-        tokenValue <- generateAuthenticationToken
-
-        withTransaction do
-            accessToken <-
-                newRecord @AccessToken
-                    |> set #expiresAt expiresAt
-                    |> set #value tokenValue
-                    |> createRecord
-            newRecord @TimecardAccessToken
-                |> set #timecardId timecardId
-                |> set #accessTokenId (get #id accessToken)
-                |> createRecord
+        let expiresAt = TimecardAccessToken.expirationFrom now
+        TimecardAccessToken.create now timecardId
 
         redirectTo $ PersonSelectionAction selectedPersonId
 
@@ -240,26 +231,6 @@ findSelectedMessages messages selectedMessageIds =
     catMaybes $ findMessage <$> selectedMessageIds
   where
     findMessage messageId = find (\message -> get #id message == messageId) messages
-
-scheduleNextRequest ::
-    (?modelContext :: ModelContext) =>
-    TimecardEntry ->
-    Person ->
-    Id PhoneNumber ->
-    Id PhoneNumber ->
-    IO ()
-scheduleNextRequest lastEntry person fromId toId = do
-    now <- getCurrentTime
-    alreadyScheduled <- TimecardEntryRequest.scheduledRequestExists toId
-    workerPreference <- query @WorkerPreference |> filterWhere (#personId, get #id person) |> fetchOne
-    let sendTimeOfDay = get #sendDailyReminderAt workerPreference
-
-    let body = TimecardEntryRequest.requestBody person lastEntry
-    let sendAt = TimecardEntryRequest.nextRequestTime companyTimeZone sendTimeOfDay now
-
-    if not alreadyScheduled
-        then SendMessageAction.schedule fromId toId body sendAt >> pure ()
-        else pure ()
 
 buildNewTimecardEntry ::
     Day ->
