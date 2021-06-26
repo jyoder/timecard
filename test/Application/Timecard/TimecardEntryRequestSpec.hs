@@ -8,7 +8,7 @@ import Text.Read (read)
 
 spec :: Spec
 spec = do
-    describe "nextRequestTimea" $ do
+    describe "nextRequestTime" $ do
         describe "Monday" $ do
             it "returns request time for Monday if current time is before deadline" $ do
                 nextRequestTime pdt requestTimeOfDay (toUtc "2021-06-14 15:29:00 PDT")
