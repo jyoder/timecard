@@ -33,7 +33,7 @@ scheduleNextRequest timeZone now newEntry person fromId toId = do
             (get #id person)
 
     let sendTimeOfDay = get #sendDailyReminderAt workerPreference
-    let timecardEntries = maybe [] (get #entries) (head timecards)
+    let timecardEntries = concat (get #entries <$> timecards)
     let timecardEntryDays = get #date <$> timecardEntries
     let body = requestBody person newEntry
     let maybeSendAt =
