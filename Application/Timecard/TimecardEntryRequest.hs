@@ -1,51 +1,52 @@
 module Application.Timecard.TimecardEntryRequest (
     scheduleNextRequest,
-    scheduleRequest,
     scheduledRequestExists,
     requestBody,
     nextRequestTime,
 ) where
 
 import qualified Application.Action.SendMessageAction as SendMessageAction
+import qualified Application.Timecard.TimecardQueries as TimecardQueries
 import Data.Time.Calendar.WeekDate (toWeekDate)
 import Generated.Types
 import IHP.ControllerPrelude
-import IHP.ModelSupport
-import IHP.Prelude
+import Text.Read (read)
 
 scheduleNextRequest ::
     (?modelContext :: ModelContext) =>
     TimeZone ->
+    UTCTime ->
     TimecardEntry ->
     Person ->
     Id PhoneNumber ->
     Id PhoneNumber ->
     IO ()
-scheduleNextRequest timeZone lastEntry person fromId toId = do
-    now <- getCurrentTime
+scheduleNextRequest timeZone now newEntry person fromId toId = do
     alreadyScheduled <- scheduledRequestExists toId
-    workerPreference <- query @WorkerPreference |> filterWhere (#personId, get #id person) |> fetchOne
+    workerPreference <-
+        query @WorkerPreference
+            |> filterWhere (#personId, get #id person)
+            |> fetchOne
+    timecards <-
+        TimecardQueries.fetchByPerson
+            TimecardQueries.EntriesDateDescending
+            (get #id person)
+
     let sendTimeOfDay = get #sendDailyReminderAt workerPreference
+    let timecardEntries = maybe [] (get #entries) (head timecards)
+    let timecardEntryDays = get #date <$> timecardEntries
+    let body = requestBody person newEntry
+    let maybeSendAt =
+            nextRequestTime
+                alreadyScheduled
+                timeZone
+                sendTimeOfDay
+                timecardEntryDays
+                now
 
-    let body = requestBody person lastEntry
-    let sendAt = nextRequestTime timeZone sendTimeOfDay now
-
-    if not alreadyScheduled
-        then SendMessageAction.schedule fromId toId body sendAt >> pure ()
-        else pure ()
-
-scheduleRequest ::
-    (?modelContext :: ModelContext) =>
-    UTCTime ->
-    Id PhoneNumber ->
-    Id PhoneNumber ->
-    Text ->
-    IO ()
-scheduleRequest sendAt fromId toId body = do
-    alreadyScheduled <- scheduledRequestExists toId
-    if not alreadyScheduled
-        then SendMessageAction.schedule fromId toId body sendAt >> pure ()
-        else pure ()
+    case maybeSendAt of
+        Just sendAt -> SendMessageAction.schedule fromId toId body sendAt >> pure ()
+        Nothing -> pure ()
 
 scheduledRequestExists ::
     (?modelContext :: ModelContext) =>
@@ -63,21 +64,47 @@ requestBody person lastEntry =
         <> get #jobName lastEntry
         <> " today. Let me know what hours you worked and what you did when you have a chance. Thanks!"
 
-nextRequestTime :: TimeZone -> TimeOfDay -> UTCTime -> UTCTime
-nextRequestTime timeZone requestTimeOfDay now =
-    if not (isWeekend $ localDay localTime) && localTime < requestTimeToday requestTimeOfDay localTime
-        then requestTimeToday requestTimeOfDay localTime |> toUtc
-        else requestTimeNextWorkingDay requestTimeOfDay localTime |> toUtc
+nextRequestTime ::
+    Bool ->
+    TimeZone ->
+    TimeOfDay ->
+    [Day] ->
+    UTCTime ->
+    Maybe UTCTime
+nextRequestTime
+    alreadyScheduled
+    timeZone
+    requestTimeOfDay
+    timecardEntryDays
+    now
+        | alreadyScheduled = Nothing
+        | otherwise =
+            requestTime'
+                ( if isWeekend today || now' >= requestTimeToday
+                    then nextTimecardEntryDay nextWorkingDay' timecardEntryDays
+                    else nextTimecardEntryDay today timecardEntryDays
+                )
+      where
+        requestTime' day = Just $ toUtc $ requestTime requestTimeOfDay day
+        nextWorkingDay' = nextWorkingDay today
+        requestTimeToday = requestTime requestTimeOfDay today
+        today = localDay now'
+        now' = utcToLocalTime timeZone now
+        toUtc = localTimeToUTC timeZone
+
+nextTimecardEntryDay :: Day -> [Day] -> Day
+nextTimecardEntryDay nextWorkingDay entryDays =
+    let openDays = (allDays \\ entryDays) \\ weekends
+     in fromMaybe nextWorkingDay (head openDays)
   where
-    localTime = utcToLocalTime timeZone now
-    toUtc = localTimeToUTC timeZone
+    allDays = [nextWorkingDay .. addDays 3 lastDay]
+    weekends = filter isWeekend allDays
+    lastDay = fromMaybe nextWorkingDay (last sortedRecentEntryDays)
+    sortedRecentEntryDays = nub $ sort recentEntryDays
+    recentEntryDays = filter (> nextWorkingDay) entryDays
 
-requestTimeToday :: TimeOfDay -> LocalTime -> LocalTime
-requestTimeToday requestTimeOfDay now = LocalTime (localDay now) requestTimeOfDay
-
-requestTimeNextWorkingDay :: TimeOfDay -> LocalTime -> LocalTime
-requestTimeNextWorkingDay requestTimeOfDay now =
-    LocalTime (nextWorkingDay $ localDay now) requestTimeOfDay
+requestTime :: TimeOfDay -> Day -> LocalTime
+requestTime requestTimeOfDay day = LocalTime day requestTimeOfDay
 
 nextWorkingDay :: Day -> Day
 nextWorkingDay today =

@@ -122,6 +122,8 @@ instance Controller CommunicationsController where
     action CreateTimecardEntryAction = do
         let selectedPersonId = param @(Id Person) "selectedPersonId"
         let selectedMessageIds = param @[Id TwilioMessage] "selectedMessageIds"
+
+        now <- getCurrentTime
         botId <- People.fetchBotId
         selectedPerson <- fetch selectedPersonId
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
@@ -148,6 +150,7 @@ instance Controller CommunicationsController where
                         fromPhoneNumber <- PhoneNumber.fetchByPerson botId
                         TimecardEntryRequest.scheduleNextRequest
                             companyTimeZone
+                            now
                             timecardEntry
                             selectedPerson
                             (get #id fromPhoneNumber)
