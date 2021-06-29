@@ -2,11 +2,19 @@ module Application.Timecard.TimecardEntryRequestSpec where
 
 import Application.Timecard.TimecardEntryRequest
 import Generated.Types
-import IHP.ModelSupport
-import IHP.Prelude
+import IHP.ControllerPrelude
+import IHP.Environment
 import IHP.Test.Mocking
 import Test.Hspec
 import Text.Read (read)
+
+instance InitControllerContext RootApplication where
+    initContext = pure ()
+
+config :: IO ConfigBuilder
+config = pure do
+    option Development
+    option (AppHostname "localhost")
 
 spec :: Spec
 spec = do
@@ -282,6 +290,15 @@ spec = do
                     [toDay "2021-06-13"]
                     (toUtc "2021-06-14 15:29:00 PDT")
                     `shouldBe` Nothing
+
+    describe "scheduleNextRequest" $ do
+        beforeAll (config >>= mockContext RootApplication) do
+            it "barfs" $ withContext do
+                withTransaction do
+                    --deleteAll @User
+                    users <- query @User |> fetch
+                    users `shouldBe` []
+                    rollbackTransaction
 
     describe "requestBody" $ do
         it "returns the body of the request" $ do
