@@ -6,6 +6,7 @@ import IHP.ControllerPrelude
 import IHP.Environment
 import IHP.Test.Mocking
 import Test.Hspec
+import Tests.Effect
 import Text.Read (read)
 
 instance InitControllerContext RootApplication where
@@ -294,8 +295,8 @@ spec = do
     describe "scheduleNextRequest" $ do
         beforeAll (config >>= mockContext RootApplication) do
             it "barfs" $ withContext do
-                withTransaction do
-                    --deleteAll @User
+                withTransactionRollback do
+                    deleteAll @User
                     users <- query @User |> fetch
                     users `shouldBe` []
                     rollbackTransaction
