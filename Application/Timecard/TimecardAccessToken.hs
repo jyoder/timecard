@@ -34,4 +34,4 @@ threeWeeksFrom :: UTCTime -> UTCTime
 threeWeeksFrom = addUTCTime threeWeeks
 
 threeWeeks :: NominalDiffTime
-threeWeeks = 7 * 3
+threeWeeks = 7 * 3 * 60 * 60 * 24
