@@ -60,17 +60,11 @@ instance Controller TimecardsController where
     action TimecardDownloadTimecardAction {..} = do
         botId <- People.fetchBotId
         people <- People.fetchExcludingId botId
-        selectedPerson <- fetch selectedPersonId
-        today <- utctDay <$> getCurrentTime
-
-        let maybeDay = parseDay weekOf
-        let day = fromMaybe today maybeDay
-
         timecard <-
-            TimecardQueries.fetchByPersonAndWeek
+            TimecardQueries.fetchById
                 TimecardQueries.EntriesDateAscending
-                selectedPersonId
-                day
+                timecardId
+        selectedPerson <- fetch (get #personId timecard)
 
         html <- renderHtml ShowPdfView {..}
         pdf <- Pdf.render html

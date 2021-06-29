@@ -91,8 +91,7 @@ data TimecardsController
         { timecardEntryId :: !(Id TimecardEntry)
         }
     | TimecardDownloadTimecardAction
-        { selectedPersonId :: !(Id Person)
-        , weekOf :: !Text
+        { timecardId :: !(Id Timecard)
         }
     | TimecardUpdateTimecardEntryAction
     deriving (Eq, Show, Data)
@@ -107,9 +106,9 @@ data TimecardReviewsController
 data WorkerPreferencesController
     = WorkerPreferencesAction
     | NewWorkerPreferenceAction
-    | ShowWorkerPreferenceAction { workerPreferenceId :: !(Id WorkerPreference) }
+    | ShowWorkerPreferenceAction {workerPreferenceId :: !(Id WorkerPreference)}
     | CreateWorkerPreferenceAction
-    | EditWorkerPreferenceAction { workerPreferenceId :: !(Id WorkerPreference) }
-    | UpdateWorkerPreferenceAction { workerPreferenceId :: !(Id WorkerPreference) }
-    | DeleteWorkerPreferenceAction { workerPreferenceId :: !(Id WorkerPreference) }
+    | EditWorkerPreferenceAction {workerPreferenceId :: !(Id WorkerPreference)}
+    | UpdateWorkerPreferenceAction {workerPreferenceId :: !(Id WorkerPreference)}
+    | DeleteWorkerPreferenceAction {workerPreferenceId :: !(Id WorkerPreference)}
     deriving (Eq, Show, Data)

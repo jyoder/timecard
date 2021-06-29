@@ -1,12 +1,14 @@
 module Application.Timecard.TimecardQueries (
+    Row (..),
     Timecard (..),
     Status (..),
     TimecardEntry (..),
     AccessToken (..),
     EntriesSort (..),
     fetchByPerson,
+    fetchRowsByPerson,
     fetchById,
-    fetchByPersonAndWeek,
+    fetchRowsById,
 ) where
 
 import Control.Exception.Safe (throwString)
@@ -60,7 +62,7 @@ data EntriesSort
     = EntriesDateAscending
     | EntriesDateDescending
 
-data ResultRow = ResultRow
+data Row = Row
     { timecardId :: !(Id Types.Timecard)
     , timecardPersonId :: !(Id Types.Person)
     , timecardWeekOf :: !Day
@@ -78,9 +80,9 @@ data ResultRow = ResultRow
     , timecardEntryInvoiceTranslation :: !Text
     }
 
-instance FromRow ResultRow where
+instance FromRow Row where
     fromRow =
-        ResultRow
+        Row
             <$> field
             <*> field
             <*> field
@@ -103,8 +105,15 @@ fetchByPerson ::
     Id Types.Person ->
     IO [Timecard]
 fetchByPerson entriesSort personId =
+    fetchRowsByPerson entriesSort personId <&> buildTimecards
+
+fetchRowsByPerson ::
+    (?modelContext :: ModelContext) =>
+    EntriesSort ->
+    Id Types.Person ->
+    IO [Row]
+fetchRowsByPerson entriesSort personId =
     sqlQuery (fetchByPersonQuery entriesSort) (Only personId)
-        <&> buildTimecards
 
 fetchByPersonQuery :: EntriesSort -> Query
 fetchByPersonQuery entriesSort =
@@ -154,13 +163,18 @@ fetchById ::
     Id Types.Timecard ->
     IO Timecard
 fetchById entriesSort timecardId = do
-    timecards <-
-        sqlQuery (fetchByIdQuery entriesSort) (Only timecardId)
-            <&> buildTimecards
-
+    timecards <- fetchRowsById entriesSort timecardId <&> buildTimecards
     case timecards of
         (timecard : _) -> pure timecard
         _ -> throwString "Timecard not found"
+
+fetchRowsById ::
+    (?modelContext :: ModelContext) =>
+    EntriesSort ->
+    Id Types.Timecard ->
+    IO [Row]
+fetchRowsById entriesSort timecardId =
+    sqlQuery (fetchByIdQuery entriesSort) (Only timecardId)
 
 fetchByIdQuery :: EntriesSort -> Query
 fetchByIdQuery entriesSort =
@@ -202,70 +216,13 @@ fetchByIdQuery entriesSort =
     sort EntriesDateAscending = "asc" :: Text
     sort EntriesDateDescending = "desc"
 
--- TODO: remove
-fetchByPersonAndWeek ::
-    (?modelContext :: ModelContext) =>
-    EntriesSort ->
-    Id Types.Person ->
-    Day ->
-    IO Timecard
-fetchByPersonAndWeek entriesSort personId day = do
-    timecards <-
-        sqlQuery (fetchByPersonAndWeekQuery entriesSort) (personId, day)
-            <&> buildTimecards
-
-    case timecards of
-        (timecard : _) -> pure timecard
-        _ -> throwString "Timecard not found"
-
-fetchByPersonAndWeekQuery :: EntriesSort -> Query
-fetchByPersonAndWeekQuery entriesSort =
-    [i|
-        select
-            timecards.id timecard_id,
-            timecards.person_id timecard_person_id,
-            timecards.week_of timecard_week_of,
-            access_tokens.id access_token_id,
-            access_tokens.value access_token_value,
-            access_tokens.expires_at access_token_expires_at,
-            access_tokens.is_revoked access_token_is_revoked,
-            signings.id signing_id,
-            signings.signed_at signing_signed_at,
-            timecard_entries.id timecard_entry_id,
-            timecard_entries.date timecard_entry_date,
-            timecard_entries.job_name timecard_entry_job_name,
-            timecard_entries.hours_worked timecard_entry_hours_worked,
-            timecard_entries.work_done timecard_entry_work_done,
-            timecard_entries.invoice_translation timecard_entry_invoice_translation
-        from
-            timecards
-        inner join
-            timecard_entries on (timecard_entries.timecard_id = timecards.id)
-        left join
-            timecard_access_tokens on (timecard_access_tokens.timecard_id = timecards.id)
-        left join
-            access_tokens on (timecard_access_tokens.access_token_id = access_tokens.id)
-        left join
-            timecard_signings on (timecard_signings.timecard_id = timecards.id)
-        left join
-            signings on (timecard_signings.signing_id = signings.id)
-        where 
-            timecards.person_id = ?
-            and timecards.week_of = date_trunc('week', (?)::date)
-        order by
-            timecard_entries.date #{sort entriesSort};
-    |]
-  where
-    sort EntriesDateAscending = "asc" :: Text
-    sort EntriesDateDescending = "desc"
-
-buildTimecards :: [ResultRow] -> [Timecard]
+buildTimecards :: [Row] -> [Timecard]
 buildTimecards queryRows =
     (buildTimecard <$> groupBy compareRows queryRows) |> catMaybes
   where
     compareRows row1 row2 = get #timecardId row1 == get #timecardId row2
 
-buildTimecard :: [ResultRow] -> Maybe Timecard
+buildTimecard :: [Row] -> Maybe Timecard
 buildTimecard [] = Nothing
 buildTimecard (firstRow : otherRows) =
     Just
@@ -277,8 +234,8 @@ buildTimecard (firstRow : otherRows) =
             , entries = buildTimecardEntry <$> firstRow : otherRows
             }
 
-buildStatus :: NonEmpty ResultRow -> Status
-buildStatus resultRows =
+buildStatus :: NonEmpty Row -> Status
+buildStatus rows =
     let (id, value, expiresAt, isRevoked, signingId, signedAt) =
             ( get #accessTokenId firstRow
             , get #accessTokenValue firstRow
@@ -293,32 +250,32 @@ buildStatus resultRows =
             (_, _, _, _, Just signingId, Just signedAt) ->
                 TimecardSigned $ Signing signingId signedAt
             _ ->
-                if isTimecardComplete resultRows
+                if isTimecardComplete rows
                     then TimecardReadyForReview
                     else TimecardInProgress
   where
-    firstRow = NE.head resultRows
-    otherRows = NE.tail resultRows
+    firstRow = NE.head rows
+    otherRows = NE.tail rows
 
-buildTimecardEntry :: ResultRow -> TimecardEntry
-buildTimecardEntry resultRow =
+buildTimecardEntry :: Row -> TimecardEntry
+buildTimecardEntry row =
     TimecardEntry
-        { id = get #timecardEntryId resultRow
-        , date = get #timecardEntryDate resultRow
-        , jobName = get #timecardEntryJobName resultRow
-        , hoursWorked = get #timecardEntryHoursWorked resultRow
-        , workDone = get #timecardEntryWorkDone resultRow
-        , invoiceTranslation = get #timecardEntryInvoiceTranslation resultRow
+        { id = get #timecardEntryId row
+        , date = get #timecardEntryDate row
+        , jobName = get #timecardEntryJobName row
+        , hoursWorked = get #timecardEntryHoursWorked row
+        , workDone = get #timecardEntryWorkDone row
+        , invoiceTranslation = get #timecardEntryInvoiceTranslation row
         }
 
-isTimecardComplete :: NonEmpty ResultRow -> Bool
-isTimecardComplete resultRows =
+isTimecardComplete :: NonEmpty Row -> Bool
+isTimecardComplete rows =
     startsWithMonday uniqueSortedDays
         && daysAreConsecutive uniqueSortedDays
         && length uniqueSortedDays == daysInWorkWeek
   where
     uniqueSortedDays = days |> NE.sort |> NE.nub
-    days = get #timecardEntryDate <$> resultRows
+    days = get #timecardEntryDate <$> rows
     daysInWorkWeek = 5
 
 startsWithMonday :: NonEmpty Day -> Bool

@@ -123,7 +123,7 @@ renderTimecard selectedPerson personActivity timecard =
   where
     lastName = get #lastName selectedPerson
     firstName = get #firstName selectedPerson
-    downloadAction = TimecardDownloadTimecardAction (get #id selectedPerson) showWeekOf
+    downloadAction = TimecardDownloadTimecardAction $ get #id timecard
     downloadFilename = showWeekOf <> "-" <> lastName <> "-" <> firstName <> ".pdf"
     showWeekOf = show $ get #weekOf timecard
     weekOf = get #weekOf timecard

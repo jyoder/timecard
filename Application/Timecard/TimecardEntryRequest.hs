@@ -1,8 +1,7 @@
 module Application.Timecard.TimecardEntryRequest (
-    scheduleNextRequest,
-    scheduledRequestExists,
-    requestBody,
     nextRequestTime,
+    scheduleNextRequest,
+    requestBody,
 ) where
 
 import qualified Application.Action.SendMessageAction as SendMessageAction
@@ -10,7 +9,31 @@ import qualified Application.Timecard.TimecardQueries as TimecardQueries
 import Data.Time.Calendar.WeekDate (toWeekDate)
 import Generated.Types
 import IHP.ControllerPrelude
-import Text.Read (read)
+
+nextRequestTime ::
+    Bool ->
+    TimeZone ->
+    TimeOfDay ->
+    [Day] ->
+    UTCTime ->
+    Maybe UTCTime
+nextRequestTime
+    alreadyScheduled
+    timeZone
+    requestTimeOfDay
+    timecardEntryDays
+    now
+        | alreadyScheduled = Nothing
+        | isWeekend today || now' >= requestTimeToday = Just $ nextTimecardEntryTime nextWorkingDay'
+        | otherwise = Just $ nextTimecardEntryTime today
+      where
+        nextTimecardEntryTime startDay = requestTime' $ nextTimecardEntryDay startDay timecardEntryDays
+        requestTime' day = toUtc $ requestTime requestTimeOfDay day
+        nextWorkingDay' = nextWorkingDay today
+        requestTimeToday = requestTime requestTimeOfDay today
+        today = localDay now'
+        now' = utcToLocalTime timeZone now
+        toUtc = localTimeToUTC timeZone
 
 scheduleNextRequest ::
     (?modelContext :: ModelContext) =>
@@ -27,14 +50,13 @@ scheduleNextRequest timeZone now newEntry person fromId toId = do
         query @WorkerPreference
             |> filterWhere (#personId, get #id person)
             |> fetchOne
-    timecards <-
-        TimecardQueries.fetchByPerson
+    timecardEntryRows <-
+        TimecardQueries.fetchRowsByPerson
             TimecardQueries.EntriesDateDescending
             (get #id person)
 
     let sendTimeOfDay = get #sendDailyReminderAt workerPreference
-    let timecardEntries = concat (get #entries <$> timecards)
-    let timecardEntryDays = get #date <$> timecardEntries
+    let timecardEntryDays = get #timecardEntryDate <$> timecardEntryRows
     let body = requestBody person newEntry
     let maybeSendAt =
             nextRequestTime
@@ -48,14 +70,6 @@ scheduleNextRequest timeZone now newEntry person fromId toId = do
         Just sendAt -> SendMessageAction.schedule fromId toId body sendAt >> pure ()
         Nothing -> pure ()
 
-scheduledRequestExists ::
-    (?modelContext :: ModelContext) =>
-    Id PhoneNumber ->
-    IO Bool
-scheduledRequestExists toPhoneNumberId = do
-    sendMessageActions <- SendMessageAction.fetchFutureByPhoneNumber toPhoneNumberId
-    pure $ not $ null sendMessageActions
-
 requestBody :: Person -> TimecardEntry -> Text
 requestBody person lastEntry =
     "Hey "
@@ -64,33 +78,13 @@ requestBody person lastEntry =
         <> get #jobName lastEntry
         <> " today. Let me know what hours you worked and what you did when you have a chance. Thanks!"
 
-nextRequestTime ::
-    Bool ->
-    TimeZone ->
-    TimeOfDay ->
-    [Day] ->
-    UTCTime ->
-    Maybe UTCTime
-nextRequestTime
-    alreadyScheduled
-    timeZone
-    requestTimeOfDay
-    timecardEntryDays
-    now
-        | alreadyScheduled = Nothing
-        | otherwise =
-            requestTime'
-                ( if isWeekend today || now' >= requestTimeToday
-                    then nextTimecardEntryDay nextWorkingDay' timecardEntryDays
-                    else nextTimecardEntryDay today timecardEntryDays
-                )
-      where
-        requestTime' day = Just $ toUtc $ requestTime requestTimeOfDay day
-        nextWorkingDay' = nextWorkingDay today
-        requestTimeToday = requestTime requestTimeOfDay today
-        today = localDay now'
-        now' = utcToLocalTime timeZone now
-        toUtc = localTimeToUTC timeZone
+scheduledRequestExists ::
+    (?modelContext :: ModelContext) =>
+    Id PhoneNumber ->
+    IO Bool
+scheduledRequestExists toPhoneNumberId = do
+    sendMessageActions <- SendMessageAction.fetchFutureByPhoneNumber toPhoneNumberId
+    pure $ not $ null sendMessageActions
 
 nextTimecardEntryDay :: Day -> [Day] -> Day
 nextTimecardEntryDay nextWorkingDay entryDays =
