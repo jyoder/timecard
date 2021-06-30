@@ -21,5 +21,13 @@ JS_FILES += ${IHP}/static/vendor/turbolinksMorphdom.js
 
 include ${IHP}/Makefile.dist
 
+.PHONY: tests
+
+tests: export DATABASE_URL = postgresql:///test?host=$(PWD)/build/db
+
 tests:
-	ghcid --test=:main --command='ghci -itest Spec'
+	dropdb -h $(PWD)/build/db --if-exists test
+	createdb -h $(PWD)/build/db test
+	psql -d $(DATABASE_URL) -f build/ihp-lib/IHPSchema.sql
+	psql -d $(DATABASE_URL) -f Application/Schema.sql
+	ghcid --test=':main' --command='ghci -itest Spec'

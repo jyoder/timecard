@@ -132,22 +132,21 @@ schedule ::
     Text ->
     UTCTime ->
     IO SendMessageAction
-schedule fromId toId body runsAt =
-    withTransaction do
-        actionRunState <-
-            newRecord @ActionRunState
-                |> validateAndCreate ActionRunState.validate
-        actionRunTime <-
-            newRecord @ActionRunTime
-                |> set #actionRunStateId (get #id actionRunState)
-                |> set #runsAt runsAt
-                |> validateAndCreate ActionRunTime.validate
-        newRecord @SendMessageAction
+schedule fromId toId body runsAt = do
+    actionRunState <-
+        newRecord @ActionRunState
+            |> validateAndCreate ActionRunState.validate
+    actionRunTime <-
+        newRecord @ActionRunTime
             |> set #actionRunStateId (get #id actionRunState)
-            |> set #fromId fromId
-            |> set #toId toId
-            |> set #body body
-            |> validateAndCreate validate
+            |> set #runsAt runsAt
+            |> validateAndCreate ActionRunTime.validate
+    newRecord @SendMessageAction
+        |> set #actionRunStateId (get #id actionRunState)
+        |> set #fromId fromId
+        |> set #toId toId
+        |> set #body body
+        |> validateAndCreate validate
 
 perform :: (?modelContext :: ModelContext, ?context :: FrameworkConfig) => T -> IO ()
 perform sendMessageAction = do
