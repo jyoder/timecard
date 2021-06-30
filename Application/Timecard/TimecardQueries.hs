@@ -79,6 +79,7 @@ data Row = Row
     , timecardEntryWorkDone :: !Text
     , timecardEntryInvoiceTranslation :: !Text
     }
+    deriving (Show, Eq)
 
 instance FromRow Row where
     fromRow =
