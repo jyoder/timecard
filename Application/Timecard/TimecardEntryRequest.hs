@@ -43,7 +43,7 @@ scheduleNextRequest ::
     Person ->
     Id PhoneNumber ->
     Id PhoneNumber ->
-    IO ()
+    IO (Maybe SendMessageAction)
 scheduleNextRequest timeZone now newEntry person fromId toId = do
     alreadyScheduled <- scheduledRequestExists now toId
     workerPreference <-
@@ -67,8 +67,11 @@ scheduleNextRequest timeZone now newEntry person fromId toId = do
                 now
 
     case maybeSendAt of
-        Just sendAt -> SendMessageAction.schedule fromId toId body sendAt >> pure ()
-        Nothing -> pure ()
+        Just sendAt -> do
+            sendMessageAction <- SendMessageAction.schedule fromId toId body sendAt
+            pure $ Just sendMessageAction
+        Nothing ->
+            pure Nothing
 
 requestBody :: Person -> TimecardEntry -> Text
 requestBody person lastEntry =

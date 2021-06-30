@@ -330,7 +330,7 @@ spec = do
 
                     scheduleNextRequest
                         pdt
-                        (toUtc "2021-06-14 15:29:00 PDT")
+                        (toUtc "2021-06-23 15:29:00 PDT")
                         timecardEntry
                         ron
                         (get #id timPhoneNumber)
@@ -347,7 +347,7 @@ spec = do
                             |> fetchOne
 
                     get #runsAt actionRunTime
-                        `shouldBe` toUtc "2021-06-14 15:30:00 PDT"
+                        `shouldBe` toUtc "2021-06-24 15:30:00 PDT"
 
                     get #body sendMessageAction
                         `shouldBe` "Hey Ron - I've got you at McDonald's today. Let me know what hours you worked and what you did when you have a chance. Thanks!"
@@ -394,28 +394,35 @@ spec = do
                             |> set #jobName "McDonald's"
                             |> createRecord
 
-                    scheduleNextRequest
-                        pdt
-                        (toUtc "2021-06-14 15:29:00 PDT")
-                        timecardEntry
-                        ron
-                        (get #id timPhoneNumber)
-                        (get #id ronPhoneNumber)
+                    sendMessageAction1 <-
+                        scheduleNextRequest
+                            pdt
+                            (toUtc "2021-06-23 15:29:00 PDT")
+                            timecardEntry
+                            ron
+                            (get #id timPhoneNumber)
+                            (get #id ronPhoneNumber)
 
-                    scheduleNextRequest
-                        pdt
-                        (toUtc "2021-06-14 15:29:00 PDT")
-                        timecardEntry
-                        ron
-                        (get #id timPhoneNumber)
-                        (get #id ronPhoneNumber)
+                    isJust sendMessageAction1 `shouldBe` True
 
-                    sendMessageActionCount <-
+                    sendMessageAction2 <-
+                        scheduleNextRequest
+                            pdt
+                            (toUtc "2021-06-23 15:29:00 PDT")
+                            timecardEntry
+                            ron
+                            (get #id timPhoneNumber)
+                            (get #id ronPhoneNumber)
+
+                    isJust sendMessageAction2 `shouldBe` False
+
+                    sendMessageAction <-
                         query @SendMessageAction
                             |> filterWhere (#toId, get #id ronPhoneNumber)
-                            |> fetchCount
+                            |> fetchOne
 
-                    sendMessageActionCount `shouldBe` 1
+                    (get #id <$> sendMessageAction1)
+                        `shouldBe` Just (get #id sendMessageAction)
 
     describe "requestBody" $ do
         it "returns the body of the request" $ do
