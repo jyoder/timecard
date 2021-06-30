@@ -2,7 +2,7 @@ module Application.Action.SendMessageAction (
     T (..),
     validate,
     fetchReady,
-    fetchFutureByPhoneNumber,
+    fetchAfterByPhoneNumber,
     schedule,
     perform,
 ) where
@@ -87,12 +87,16 @@ order by
     action_run_times.runs_at asc;
 |]
 
-fetchFutureByPhoneNumber :: (?modelContext :: ModelContext) => Id PhoneNumber -> IO [T]
-fetchFutureByPhoneNumber toPhoneNumberId = do
+fetchAfterByPhoneNumber ::
+    (?modelContext :: ModelContext) =>
+    UTCTime ->
+    Id PhoneNumber ->
+    IO [T]
+fetchAfterByPhoneNumber time toPhoneNumberId = do
     trackTableRead "send_message_actions"
     trackTableRead "action_run_times"
     trackTableRead "action_run_states"
-    sqlQuery fetchFutureByPhoneNumberQuery (Only toPhoneNumberId)
+    sqlQuery fetchFutureByPhoneNumberQuery (toPhoneNumberId, time)
 
 fetchFutureByPhoneNumberQuery :: Query
 fetchFutureByPhoneNumberQuery =
@@ -120,7 +124,7 @@ where
     and send_message_actions.action_run_state_id = action_run_states.id
     and action_run_times.action_run_state_id = action_run_states.id
     and action_run_states.state = 'not_started'
-    and action_run_times.runs_at > now()
+    and action_run_times.runs_at > ?
 order by
     action_run_times.runs_at asc;
 |]

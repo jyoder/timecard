@@ -45,7 +45,7 @@ scheduleNextRequest ::
     Id PhoneNumber ->
     IO ()
 scheduleNextRequest timeZone now newEntry person fromId toId = do
-    alreadyScheduled <- scheduledRequestExists toId
+    alreadyScheduled <- scheduledRequestExists now toId
     workerPreference <-
         query @WorkerPreference
             |> filterWhere (#personId, get #id person)
@@ -80,10 +80,11 @@ requestBody person lastEntry =
 
 scheduledRequestExists ::
     (?modelContext :: ModelContext) =>
+    UTCTime ->
     Id PhoneNumber ->
     IO Bool
-scheduledRequestExists toPhoneNumberId = do
-    sendMessageActions <- SendMessageAction.fetchFutureByPhoneNumber toPhoneNumberId
+scheduledRequestExists asOf toPhoneNumberId = do
+    sendMessageActions <- SendMessageAction.fetchAfterByPhoneNumber asOf toPhoneNumberId
     pure $ not $ null sendMessageActions
 
 nextTimecardEntryDay :: Day -> [Day] -> Day
