@@ -4,7 +4,7 @@ import qualified Application.Base.AccessToken as AccessToken
 import qualified Application.Base.People as People
 import qualified Application.Base.Signing as Signing
 import qualified Application.Timecard.AccessToken as Timecard.AccessToken
-import qualified Application.Timecard.Queries as Timecard.Queries
+import qualified Application.Timecard.Query as Timecard.Query
 import qualified Application.Timecard.Signing as Timecard.Signing
 import Network.Wai (remoteHost)
 import Web.Controller.Prelude
@@ -27,8 +27,8 @@ instance Controller TimecardReviewsController where
                                 |> fetchOne
 
                         timecard <-
-                            Timecard.Queries.fetchById
-                                Timecard.Queries.EntriesDateAscending
+                            Timecard.Query.fetchById
+                                Timecard.Query.EntriesDateAscending
                                 (get #timecardId timecardAccessToken)
 
                         person <- fetch $ get #personId timecard
@@ -67,8 +67,8 @@ instance Controller TimecardReviewsController where
                 |> fetchOne
 
         timecard <-
-            Timecard.Queries.fetchById
-                Timecard.Queries.EntriesDateAscending
+            Timecard.Query.fetchById
+                Timecard.Query.EntriesDateAscending
                 (get #timecardId timecardAccessToken)
 
         person <- fetch (get #personId timecard)

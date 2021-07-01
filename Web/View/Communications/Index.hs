@@ -1,7 +1,7 @@
 module Web.View.Communications.Index where
 
 import qualified Application.Action.SendMessageAction as SendMessageAction
-import qualified Application.Timecard.Queries as Q
+import qualified Application.Timecard.Query as Q
 import qualified Application.Timecard.Timecard as Timecard
 import qualified Application.Twilio.TwilioMessage as TwilioMessage
 import Data.Time.Format.ISO8601 (iso8601Show)

@@ -5,7 +5,7 @@ module Application.Timecard.EntryRequest (
 ) where
 
 import qualified Application.Action.SendMessageAction as SendMessageAction
-import qualified Application.Timecard.Queries as Timecard.Queries
+import qualified Application.Timecard.Query as Timecard.Query
 import Data.Time.Calendar.WeekDate (toWeekDate)
 import Generated.Types
 import IHP.ControllerPrelude
@@ -51,8 +51,8 @@ scheduleNextRequest timeZone now newEntry person fromId toId = do
             |> filterWhere (#personId, get #id person)
             |> fetchOne
     timecardEntryRows <-
-        Timecard.Queries.fetchRowsByPerson
-            Timecard.Queries.EntriesDateDescending
+        Timecard.Query.fetchRowsByPerson
+            Timecard.Query.EntriesDateDescending
             (get #id person)
 
     let sendTimeOfDay = get #sendDailyReminderAt workerPreference
