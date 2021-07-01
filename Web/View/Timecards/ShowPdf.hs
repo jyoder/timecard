@@ -1,6 +1,6 @@
 module Web.View.Timecards.ShowPdf where
 
-import qualified Application.Timecard.TimecardQueries as Q
+import qualified Application.Timecard.Queries as Q
 import Web.View.Prelude
 import Web.View.Service.Time (formatDay)
 import qualified Prelude as P

@@ -3,8 +3,8 @@ module Web.Controller.TimecardReviews where
 import qualified Application.Base.AccessToken as AccessToken
 import qualified Application.Base.People as People
 import qualified Application.Base.Signing as Signing
+import qualified Application.Timecard.Queries as Timecard.Queries
 import qualified Application.Timecard.TimecardAccessToken as TimecardAccessToken
-import qualified Application.Timecard.TimecardQueries as TimecardQueries
 import qualified Application.Timecard.TimecardSigning as TimecardSigning
 import Network.Wai (remoteHost)
 import Web.Controller.Prelude
@@ -27,8 +27,8 @@ instance Controller TimecardReviewsController where
                                 |> fetchOne
 
                         timecard <-
-                            TimecardQueries.fetchById
-                                TimecardQueries.EntriesDateAscending
+                            Timecard.Queries.fetchById
+                                Timecard.Queries.EntriesDateAscending
                                 (get #timecardId timecardAccessToken)
 
                         person <- fetch $ get #personId timecard
@@ -67,8 +67,8 @@ instance Controller TimecardReviewsController where
                 |> fetchOne
 
         timecard <-
-            TimecardQueries.fetchById
-                TimecardQueries.EntriesDateAscending
+            Timecard.Queries.fetchById
+                Timecard.Queries.EntriesDateAscending
                 (get #timecardId timecardAccessToken)
 
         person <- fetch (get #personId timecard)

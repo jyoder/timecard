@@ -1,7 +1,6 @@
 module Web.View.Timecards.Index where
 
-import qualified Application.Timecard.TimecardQueries as Q
-import IHP.View.TimeAgo as TO
+import qualified Application.Timecard.Queries as Q
 import Web.View.Navigation (Section (Timecards), renderNavigation)
 import Web.View.Prelude
 import Web.View.Service.Style (removeScrollbars)

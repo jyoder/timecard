@@ -6,12 +6,12 @@ import qualified Application.Action.ActionRunState as ActionRunState
 import qualified Application.Action.SendMessageAction as SendMessageAction
 import qualified Application.Base.People as People
 import qualified Application.Base.PhoneNumber as PhoneNumber
+import qualified Application.Timecard.EntryRequest as Timecard.EntryRequest
+import qualified Application.Timecard.Queries as Timecard.Queries
 import qualified Application.Timecard.Timecard as Timecard
 import qualified Application.Timecard.TimecardAccessToken as TimecardAccessToken
 import qualified Application.Timecard.TimecardEntry as TimecardEntry
 import qualified Application.Timecard.TimecardEntryMessage as TimecardEntryMessage
-import qualified Application.Timecard.TimecardEntryRequest as TimecardEntryRequest
-import qualified Application.Timecard.TimecardQueries as TimecardQueries
 import qualified Application.Twilio.TwilioMessage as TwilioMessage
 import Data.Text (strip)
 import Text.Read (read)
@@ -40,8 +40,8 @@ instance Controller CommunicationsController where
         let newMessage = newRecord @TwilioMessage
 
         timecards <-
-            TimecardQueries.fetchByPerson
-                TimecardQueries.EntriesDateDescending
+            Timecard.Queries.fetchByPerson
+                Timecard.Queries.EntriesDateDescending
                 selectedPersonId
 
         let personActivity = SendingMessage {..}
@@ -152,7 +152,7 @@ instance Controller CommunicationsController where
                     )
                     ( \timecardEntry -> do
                         fromPhoneNumber <- PhoneNumber.fetchByPerson botId
-                        TimecardEntryRequest.scheduleNextRequest
+                        Timecard.EntryRequest.scheduleNextRequest
                             companyTimeZone
                             now
                             timecardEntry

@@ -1,4 +1,4 @@
-module Application.Timecard.TimecardQueries (
+module Application.Timecard.Queries (
     Row (..),
     Timecard (..),
     Status (..),

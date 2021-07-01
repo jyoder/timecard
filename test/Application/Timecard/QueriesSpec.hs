@@ -1,6 +1,6 @@
-module Application.Timecard.TimecardQueriesSpec where
+module Application.Timecard.QueriesSpec where
 
-import qualified Application.Timecard.TimecardQueries as TimecardQueries
+import qualified Application.Timecard.Queries as Timecard.Queries
 import Generated.Types
 import IHP.ControllerPrelude
 import IHP.Test.Mocking
@@ -55,8 +55,8 @@ spec = do
                             |> createRecord
 
                     rows <-
-                        TimecardQueries.fetchRowsByPerson
-                            TimecardQueries.EntriesDateDescending
+                        Timecard.Queries.fetchRowsByPerson
+                            Timecard.Queries.EntriesDateDescending
                             (get #id ron)
 
                     get #timecardEntryJobName <$> rows
@@ -93,8 +93,8 @@ spec = do
                             |> createRecord
 
                     rowsDescending <-
-                        TimecardQueries.fetchRowsByPerson
-                            TimecardQueries.EntriesDateDescending
+                        Timecard.Queries.fetchRowsByPerson
+                            Timecard.Queries.EntriesDateDescending
                             (get #id ron)
 
                     get #timecardEntryDate <$> rowsDescending
@@ -103,8 +103,8 @@ spec = do
                                    ]
 
                     rowsAscending <-
-                        TimecardQueries.fetchRowsByPerson
-                            TimecardQueries.EntriesDateAscending
+                        Timecard.Queries.fetchRowsByPerson
+                            Timecard.Queries.EntriesDateAscending
                             (get #id ron)
 
                     get #timecardEntryDate <$> rowsAscending
@@ -146,12 +146,12 @@ spec = do
                         |> createRecord
 
                     rows <-
-                        TimecardQueries.fetchRowsByPerson
-                            TimecardQueries.EntriesDateDescending
+                        Timecard.Queries.fetchRowsByPerson
+                            Timecard.Queries.EntriesDateDescending
                             (get #id ron)
 
                     rows
-                        `shouldBe` [ TimecardQueries.Row
+                        `shouldBe` [ Timecard.Queries.Row
                                         { timecardId = get #id timecard
                                         , timecardPersonId = get #personId timecard
                                         , timecardWeekOf = get #weekOf timecard
@@ -205,12 +205,12 @@ spec = do
                         |> createRecord
 
                     rows <-
-                        TimecardQueries.fetchRowsByPerson
-                            TimecardQueries.EntriesDateDescending
+                        Timecard.Queries.fetchRowsByPerson
+                            Timecard.Queries.EntriesDateDescending
                             (get #id ron)
 
                     rows
-                        `shouldBe` [ TimecardQueries.Row
+                        `shouldBe` [ Timecard.Queries.Row
                                         { timecardId = get #id timecard
                                         , timecardPersonId = get #personId timecard
                                         , timecardWeekOf = get #weekOf timecard
@@ -274,8 +274,8 @@ spec = do
                             |> createRecord
 
                     rows <-
-                        TimecardQueries.fetchRowsById
-                            TimecardQueries.EntriesDateDescending
+                        Timecard.Queries.fetchRowsById
+                            Timecard.Queries.EntriesDateDescending
                             (get #id ronTimecard)
 
                     get #timecardEntryJobName <$> rows
@@ -312,8 +312,8 @@ spec = do
                             |> createRecord
 
                     rowsDescending <-
-                        TimecardQueries.fetchRowsById
-                            TimecardQueries.EntriesDateDescending
+                        Timecard.Queries.fetchRowsById
+                            Timecard.Queries.EntriesDateDescending
                             (get #id timecard)
 
                     get #timecardEntryDate <$> rowsDescending
@@ -322,8 +322,8 @@ spec = do
                                    ]
 
                     rowsAscending <-
-                        TimecardQueries.fetchRowsById
-                            TimecardQueries.EntriesDateAscending
+                        Timecard.Queries.fetchRowsById
+                            Timecard.Queries.EntriesDateAscending
                             (get #id timecard)
 
                     get #timecardEntryDate <$> rowsAscending
@@ -365,12 +365,12 @@ spec = do
                         |> createRecord
 
                     rows <-
-                        TimecardQueries.fetchRowsById
-                            TimecardQueries.EntriesDateDescending
+                        Timecard.Queries.fetchRowsById
+                            Timecard.Queries.EntriesDateDescending
                             (get #id timecard)
 
                     rows
-                        `shouldBe` [ TimecardQueries.Row
+                        `shouldBe` [ Timecard.Queries.Row
                                         { timecardId = get #id timecard
                                         , timecardPersonId = get #personId timecard
                                         , timecardWeekOf = get #weekOf timecard
@@ -424,12 +424,12 @@ spec = do
                         |> createRecord
 
                     rows <-
-                        TimecardQueries.fetchRowsById
-                            TimecardQueries.EntriesDateDescending
+                        Timecard.Queries.fetchRowsById
+                            Timecard.Queries.EntriesDateDescending
                             (get #id timecard)
 
                     rows
-                        `shouldBe` [ TimecardQueries.Row
+                        `shouldBe` [ Timecard.Queries.Row
                                         { timecardId = get #id timecard
                                         , timecardPersonId = get #personId timecard
                                         , timecardWeekOf = get #weekOf timecard

@@ -3,8 +3,8 @@ module Web.Controller.Timecards where
 import qualified Application.Base.People as People
 import qualified Application.Service.Pdf as Pdf
 import Application.Service.Time (parseDay)
+import qualified Application.Timecard.Queries as Timecard.Queries
 import qualified Application.Timecard.TimecardEntry as TimecardEntry
-import qualified Application.Timecard.TimecardQueries as TimecardQueries
 import Network.HTTP.Types (status200)
 import Network.HTTP.Types.Header (hContentType)
 import Network.Wai (responseLBS)
@@ -29,8 +29,8 @@ instance Controller TimecardsController where
         selectedPerson <- fetch selectedPersonId
 
         timecards <-
-            TimecardQueries.fetchByPerson
-                TimecardQueries.EntriesDateAscending
+            Timecard.Queries.fetchByPerson
+                Timecard.Queries.EntriesDateAscending
                 selectedPersonId
 
         let personActivity = Viewing
@@ -48,8 +48,8 @@ instance Controller TimecardsController where
         selectedPerson <- fetch selectedPersonId
 
         timecards <-
-            TimecardQueries.fetchByPerson
-                TimecardQueries.EntriesDateAscending
+            Timecard.Queries.fetchByPerson
+                Timecard.Queries.EntriesDateAscending
                 selectedPersonId
 
         let personActivity = Editing {..}
@@ -61,8 +61,8 @@ instance Controller TimecardsController where
         botId <- People.fetchBotId
         people <- People.fetchExcludingId botId
         timecard <-
-            TimecardQueries.fetchById
-                TimecardQueries.EntriesDateAscending
+            Timecard.Queries.fetchById
+                Timecard.Queries.EntriesDateAscending
                 timecardId
         selectedPerson <- fetch (get #personId timecard)
 
@@ -90,8 +90,8 @@ instance Controller TimecardsController where
                     selectedPerson <- fetch selectedPersonId
 
                     timecards <-
-                        TimecardQueries.fetchByPerson
-                            TimecardQueries.EntriesDateAscending
+                        Timecard.Queries.fetchByPerson
+                            Timecard.Queries.EntriesDateAscending
                             selectedPersonId
 
                     let personActivity = Editing {..}

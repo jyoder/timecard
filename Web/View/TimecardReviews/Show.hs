@@ -1,6 +1,6 @@
 module Web.View.TimecardReviews.Show where
 
-import qualified Application.Timecard.TimecardQueries as Q
+import qualified Application.Timecard.Queries as Q
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import Web.View.Prelude
