@@ -8,10 +8,10 @@ import qualified Application.Base.People as People
 import qualified Application.Base.PhoneNumber as PhoneNumber
 import qualified Application.Timecard.AccessToken as Timecard.AccessToken
 import qualified Application.Timecard.Entry as Timecard.Entry
+import qualified Application.Timecard.EntryMessage as Timecard.EntryMessage
 import qualified Application.Timecard.EntryRequest as Timecard.EntryRequest
 import qualified Application.Timecard.Queries as Timecard.Queries
 import qualified Application.Timecard.Timecard as Timecard
-import qualified Application.Timecard.TimecardEntryMessage as TimecardEntryMessage
 import qualified Application.Twilio.TwilioMessage as TwilioMessage
 import Data.Text (strip)
 import Text.Read (read)
@@ -84,7 +84,7 @@ instance Controller CommunicationsController where
 
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
         messages <- TwilioMessage.fetchByPeople botId selectedPersonId
-        timecardEntryMessages <- TimecardEntryMessage.fetchByTimecardEntry timecardEntryId
+        timecardEntryMessages <- Timecard.EntryMessage.fetchByTimecardEntry timecardEntryId
         let selectedMessageIds = map (get #twilioMessageId) timecardEntryMessages
         let selectedMessages = findSelectedMessages messages selectedMessageIds
         scheduledMessages <- SendMessageAction.fetchAfterByPhoneNumber now (get #id toPhoneNumber)

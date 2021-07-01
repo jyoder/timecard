@@ -5,8 +5,8 @@ module Application.Timecard.Entry (
 ) where
 
 import Application.Service.Time (startOfWeek)
+import Application.Timecard.EntryMessage as Timecard.EntryMessage
 import qualified Application.Timecard.Timecard as Timecard
-import Application.Timecard.TimecardEntryMessage as TimecardEntryMessage
 import Generated.Types
 import IHP.ControllerPrelude hiding (create)
 import Text.RawString.QQ (r)
@@ -26,7 +26,7 @@ create personId twilioMessageIds timecardEntry =
                     pure $ Left timecardEntry
                 Right timecardEntry -> do
                     timecardEntry <- createRecord timecardEntry
-                    TimecardEntryMessage.createAll (get #id timecardEntry) twilioMessageIds
+                    Timecard.EntryMessage.createAll (get #id timecardEntry) twilioMessageIds
                     pure $ Right timecardEntry
 
 update ::
@@ -44,7 +44,7 @@ update twilioMessageIds timecardEntry = do
                     pure $ Left timecardEntry
                 Right timecardEntry -> do
                     timecardEntry <- updateRecord timecardEntry
-                    TimecardEntryMessage.replaceAll (get #id timecardEntry) twilioMessageIds
+                    Timecard.EntryMessage.replaceAll (get #id timecardEntry) twilioMessageIds
                     pure $ Right timecardEntry
 
 setTimecardId ::

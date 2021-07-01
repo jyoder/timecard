@@ -1,4 +1,4 @@
-module Application.Timecard.TimecardEntryMessage (
+module Application.Timecard.EntryMessage (
     createAll,
     replaceAll,
     fetchByTimecardEntry,
