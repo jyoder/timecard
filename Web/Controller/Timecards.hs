@@ -3,8 +3,8 @@ module Web.Controller.Timecards where
 import qualified Application.Base.People as People
 import qualified Application.Service.Pdf as Pdf
 import Application.Service.Time (parseDay)
+import qualified Application.Timecard.Entry as Timecard.Entry
 import qualified Application.Timecard.Queries as Timecard.Queries
-import qualified Application.Timecard.TimecardEntry as TimecardEntry
 import Network.HTTP.Types (status200)
 import Network.HTTP.Types.Header (hContentType)
 import Network.Wai (responseLBS)

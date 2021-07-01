@@ -7,10 +7,10 @@ import qualified Application.Action.SendMessageAction as SendMessageAction
 import qualified Application.Base.People as People
 import qualified Application.Base.PhoneNumber as PhoneNumber
 import qualified Application.Timecard.AccessToken as Timecard.AccessToken
+import qualified Application.Timecard.Entry as Timecard.Entry
 import qualified Application.Timecard.EntryRequest as Timecard.EntryRequest
 import qualified Application.Timecard.Queries as Timecard.Queries
 import qualified Application.Timecard.Timecard as Timecard
-import qualified Application.Timecard.TimecardEntry as TimecardEntry
 import qualified Application.Timecard.TimecardEntryMessage as TimecardEntryMessage
 import qualified Application.Twilio.TwilioMessage as TwilioMessage
 import Data.Text (strip)
@@ -134,7 +134,7 @@ instance Controller CommunicationsController where
 
         newRecord @TimecardEntry
             |> buildTimecardEntry
-            |> TimecardEntry.create selectedPersonId selectedMessageIds
+            |> Timecard.Entry.create selectedPersonId selectedMessageIds
                 >>= either
                     ( \timecardEntry -> do
                         people <- People.fetchExcludingId botId
@@ -172,7 +172,7 @@ instance Controller CommunicationsController where
 
         timecardEntry
             |> buildTimecardEntry
-            |> TimecardEntry.update selectedMessageIds
+            |> Timecard.Entry.update selectedMessageIds
                 >>= either
                     ( \timecardEntry -> do
                         botId <- People.fetchBotId

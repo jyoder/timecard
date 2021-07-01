@@ -1,4 +1,4 @@
-module Application.Timecard.TimecardEntry (
+module Application.Timecard.Entry (
     create,
     update,
     validate,
