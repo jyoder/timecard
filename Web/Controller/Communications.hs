@@ -6,10 +6,10 @@ import qualified Application.Action.ActionRunState as ActionRunState
 import qualified Application.Action.SendMessageAction as SendMessageAction
 import qualified Application.Base.People as People
 import qualified Application.Base.PhoneNumber as PhoneNumber
+import qualified Application.Timecard.AccessToken as Timecard.AccessToken
 import qualified Application.Timecard.EntryRequest as Timecard.EntryRequest
 import qualified Application.Timecard.Queries as Timecard.Queries
 import qualified Application.Timecard.Timecard as Timecard
-import qualified Application.Timecard.TimecardAccessToken as TimecardAccessToken
 import qualified Application.Timecard.TimecardEntry as TimecardEntry
 import qualified Application.Timecard.TimecardEntryMessage as TimecardEntryMessage
 import qualified Application.Twilio.TwilioMessage as TwilioMessage
@@ -227,8 +227,8 @@ instance Controller CommunicationsController where
         let timecardId = param @(Id Timecard) "timecardId"
 
         now <- getCurrentTime
-        let expiresAt = TimecardAccessToken.expirationFrom now
-        TimecardAccessToken.create expiresAt timecardId
+        let expiresAt = Timecard.AccessToken.expirationFrom now
+        Timecard.AccessToken.create expiresAt timecardId
 
         redirectTo $ PersonSelectionAction selectedPersonId
 

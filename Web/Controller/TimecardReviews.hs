@@ -3,8 +3,8 @@ module Web.Controller.TimecardReviews where
 import qualified Application.Base.AccessToken as AccessToken
 import qualified Application.Base.People as People
 import qualified Application.Base.Signing as Signing
+import qualified Application.Timecard.AccessToken as Timecard.AccessToken
 import qualified Application.Timecard.Queries as Timecard.Queries
-import qualified Application.Timecard.TimecardAccessToken as TimecardAccessToken
 import qualified Application.Timecard.TimecardSigning as TimecardSigning
 import Network.Wai (remoteHost)
 import Web.Controller.Prelude

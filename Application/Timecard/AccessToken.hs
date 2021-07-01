@@ -1,4 +1,4 @@
-module Application.Timecard.TimecardAccessToken (
+module Application.Timecard.AccessToken (
     create,
     validate,
     expirationFrom,
