@@ -63,7 +63,7 @@ spec = do
                         `shouldBe` [ "McDonald's" :: Text
                                    ]
 
-            it "sorts rows properly based on the given sort criteria" $ withContext do
+            it "sorts rows properly based on the given entry sort criteria" $ withContext do
                 withTransactionRollback do
                     ron <-
                         newRecord @Person
@@ -110,6 +110,51 @@ spec = do
                     get #timecardEntryDate <$> rowsAscending
                         `shouldBe` [ toDay "2021-06-23"
                                    , toDay "2021-06-24"
+                                   ]
+
+            it "sorts rows in descending order by week of timecard" $ withContext do
+                withTransactionRollback do
+                    ron <-
+                        newRecord @Person
+                            |> set #firstName "Ronald"
+                            |> set #lastName "McDonald"
+                            |> set #goesBy "Ron"
+                            |> createRecord
+
+                    timecard1 <-
+                        newRecord @Timecard
+                            |> set #weekOf (toDay "2021-06-21")
+                            |> set #personId (get #id ron)
+                            |> createRecord
+
+                    timecard2 <-
+                        newRecord @Timecard
+                            |> set #weekOf (toDay "2021-06-28")
+                            |> set #personId (get #id ron)
+                            |> createRecord
+
+                    timecardEntry1 <-
+                        newRecord @TimecardEntry
+                            |> set #timecardId (get #id timecard1)
+                            |> set #date (toDay "2021-06-23")
+                            |> set #jobName "McDonald's"
+                            |> createRecord
+
+                    timecardEntry2 <-
+                        newRecord @TimecardEntry
+                            |> set #timecardId (get #id timecard2)
+                            |> set #date (toDay "2021-06-30")
+                            |> set #jobName "Burger King"
+                            |> createRecord
+
+                    rowsDescending <-
+                        Timecard.Query.fetchByPerson
+                            Timecard.Query.EntriesDateAscending
+                            (get #id ron)
+
+                    get #timecardWeekOf <$> rowsDescending
+                        `shouldBe` [ toDay "2021-06-28"
+                                   , toDay "2021-06-21"
                                    ]
 
             it "includes access token columns when an access token is present" $ withContext do
@@ -282,7 +327,7 @@ spec = do
                         `shouldBe` [ "McDonald's" :: Text
                                    ]
 
-            it "sorts rows properly based on the given sort criteria" $ withContext do
+            it "sorts rows properly based on the given entry sort criteria" $ withContext do
                 withTransactionRollback do
                     ron <-
                         newRecord @Person

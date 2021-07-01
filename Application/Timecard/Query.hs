@@ -66,43 +66,14 @@ fetchByPersonQuery :: EntriesSort -> Query
 fetchByPersonQuery entriesSort =
     [i|
         select
-            timecards.id timecard_id,
-            timecards.person_id timecard_person_id,
-            timecards.week_of timecard_week_of,
-            access_tokens.id access_token_id,
-            access_tokens.value access_token_value,
-            access_tokens.expires_at access_token_expires_at,
-            access_tokens.is_revoked access_token_is_revoked,
-            signings.id signing_id,
-            signings.signed_at signing_signed_at,
-            timecard_entries.id timecard_entry_id,
-            timecard_entries.date timecard_entry_date,
-            timecard_entries.job_name timecard_entry_job_name,
-            timecard_entries.hours_worked timecard_entry_hours_worked,
-            timecard_entries.work_done timecard_entry_work_done,
-            timecard_entries.invoice_translation timecard_entry_invoice_translation
+            #{selectClause}
         from
-            timecards
-        inner join
-            timecard_entries on (timecard_entries.timecard_id = timecards.id)
-        left join
-            timecard_access_tokens on (timecard_access_tokens.timecard_id = timecards.id)
-        left join
-            access_tokens on (timecard_access_tokens.access_token_id = access_tokens.id)
-        left join
-            timecard_signings on (timecard_signings.timecard_id = timecards.id)
-        left join
-            signings on (timecard_signings.signing_id = signings.id)
+            #{fromClause}
         where
             timecards.person_id = ?
         order by
-            timecards.week_of desc,
-            timecard_entries.date #{sort entriesSort},
-            timecard_entries.created_at #{sort entriesSort};
+            #{orderByClause entriesSort}
     |]
-  where
-    sort EntriesDateAscending = "asc" :: Text
-    sort EntriesDateDescending = "desc"
 
 fetchById ::
     (?modelContext :: ModelContext) =>
@@ -116,22 +87,38 @@ fetchByIdQuery :: EntriesSort -> Query
 fetchByIdQuery entriesSort =
     [i|
         select
-            timecards.id timecard_id,
-            timecards.person_id timecard_person_id,
-            timecards.week_of timecard_week_of,
-            access_tokens.id access_token_id,
-            access_tokens.value access_token_value,
-            access_tokens.expires_at access_token_expires_at,
-            access_tokens.is_revoked access_token_is_revoked,
-            signings.id signing_id,
-            signings.signed_at signing_signed_at,
-            timecard_entries.id timecard_entry_id,
-            timecard_entries.date timecard_entry_date,
-            timecard_entries.job_name timecard_entry_job_name,
-            timecard_entries.hours_worked timecard_entry_hours_worked,
-            timecard_entries.work_done timecard_entry_work_done,
-            timecard_entries.invoice_translation timecard_entry_invoice_translation
+            #{selectClause}
         from
+            #{fromClause}
+        where 
+            timecards.id = ?
+        order by
+            #{orderByClause entriesSort};
+    |]
+
+selectClause :: Text
+selectClause =
+    [i|
+        timecards.id timecard_id,
+        timecards.person_id timecard_person_id,
+        timecards.week_of timecard_week_of,
+        access_tokens.id access_token_id,
+        access_tokens.value access_token_value,
+        access_tokens.expires_at access_token_expires_at,
+        access_tokens.is_revoked access_token_is_revoked,
+        signings.id signing_id,
+        signings.signed_at signing_signed_at,
+        timecard_entries.id timecard_entry_id,
+        timecard_entries.date timecard_entry_date,
+        timecard_entries.job_name timecard_entry_job_name,
+        timecard_entries.hours_worked timecard_entry_hours_worked,
+        timecard_entries.work_done timecard_entry_work_done,
+        timecard_entries.invoice_translation timecard_entry_invoice_translation
+    |]
+
+fromClause :: Text
+fromClause =
+    [i|
             timecards
         inner join
             timecard_entries on (timecard_entries.timecard_id = timecards.id)
@@ -143,11 +130,16 @@ fetchByIdQuery entriesSort =
             timecard_signings on (timecard_signings.timecard_id = timecards.id)
         left join
             signings on (timecard_signings.signing_id = signings.id)
-        where 
-            timecards.id = ?
-        order by
-            timecard_entries.date #{sort entriesSort};
     |]
-  where
-    sort EntriesDateAscending = "asc" :: Text
-    sort EntriesDateDescending = "desc"
+
+orderByClause :: EntriesSort -> Text
+orderByClause entriesSort =
+    [i|
+        timecards.week_of desc,
+        timecard_entries.date #{entriesSortSql entriesSort},
+        timecard_entries.created_at #{entriesSortSql entriesSort}
+    |]
+
+entriesSortSql :: EntriesSort -> Text
+entriesSortSql EntriesDateAscending = "asc"
+entriesSortSql EntriesDateDescending = "desc"
