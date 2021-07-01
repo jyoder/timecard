@@ -9,7 +9,6 @@ import Application.Timecard.EntryMessage as Timecard.EntryMessage
 import qualified Application.Timecard.Timecard as Timecard
 import Generated.Types
 import IHP.ControllerPrelude hiding (create)
-import Text.RawString.QQ (r)
 
 create ::
     (?modelContext :: ModelContext) =>
