@@ -5,7 +5,7 @@ import qualified Application.Base.People as People
 import qualified Application.Base.Signing as Signing
 import qualified Application.Timecard.AccessToken as Timecard.AccessToken
 import qualified Application.Timecard.Queries as Timecard.Queries
-import qualified Application.Timecard.TimecardSigning as TimecardSigning
+import qualified Application.Timecard.Signing as Timecard.Signing
 import Network.Wai (remoteHost)
 import Web.Controller.Prelude
 import Web.View.TimecardReviews.Show
@@ -88,6 +88,6 @@ instance Controller TimecardReviewsController where
                         signing <- createRecord signing
                         let timecardId = get #id timecard
                         let signingId = get #id signing
-                        TimecardSigning.create timecardId signingId >> pure ()
+                        Timecard.Signing.create timecardId signingId >> pure ()
 
         redirectTo $ ShowTimecardReviewAction accessTokenValue

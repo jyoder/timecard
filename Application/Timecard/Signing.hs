@@ -1,4 +1,4 @@
-module Application.Timecard.TimecardSigning (
+module Application.Timecard.Signing (
     create,
     validate,
 ) where
