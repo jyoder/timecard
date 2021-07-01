@@ -10,7 +10,7 @@ import Text.Read (read)
 
 spec :: Spec
 spec = do
-    describe "fetchRowsByPerson" $ do
+    describe "fetchByPerson" $ do
         beforeAll (testConfig >>= mockContext RootApplication) do
             it "selects only timecard entries associated with the specified person" $ withContext do
                 withTransactionRollback do
@@ -55,7 +55,7 @@ spec = do
                             |> createRecord
 
                     rows <-
-                        Timecard.Query.fetchRowsByPerson
+                        Timecard.Query.fetchByPerson
                             Timecard.Query.EntriesDateDescending
                             (get #id ron)
 
@@ -93,7 +93,7 @@ spec = do
                             |> createRecord
 
                     rowsDescending <-
-                        Timecard.Query.fetchRowsByPerson
+                        Timecard.Query.fetchByPerson
                             Timecard.Query.EntriesDateDescending
                             (get #id ron)
 
@@ -103,7 +103,7 @@ spec = do
                                    ]
 
                     rowsAscending <-
-                        Timecard.Query.fetchRowsByPerson
+                        Timecard.Query.fetchByPerson
                             Timecard.Query.EntriesDateAscending
                             (get #id ron)
 
@@ -146,7 +146,7 @@ spec = do
                         |> createRecord
 
                     rows <-
-                        Timecard.Query.fetchRowsByPerson
+                        Timecard.Query.fetchByPerson
                             Timecard.Query.EntriesDateDescending
                             (get #id ron)
 
@@ -205,7 +205,7 @@ spec = do
                         |> createRecord
 
                     rows <-
-                        Timecard.Query.fetchRowsByPerson
+                        Timecard.Query.fetchByPerson
                             Timecard.Query.EntriesDateDescending
                             (get #id ron)
 
@@ -274,7 +274,7 @@ spec = do
                             |> createRecord
 
                     rows <-
-                        Timecard.Query.fetchRowsById
+                        Timecard.Query.fetchById
                             Timecard.Query.EntriesDateDescending
                             (get #id ronTimecard)
 
@@ -312,7 +312,7 @@ spec = do
                             |> createRecord
 
                     rowsDescending <-
-                        Timecard.Query.fetchRowsById
+                        Timecard.Query.fetchById
                             Timecard.Query.EntriesDateDescending
                             (get #id timecard)
 
@@ -322,7 +322,7 @@ spec = do
                                    ]
 
                     rowsAscending <-
-                        Timecard.Query.fetchRowsById
+                        Timecard.Query.fetchById
                             Timecard.Query.EntriesDateAscending
                             (get #id timecard)
 
@@ -365,7 +365,7 @@ spec = do
                         |> createRecord
 
                     rows <-
-                        Timecard.Query.fetchRowsById
+                        Timecard.Query.fetchById
                             Timecard.Query.EntriesDateDescending
                             (get #id timecard)
 
@@ -424,7 +424,7 @@ spec = do
                         |> createRecord
 
                     rows <-
-                        Timecard.Query.fetchRowsById
+                        Timecard.Query.fetchById
                             Timecard.Query.EntriesDateDescending
                             (get #id timecard)
 

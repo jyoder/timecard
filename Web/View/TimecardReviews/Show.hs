@@ -1,6 +1,6 @@
 module Web.View.TimecardReviews.Show where
 
-import qualified Application.Timecard.Query as Q
+import qualified Application.Timecard.View as V
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import Web.View.Prelude
@@ -15,7 +15,7 @@ data ReviewStatus
     | ReviewExpired
     | ReviewFound
         { person :: !Person
-        , timecard :: !Q.Timecard
+        , timecard :: !V.Timecard
         , accessToken :: !AccessToken
         , signing :: !Signing
         }
@@ -69,7 +69,7 @@ renderExpired =
         </div>
     |]
 
-renderFound :: Person -> Q.Timecard -> AccessToken -> Signing -> Html
+renderFound :: Person -> V.Timecard -> AccessToken -> Signing -> Html
 renderFound person timecard accessToken signing =
     [hsx|
         <div>
@@ -96,15 +96,15 @@ renderFound person timecard accessToken signing =
     lastName = get #lastName person
     firstName = get #firstName person
 
-renderTimecardEntries :: Q.Timecard -> Html
-renderTimecardEntries Q.Timecard {..} =
+renderTimecardEntries :: V.Timecard -> Html
+renderTimecardEntries V.Timecard {..} =
     [hsx|
         <ul class="list-group">
             {forEach entries renderTimecardEntry}
         </ul>
     |]
 
-renderTimecardEntry :: Q.TimecardEntry -> Html
+renderTimecardEntry :: V.TimecardEntry -> Html
 renderTimecardEntry timecardEntry =
     [hsx|
         <div class="card mb-4">
@@ -124,7 +124,7 @@ renderTimecardEntry timecardEntry =
     hoursWorked = get #hoursWorked timecardEntry
     workDone = get #workDone timecardEntry
 
-renderTotalHours :: Q.Timecard -> Html
+renderTotalHours :: V.Timecard -> Html
 renderTotalHours timecard =
     [hsx|
         <div class="card mb-4">

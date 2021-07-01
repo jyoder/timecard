@@ -1,6 +1,6 @@
 module Web.View.Timecards.Index where
 
-import qualified Application.Timecard.Query as Q
+import qualified Application.Timecard.View as V
 import Web.View.Navigation (Section (Timecards), renderNavigation)
 import Web.View.Prelude
 import Web.View.Service.Style (removeScrollbars)
@@ -15,7 +15,7 @@ data PersonSelection
     = NoPersonSelected
     | PersonSelected
         { selectedPerson :: !Person
-        , timecards :: ![Q.Timecard]
+        , timecards :: ![V.Timecard]
         , personActivity :: !PersonActivity
         }
 
@@ -83,7 +83,7 @@ renderTimecardColumn IndexView {..} =
                 </div>
             |]
 
-renderTimecard :: Person -> PersonActivity -> Q.Timecard -> Html
+renderTimecard :: Person -> PersonActivity -> V.Timecard -> Html
 renderTimecard selectedPerson personActivity timecard =
     [hsx|
         <div class="card mb-5">
@@ -127,27 +127,27 @@ renderTimecard selectedPerson personActivity timecard =
     showWeekOf = show $ get #weekOf timecard
     weekOf = get #weekOf timecard
 
-renderTimecardStatus :: Q.Timecard -> Html
+renderTimecardStatus :: V.Timecard -> Html
 renderTimecardStatus timecard =
     case get #status timecard of
-        Q.TimecardInProgress ->
+        V.TimecardInProgress ->
             [hsx|
                 <span class="badge badge-pill badge-secondary">In Progress</span>
             |]
-        Q.TimecardReadyForReview ->
+        V.TimecardReadyForReview ->
             [hsx|
                 <span class="badge badge-pill badge-primary">Ready for Review</span>
             |]
-        Q.TimecardUnderReview _ ->
+        V.TimecardUnderReview _ ->
             [hsx|
                 <span class="badge badge-pill badge-primary">Under Review</span>
             |]
-        Q.TimecardSigned _ ->
+        V.TimecardSigned _ ->
             [hsx|
                 <span class="badge badge-pill badge-success">Signed</span>
             |]
 
-renderTimecardRow :: Person -> PersonActivity -> Q.TimecardEntry -> Html
+renderTimecardRow :: Person -> PersonActivity -> V.TimecardEntry -> Html
 renderTimecardRow selectedPerson personActivity timecardEntry =
     [hsx|
         <tr>
@@ -163,7 +163,7 @@ renderTimecardRow selectedPerson personActivity timecardEntry =
     dayOfWeek' = dayOfWeek $ get #date timecardEntry
     date = formatDay $ get #date timecardEntry
 
-renderInvoiceTranslation :: Person -> PersonActivity -> Q.TimecardEntry -> Html
+renderInvoiceTranslation :: Person -> PersonActivity -> V.TimecardEntry -> Html
 renderInvoiceTranslation selectedPerson personActivity timecardEntry =
     case personActivity of
         Viewing -> renderViewInvoiceTranslation timecardEntry
@@ -177,7 +177,7 @@ renderInvoiceTranslation selectedPerson personActivity timecardEntry =
                     |]
                 else renderViewInvoiceTranslation timecardEntry
 
-renderViewInvoiceTranslation :: Q.TimecardEntry -> Html
+renderViewInvoiceTranslation :: V.TimecardEntry -> Html
 renderViewInvoiceTranslation timecardEntry =
     [hsx|
         <td class="invoice-translation">
@@ -216,8 +216,8 @@ renderLastRow hours =
         </tr>
     |]
 
-totalHoursWorked :: Q.Timecard -> Double
-totalHoursWorked Q.Timecard {..} =
+totalHoursWorked :: V.Timecard -> Double
+totalHoursWorked V.Timecard {..} =
     sum (get #hoursWorked <$> entries)
 
 styles :: Html

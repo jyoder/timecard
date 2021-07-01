@@ -1,13 +1,13 @@
 module Web.View.Timecards.ShowPdf where
 
-import qualified Application.Timecard.Query as Q
+import qualified Application.Timecard.View as V
 import Web.View.Prelude
 import Web.View.Service.Time (formatDay)
 import qualified Prelude as P
 
 data ShowPdfView = ShowPdfView
     { selectedPerson :: !Person
-    , timecard :: !Q.Timecard
+    , timecard :: !V.Timecard
     }
 
 instance View ShowPdfView where
@@ -23,7 +23,7 @@ instance View ShowPdfView where
             {styles}
         |]
 
-renderTimecard :: Person -> Q.Timecard -> Html
+renderTimecard :: Person -> V.Timecard -> Html
 renderTimecard selectedPerson timecard =
     [hsx|
         <div class="card mb-5">
@@ -58,7 +58,7 @@ renderTimecard selectedPerson timecard =
     lastName = get #lastName selectedPerson
     firstName = get #firstName selectedPerson
 
-renderTimecardRow :: Person -> Q.TimecardEntry -> Html
+renderTimecardRow :: Person -> V.TimecardEntry -> Html
 renderTimecardRow personActivity timecardEntry =
     [hsx|
         <tr>
@@ -85,8 +85,8 @@ renderLastRow hours =
         </tr>
     |]
 
-totalHoursWorked :: Q.Timecard -> Double
-totalHoursWorked Q.Timecard {..} =
+totalHoursWorked :: V.Timecard -> Double
+totalHoursWorked V.Timecard {..} =
     sum (get #hoursWorked <$> entries)
 
 styles :: Html

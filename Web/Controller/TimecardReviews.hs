@@ -6,6 +6,8 @@ import qualified Application.Base.Signing as Signing
 import qualified Application.Timecard.AccessToken as Timecard.AccessToken
 import qualified Application.Timecard.Query as Timecard.Query
 import qualified Application.Timecard.Signing as Timecard.Signing
+import qualified Application.Timecard.View as Timecard.View
+import Data.Maybe (fromJust)
 import Network.Wai (remoteHost)
 import Web.Controller.Prelude
 import Web.View.TimecardReviews.Show
@@ -27,9 +29,10 @@ instance Controller TimecardReviewsController where
                                 |> fetchOne
 
                         timecard <-
-                            Timecard.Query.fetchById
-                                Timecard.Query.EntriesDateAscending
-                                (get #timecardId timecardAccessToken)
+                            fromJust . Timecard.View.buildTimecard
+                                <$> Timecard.Query.fetchById
+                                    Timecard.Query.EntriesDateAscending
+                                    (get #timecardId timecardAccessToken)
 
                         person <- fetch $ get #personId timecard
 
@@ -67,9 +70,10 @@ instance Controller TimecardReviewsController where
                 |> fetchOne
 
         timecard <-
-            Timecard.Query.fetchById
-                Timecard.Query.EntriesDateAscending
-                (get #timecardId timecardAccessToken)
+            fromJust . Timecard.View.buildTimecard
+                <$> Timecard.Query.fetchById
+                    Timecard.Query.EntriesDateAscending
+                    (get #timecardId timecardAccessToken)
 
         person <- fetch (get #personId timecard)
 

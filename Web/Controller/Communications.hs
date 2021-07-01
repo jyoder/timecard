@@ -12,6 +12,7 @@ import qualified Application.Timecard.EntryMessage as Timecard.EntryMessage
 import qualified Application.Timecard.EntryRequest as Timecard.EntryRequest
 import qualified Application.Timecard.Query as Timecard.Query
 import qualified Application.Timecard.Timecard as Timecard
+import qualified Application.Timecard.View as Timecard.View
 import qualified Application.Twilio.TwilioMessage as TwilioMessage
 import Data.Text (strip)
 import Text.Read (read)
@@ -40,9 +41,10 @@ instance Controller CommunicationsController where
         let newMessage = newRecord @TwilioMessage
 
         timecards <-
-            Timecard.Query.fetchByPerson
-                Timecard.Query.EntriesDateDescending
-                selectedPersonId
+            Timecard.View.buildTimecards
+                <$> Timecard.Query.fetchByPerson
+                    Timecard.Query.EntriesDateDescending
+                    selectedPersonId
 
         let personActivity = SendingMessage {..}
         let personSelection = PersonSelected {..}

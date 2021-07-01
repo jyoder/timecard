@@ -5,6 +5,8 @@ import qualified Application.Service.Pdf as Pdf
 import Application.Service.Time (parseDay)
 import qualified Application.Timecard.Entry as Timecard.Entry
 import qualified Application.Timecard.Query as Timecard.Query
+import qualified Application.Timecard.View as Timecard.View
+import Data.Maybe (fromJust)
 import Network.HTTP.Types (status200)
 import Network.HTTP.Types.Header (hContentType)
 import Network.Wai (responseLBS)
@@ -29,9 +31,10 @@ instance Controller TimecardsController where
         selectedPerson <- fetch selectedPersonId
 
         timecards <-
-            Timecard.Query.fetchByPerson
-                Timecard.Query.EntriesDateAscending
-                selectedPersonId
+            Timecard.View.buildTimecards
+                <$> Timecard.Query.fetchByPerson
+                    Timecard.Query.EntriesDateAscending
+                    selectedPersonId
 
         let personActivity = Viewing
         let personSelection = PersonSelected {..}
@@ -48,9 +51,10 @@ instance Controller TimecardsController where
         selectedPerson <- fetch selectedPersonId
 
         timecards <-
-            Timecard.Query.fetchByPerson
-                Timecard.Query.EntriesDateAscending
-                selectedPersonId
+            Timecard.View.buildTimecards
+                <$> Timecard.Query.fetchByPerson
+                    Timecard.Query.EntriesDateAscending
+                    selectedPersonId
 
         let personActivity = Editing {..}
         let personSelection = PersonSelected {..}
@@ -61,9 +65,10 @@ instance Controller TimecardsController where
         botId <- People.fetchBotId
         people <- People.fetchExcludingId botId
         timecard <-
-            Timecard.Query.fetchById
-                Timecard.Query.EntriesDateAscending
-                timecardId
+            fromJust . Timecard.View.buildTimecard
+                <$> Timecard.Query.fetchById
+                    Timecard.Query.EntriesDateAscending
+                    timecardId
         selectedPerson <- fetch (get #personId timecard)
 
         html <- renderHtml ShowPdfView {..}
@@ -90,9 +95,10 @@ instance Controller TimecardsController where
                     selectedPerson <- fetch selectedPersonId
 
                     timecards <-
-                        Timecard.Query.fetchByPerson
-                            Timecard.Query.EntriesDateAscending
-                            selectedPersonId
+                        Timecard.View.buildTimecards
+                            <$> Timecard.Query.fetchByPerson
+                                Timecard.Query.EntriesDateAscending
+                                selectedPersonId
 
                     let personActivity = Editing {..}
                     let personSelection = PersonSelected {..}

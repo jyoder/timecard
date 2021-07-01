@@ -51,7 +51,7 @@ scheduleNextRequest timeZone now newEntry person fromId toId = do
             |> filterWhere (#personId, get #id person)
             |> fetchOne
     timecardEntryRows <-
-        Timecard.Query.fetchRowsByPerson
+        Timecard.Query.fetchByPerson
             Timecard.Query.EntriesDateDescending
             (get #id person)
 
