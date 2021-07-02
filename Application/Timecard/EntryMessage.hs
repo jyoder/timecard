@@ -4,6 +4,7 @@ module Application.Timecard.EntryMessage (
     fetchByTimecardEntry,
 ) where
 
+import Application.Service.Transaction (withTransactionOrSavepoint)
 import Generated.Types
 import IHP.Fetch
 import IHP.ModelSupport
@@ -26,7 +27,7 @@ replaceAll ::
     IO [TimecardEntryMessage]
 replaceAll timecardEntryId twilioMessageIds =
     let timecardEntryMessages = buildAll timecardEntryId twilioMessageIds
-     in withTransaction do
+     in withTransactionOrSavepoint do
             oldTimecardEntryMessages <- fetchByTimecardEntry timecardEntryId
             deleteRecords oldTimecardEntryMessages
             createMany timecardEntryMessages

@@ -5,6 +5,7 @@ module Application.Timecard.AccessToken (
 ) where
 
 import qualified Application.Base.AccessToken as AccessToken
+import Application.Service.Transaction (withTransactionOrSavepoint)
 import Application.Service.Validation
 import Generated.Types hiding (expiresAt)
 import IHP.ControllerPrelude hiding (create)
@@ -15,7 +16,7 @@ create ::
     Id Timecard ->
     IO TimecardAccessToken
 create expiresAt timecardId =
-    withTransaction do
+    withTransactionOrSavepoint do
         accessToken <-
             newRecord @AccessToken
                 |> AccessToken.create expiresAt

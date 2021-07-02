@@ -1,5 +1,6 @@
 module Web.Controller.TwilioCallbacks where
 
+import Application.Service.Transaction (withTransactionOrSavepoint)
 import Application.Service.Validation (validateAndUpdate)
 import qualified Application.Twilio.TwilioClient as TwilioClient
 import qualified Application.Twilio.TwilioMessage as TwilioMessage
@@ -16,7 +17,7 @@ instance Controller TwilioCallbacksController where
         let messageSid = param @Text "MessageSid"
         let messageStatus = param @Text "MessageStatus"
 
-        withTransaction do
+        withTransactionOrSavepoint do
             twilioMessage <-
                 query @TwilioMessage
                     |> filterWhere (#messageSid, messageSid)

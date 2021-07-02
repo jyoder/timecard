@@ -5,6 +5,7 @@ module Application.Timecard.Entry (
 ) where
 
 import Application.Service.Time (startOfWeek)
+import Application.Service.Transaction (withTransactionOrSavepoint)
 import Application.Timecard.EntryMessage as Timecard.EntryMessage
 import qualified Application.Timecard.Timecard as Timecard
 import Generated.Types
@@ -17,7 +18,7 @@ create ::
     TimecardEntry ->
     IO (Either TimecardEntry TimecardEntry)
 create personId twilioMessageIds timecardEntry =
-    withTransaction do
+    withTransactionOrSavepoint do
         timecardEntry <- setTimecardId personId timecardEntry
         validate timecardEntry
             >>= ifValid \case
@@ -34,7 +35,7 @@ update ::
     TimecardEntry ->
     IO (Either TimecardEntry TimecardEntry)
 update twilioMessageIds timecardEntry = do
-    withTransaction do
+    withTransactionOrSavepoint do
         timecard <- fetch (get #timecardId timecardEntry)
         timecardEntry <- setTimecardId (get #personId timecard) timecardEntry
         validate timecardEntry

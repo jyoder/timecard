@@ -9,6 +9,7 @@ module Application.Action.SendMessageAction (
 
 import qualified Application.Action.ActionRunState as ActionRunState
 import qualified Application.Action.ActionRunTime as ActionRunTime
+import Application.Service.Transaction (withTransactionOrSavepoint)
 import Application.Service.Validation (validateAndCreate)
 import qualified Application.Twilio.TwilioClient as TwilioClient
 import Database.PostgreSQL.Simple (Only (..), Query)
@@ -137,20 +138,21 @@ schedule ::
     UTCTime ->
     IO SendMessageAction
 schedule fromId toId body runsAt = do
-    actionRunState <-
-        newRecord @ActionRunState
-            |> validateAndCreate ActionRunState.validate
-    actionRunTime <-
-        newRecord @ActionRunTime
+    withTransactionOrSavepoint do
+        actionRunState <-
+            newRecord @ActionRunState
+                |> validateAndCreate ActionRunState.validate
+        actionRunTime <-
+            newRecord @ActionRunTime
+                |> set #actionRunStateId (get #id actionRunState)
+                |> set #runsAt runsAt
+                |> validateAndCreate ActionRunTime.validate
+        newRecord @SendMessageAction
             |> set #actionRunStateId (get #id actionRunState)
-            |> set #runsAt runsAt
-            |> validateAndCreate ActionRunTime.validate
-    newRecord @SendMessageAction
-        |> set #actionRunStateId (get #id actionRunState)
-        |> set #fromId fromId
-        |> set #toId toId
-        |> set #body body
-        |> validateAndCreate validate
+            |> set #fromId fromId
+            |> set #toId toId
+            |> set #body body
+            |> validateAndCreate validate
 
 perform :: (?modelContext :: ModelContext, ?context :: FrameworkConfig) => T -> IO ()
 perform sendMessageAction = do

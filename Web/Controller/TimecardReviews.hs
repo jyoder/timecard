@@ -3,6 +3,7 @@ module Web.Controller.TimecardReviews where
 import qualified Application.Base.AccessToken as AccessToken
 import qualified Application.Base.People as People
 import qualified Application.Base.Signing as Signing
+import Application.Service.Transaction (withTransactionOrSavepoint)
 import qualified Application.Timecard.AccessToken as Timecard.AccessToken
 import qualified Application.Timecard.Query as Timecard.Query
 import qualified Application.Timecard.Signing as Timecard.Signing
@@ -77,7 +78,7 @@ instance Controller TimecardReviewsController where
 
         person <- fetch (get #personId timecard)
 
-        withTransaction do
+        withTransactionOrSavepoint do
             now <- getCurrentTime
             newRecord @Signing
                 |> set #name name
