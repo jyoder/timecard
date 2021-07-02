@@ -59,8 +59,8 @@ spec = do
                             Timecard.Query.EntriesDateDescending
                             (get #id ron)
 
-                    get #timecardEntryJobName <$> rows
-                        `shouldBe` [ "McDonald's" :: Text
+                    get #timecardEntryId <$> rows
+                        `shouldBe` [ get #id ronTimecardEntry
                                    ]
 
             it "sorts rows properly based on the given entry sort criteria" $ withContext do
@@ -82,6 +82,7 @@ spec = do
                         newRecord @TimecardEntry
                             |> set #timecardId (get #id timecard)
                             |> set #date (toDay "2021-06-23")
+                            |> set #createdAt (toUtc "2021-06-23 15:00:00 PDT")
                             |> set #jobName "McDonald's"
                             |> createRecord
 
@@ -89,6 +90,15 @@ spec = do
                         newRecord @TimecardEntry
                             |> set #timecardId (get #id timecard)
                             |> set #date (toDay "2021-06-24")
+                            |> set #createdAt (toUtc "2021-06-24 15:00:00 PDT")
+                            |> set #jobName "Burger King"
+                            |> createRecord
+
+                    timecardEntry3 <-
+                        newRecord @TimecardEntry
+                            |> set #timecardId (get #id timecard)
+                            |> set #date (toDay "2021-06-23")
+                            |> set #createdAt (toUtc "2021-06-22 15:00:00 PDT")
                             |> set #jobName "Burger King"
                             |> createRecord
 
@@ -97,9 +107,10 @@ spec = do
                             Timecard.Query.EntriesDateDescending
                             (get #id ron)
 
-                    get #timecardEntryDate <$> rowsDescending
-                        `shouldBe` [ toDay "2021-06-24"
-                                   , toDay "2021-06-23"
+                    get #timecardEntryId <$> rowsDescending
+                        `shouldBe` [ get #id timecardEntry2
+                                   , get #id timecardEntry1
+                                   , get #id timecardEntry3
                                    ]
 
                     rowsAscending <-
@@ -107,9 +118,10 @@ spec = do
                             Timecard.Query.EntriesDateAscending
                             (get #id ron)
 
-                    get #timecardEntryDate <$> rowsAscending
-                        `shouldBe` [ toDay "2021-06-23"
-                                   , toDay "2021-06-24"
+                    get #timecardEntryId <$> rowsAscending
+                        `shouldBe` [ get #id timecardEntry3
+                                   , get #id timecardEntry1
+                                   , get #id timecardEntry2
                                    ]
 
             it "sorts rows in descending order by week of timecard" $ withContext do
@@ -152,9 +164,9 @@ spec = do
                             Timecard.Query.EntriesDateAscending
                             (get #id ron)
 
-                    get #timecardWeekOf <$> rowsDescending
-                        `shouldBe` [ toDay "2021-06-28"
-                                   , toDay "2021-06-21"
+                    get #timecardEntryId <$> rowsDescending
+                        `shouldBe` [ get #id timecardEntry2
+                                   , get #id timecardEntry1
                                    ]
 
             it "includes access token columns when an access token is present" $ withContext do
@@ -323,8 +335,8 @@ spec = do
                             Timecard.Query.EntriesDateDescending
                             (get #id ronTimecard)
 
-                    get #timecardEntryJobName <$> rows
-                        `shouldBe` [ "McDonald's" :: Text
+                    get #timecardEntryId <$> rows
+                        `shouldBe` [ get #id ronTimecardEntry
                                    ]
 
             it "sorts rows properly based on the given entry sort criteria" $ withContext do
@@ -346,6 +358,7 @@ spec = do
                         newRecord @TimecardEntry
                             |> set #timecardId (get #id timecard)
                             |> set #date (toDay "2021-06-23")
+                            |> set #createdAt (toUtc "2021-06-23 15:00:00 PDT")
                             |> set #jobName "McDonald's"
                             |> createRecord
 
@@ -353,6 +366,15 @@ spec = do
                         newRecord @TimecardEntry
                             |> set #timecardId (get #id timecard)
                             |> set #date (toDay "2021-06-24")
+                            |> set #createdAt (toUtc "2021-06-24 15:00:00 PDT")
+                            |> set #jobName "Burger King"
+                            |> createRecord
+
+                    timecardEntry3 <-
+                        newRecord @TimecardEntry
+                            |> set #timecardId (get #id timecard)
+                            |> set #date (toDay "2021-06-23")
+                            |> set #createdAt (toUtc "2021-06-22 15:00:00 PDT")
                             |> set #jobName "Burger King"
                             |> createRecord
 
@@ -361,9 +383,10 @@ spec = do
                             Timecard.Query.EntriesDateDescending
                             (get #id timecard)
 
-                    get #timecardEntryDate <$> rowsDescending
-                        `shouldBe` [ toDay "2021-06-24"
-                                   , toDay "2021-06-23"
+                    get #timecardEntryId <$> rowsDescending
+                        `shouldBe` [ get #id timecardEntry2
+                                   , get #id timecardEntry1
+                                   , get #id timecardEntry3
                                    ]
 
                     rowsAscending <-
@@ -371,9 +394,10 @@ spec = do
                             Timecard.Query.EntriesDateAscending
                             (get #id timecard)
 
-                    get #timecardEntryDate <$> rowsAscending
-                        `shouldBe` [ toDay "2021-06-23"
-                                   , toDay "2021-06-24"
+                    get #timecardEntryId <$> rowsAscending
+                        `shouldBe` [ get #id timecardEntry3
+                                   , get #id timecardEntry1
+                                   , get #id timecardEntry2
                                    ]
 
             it "includes access token columns when an access token is present" $ withContext do
