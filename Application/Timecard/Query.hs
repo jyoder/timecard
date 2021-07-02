@@ -16,6 +16,10 @@ data EntriesSort
     = EntriesDateAscending
     | EntriesDateDescending
 
+data WhereCondition
+    = PersonIdCondition
+    | TimecardIdCondition
+
 data Row = Row
     { timecardId :: !(Id Types.Timecard)
     , timecardPersonId :: !(Id Types.Person)
@@ -60,20 +64,7 @@ fetchByPerson ::
     Id Types.Person ->
     IO [Row]
 fetchByPerson entriesSort personId =
-    sqlQuery (fetchByPersonQuery entriesSort) (Only personId)
-
-fetchByPersonQuery :: EntriesSort -> Query
-fetchByPersonQuery entriesSort =
-    [i|
-        select
-            #{selectClause}
-        from
-            #{fromClause}
-        where
-            timecards.person_id = ?
-        order by
-            #{orderByClause entriesSort}
-    |]
+    sqlQuery (query PersonIdCondition entriesSort) (Only personId)
 
 fetchById ::
     (?modelContext :: ModelContext) =>
@@ -81,64 +72,50 @@ fetchById ::
     Id Types.Timecard ->
     IO [Row]
 fetchById entriesSort timecardId =
-    sqlQuery (fetchByIdQuery entriesSort) (Only timecardId)
+    sqlQuery (query TimecardIdCondition entriesSort) (Only timecardId)
 
-fetchByIdQuery :: EntriesSort -> Query
-fetchByIdQuery entriesSort =
+query :: WhereCondition -> EntriesSort -> Query
+query whereCondition entriesSort =
     [i|
         select
-            #{selectClause}
+            timecards.id timecard_id,
+            timecards.person_id timecard_person_id,
+            timecards.week_of timecard_week_of,
+            access_tokens.id access_token_id,
+            access_tokens.value access_token_value,
+            access_tokens.expires_at access_token_expires_at,
+            access_tokens.is_revoked access_token_is_revoked,
+            signings.id signing_id,
+            signings.signed_at signing_signed_at,
+            timecard_entries.id timecard_entry_id,
+            timecard_entries.date timecard_entry_date,
+            timecard_entries.job_name timecard_entry_job_name,
+            timecard_entries.hours_worked timecard_entry_hours_worked,
+            timecard_entries.work_done timecard_entry_work_done,
+            timecard_entries.invoice_translation timecard_entry_invoice_translation
         from
-            #{fromClause}
-        where 
-            timecards.id = ?
-        order by
-            #{orderByClause entriesSort};
-    |]
-
-selectClause :: Text
-selectClause =
-    [i|
-        timecards.id timecard_id,
-        timecards.person_id timecard_person_id,
-        timecards.week_of timecard_week_of,
-        access_tokens.id access_token_id,
-        access_tokens.value access_token_value,
-        access_tokens.expires_at access_token_expires_at,
-        access_tokens.is_revoked access_token_is_revoked,
-        signings.id signing_id,
-        signings.signed_at signing_signed_at,
-        timecard_entries.id timecard_entry_id,
-        timecard_entries.date timecard_entry_date,
-        timecard_entries.job_name timecard_entry_job_name,
-        timecard_entries.hours_worked timecard_entry_hours_worked,
-        timecard_entries.work_done timecard_entry_work_done,
-        timecard_entries.invoice_translation timecard_entry_invoice_translation
-    |]
-
-fromClause :: Text
-fromClause =
-    [i|
             timecards
-        inner join
-            timecard_entries on (timecard_entries.timecard_id = timecards.id)
-        left join
-            timecard_access_tokens on (timecard_access_tokens.timecard_id = timecards.id)
-        left join
-            access_tokens on (timecard_access_tokens.access_token_id = access_tokens.id)
-        left join
-            timecard_signings on (timecard_signings.timecard_id = timecards.id)
-        left join
-            signings on (timecard_signings.signing_id = signings.id)
+            inner join
+                timecard_entries on (timecard_entries.timecard_id = timecards.id)
+            left join
+                timecard_access_tokens on (timecard_access_tokens.timecard_id = timecards.id)
+            left join
+                access_tokens on (timecard_access_tokens.access_token_id = access_tokens.id)
+            left join
+                timecard_signings on (timecard_signings.timecard_id = timecards.id)
+            left join
+                signings on (timecard_signings.signing_id = signings.id)
+        where 
+            #{whereConditionSql whereCondition}
+        order by
+            timecards.week_of desc,
+            timecard_entries.date #{entriesSortSql entriesSort},
+            timecard_entries.created_at #{entriesSortSql entriesSort}
     |]
 
-orderByClause :: EntriesSort -> Text
-orderByClause entriesSort =
-    [i|
-        timecards.week_of desc,
-        timecard_entries.date #{entriesSortSql entriesSort},
-        timecard_entries.created_at #{entriesSortSql entriesSort}
-    |]
+whereConditionSql :: WhereCondition -> Text
+whereConditionSql PersonIdCondition = "timecards.person_id = ?"
+whereConditionSql TimecardIdCondition = "timecards.id = ?"
 
 entriesSortSql :: EntriesSort -> Text
 entriesSortSql EntriesDateAscending = "asc"
