@@ -3,6 +3,7 @@ module Application.Timecard.View (
     Status (..),
     TimecardEntry (..),
     AccessToken (..),
+    Signing (..),
     buildTimecards,
     buildTimecard,
 ) where
@@ -22,12 +23,14 @@ data Timecard = Timecard
     , status :: !Status
     , entries :: ![TimecardEntry]
     }
+    deriving (Eq, Show)
 
 data Status
     = TimecardInProgress
     | TimecardReadyForReview
     | TimecardUnderReview !AccessToken
     | TimecardSigned !Signing
+    deriving (Eq, Show)
 
 data TimecardEntry = TimecardEntry
     { id :: !(Id Types.TimecardEntry)
@@ -37,6 +40,7 @@ data TimecardEntry = TimecardEntry
     , workDone :: !Text
     , invoiceTranslation :: !Text
     }
+    deriving (Eq, Show)
 
 data AccessToken = AccessToken
     { id :: !(Id Types.AccessToken)
@@ -44,11 +48,13 @@ data AccessToken = AccessToken
     , expiresAt :: !UTCTime
     , isRevoked :: !Bool
     }
+    deriving (Eq, Show)
 
 data Signing = Signing
     { id :: !(Id Types.Signing)
     , signedAt :: !UTCTime
     }
+    deriving (Eq, Show)
 
 buildTimecards :: [Row] -> [Timecard]
 buildTimecards queryRows =
