@@ -1,6 +1,6 @@
 module Application.Timecard.Timecard (
-    fetchOrCreate,
     validate,
+    fetchOrCreate,
 ) where
 
 import Application.Service.Time (startOfWeek)
@@ -11,7 +11,11 @@ import IHP.ControllerPrelude
 validate :: (?modelContext :: ModelContext) => Timecard -> IO Timecard
 validate timecard =
     timecard
-        |> validateField #weekOf (isInList [startOfWeek (get #weekOf timecard)])
+        |> validateField
+            #weekOf
+            ( isInList [startOfWeek (get #weekOf timecard)]
+                |> withCustomErrorMessage "weekOf must be a Monday, the start of the week"
+            )
         |> validateFieldIO #weekOf (matchesTimecardEntries $ get #id timecard)
 
 matchesTimecardEntries ::
