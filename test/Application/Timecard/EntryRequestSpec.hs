@@ -326,6 +326,9 @@ spec = do
                             |> set #timecardId (get #id timecard)
                             |> set #date (toDay "2021-06-23")
                             |> set #jobName "McDonald's"
+                            |> set #hoursWorked 8.0
+                            |> set #workDone "work"
+                            |> set #invoiceTranslation "invoice"
                             |> createRecord
 
                     Timecard.EntryRequest.scheduleNextRequest
@@ -392,6 +395,9 @@ spec = do
                             |> set #timecardId (get #id timecard)
                             |> set #date (toDay "2021-06-23")
                             |> set #jobName "McDonald's"
+                            |> set #hoursWorked 8.0
+                            |> set #workDone "work"
+                            |> set #invoiceTranslation "invoice"
                             |> createRecord
 
                     sendMessageAction1 <-

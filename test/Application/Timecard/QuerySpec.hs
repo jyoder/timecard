@@ -45,6 +45,9 @@ spec = do
                             |> set #timecardId (get #id ronTimecard)
                             |> set #date (toDay "2021-06-23")
                             |> set #jobName "McDonald's"
+                            |> set #hoursWorked 8.0
+                            |> set #workDone "work"
+                            |> set #invoiceTranslation "invoice"
                             |> createRecord
 
                     burgieTimecardEntry <-
@@ -52,6 +55,9 @@ spec = do
                             |> set #timecardId (get #id burgieTimecard)
                             |> set #date (toDay "2021-06-24")
                             |> set #jobName "Burger King"
+                            |> set #hoursWorked 8.0
+                            |> set #workDone "work"
+                            |> set #invoiceTranslation "invoice"
                             |> createRecord
 
                     rows <-
@@ -84,6 +90,9 @@ spec = do
                             |> set #date (toDay "2021-06-23")
                             |> set #createdAt (toUtc "2021-06-23 15:00:00 PDT")
                             |> set #jobName "McDonald's"
+                            |> set #hoursWorked 8.0
+                            |> set #workDone "work"
+                            |> set #invoiceTranslation "invoice"
                             |> createRecord
 
                     timecardEntry2 <-
@@ -92,6 +101,9 @@ spec = do
                             |> set #date (toDay "2021-06-24")
                             |> set #createdAt (toUtc "2021-06-24 15:00:00 PDT")
                             |> set #jobName "Burger King"
+                            |> set #hoursWorked 8.0
+                            |> set #workDone "work"
+                            |> set #invoiceTranslation "invoice"
                             |> createRecord
 
                     timecardEntry3 <-
@@ -100,6 +112,9 @@ spec = do
                             |> set #date (toDay "2021-06-23")
                             |> set #createdAt (toUtc "2021-06-22 15:00:00 PDT")
                             |> set #jobName "Burger King"
+                            |> set #hoursWorked 8.0
+                            |> set #workDone "work"
+                            |> set #invoiceTranslation "invoice"
                             |> createRecord
 
                     rowsDescending <-
@@ -150,6 +165,9 @@ spec = do
                             |> set #timecardId (get #id timecard1)
                             |> set #date (toDay "2021-06-23")
                             |> set #jobName "McDonald's"
+                            |> set #hoursWorked 8.0
+                            |> set #workDone "work"
+                            |> set #invoiceTranslation "invoice"
                             |> createRecord
 
                     timecardEntry2 <-
@@ -157,6 +175,9 @@ spec = do
                             |> set #timecardId (get #id timecard2)
                             |> set #date (toDay "2021-06-30")
                             |> set #jobName "Burger King"
+                            |> set #hoursWorked 8.0
+                            |> set #workDone "work"
+                            |> set #invoiceTranslation "invoice"
                             |> createRecord
 
                     rowsDescending <-
@@ -189,6 +210,8 @@ spec = do
                             |> set #timecardId (get #id timecard)
                             |> set #date (toDay "2021-06-23")
                             |> set #jobName "McDonald's"
+                            |> set #workDone "work"
+                            |> set #invoiceTranslation "invoice"
                             |> createRecord
 
                     accessToken <-
@@ -247,6 +270,9 @@ spec = do
                             |> set #timecardId (get #id timecard)
                             |> set #date (toDay "2021-06-23")
                             |> set #jobName "McDonald's"
+                            |> set #hoursWorked 8.0
+                            |> set #workDone "work"
+                            |> set #invoiceTranslation "invoice"
                             |> createRecord
 
                     signing <-
@@ -321,6 +347,9 @@ spec = do
                             |> set #timecardId (get #id ronTimecard)
                             |> set #date (toDay "2021-06-23")
                             |> set #jobName "McDonald's"
+                            |> set #hoursWorked 8.0
+                            |> set #workDone "work"
+                            |> set #invoiceTranslation "invoice"
                             |> createRecord
 
                     burgieTimecardEntry <-
@@ -328,6 +357,9 @@ spec = do
                             |> set #timecardId (get #id burgieTimecard)
                             |> set #date (toDay "2021-06-24")
                             |> set #jobName "Burger King"
+                            |> set #hoursWorked 8.0
+                            |> set #workDone "work"
+                            |> set #invoiceTranslation "invoice"
                             |> createRecord
 
                     rows <-
@@ -360,6 +392,9 @@ spec = do
                             |> set #date (toDay "2021-06-23")
                             |> set #createdAt (toUtc "2021-06-23 15:00:00 PDT")
                             |> set #jobName "McDonald's"
+                            |> set #hoursWorked 8.0
+                            |> set #workDone "work"
+                            |> set #invoiceTranslation "invoice"
                             |> createRecord
 
                     timecardEntry2 <-
@@ -368,6 +403,9 @@ spec = do
                             |> set #date (toDay "2021-06-24")
                             |> set #createdAt (toUtc "2021-06-24 15:00:00 PDT")
                             |> set #jobName "Burger King"
+                            |> set #hoursWorked 8.0
+                            |> set #workDone "work"
+                            |> set #invoiceTranslation "invoice"
                             |> createRecord
 
                     timecardEntry3 <-
@@ -376,6 +414,9 @@ spec = do
                             |> set #date (toDay "2021-06-23")
                             |> set #createdAt (toUtc "2021-06-22 15:00:00 PDT")
                             |> set #jobName "Burger King"
+                            |> set #hoursWorked 8.0
+                            |> set #workDone "work"
+                            |> set #invoiceTranslation "invoice"
                             |> createRecord
 
                     rowsDescending <-
@@ -420,6 +461,11 @@ spec = do
                             |> set #timecardId (get #id timecard)
                             |> set #date (toDay "2021-06-23")
                             |> set #jobName "McDonald's"
+                            |> set #workDone "work"
+                            |> set #invoiceTranslation "invoice"
+                            |> set #hoursWorked 8.0
+                            |> set #workDone "work"
+                            |> set #invoiceTranslation "invoice"
                             |> createRecord
 
                     accessToken <-
@@ -478,6 +524,9 @@ spec = do
                             |> set #timecardId (get #id timecard)
                             |> set #date (toDay "2021-06-23")
                             |> set #jobName "McDonald's"
+                            |> set #workDone "work"
+                            |> set #invoiceTranslation "invoice"
+                            |> set #hoursWorked 8.0
                             |> createRecord
 
                     signing <-

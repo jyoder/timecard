@@ -65,7 +65,11 @@ validate ::
 validate timecardEntry =
     timecardEntry
         |> validateField #jobName nonEmpty
-        |> validateField #hoursWorked (validateAny [isInList [0.0], isGreaterThan 0.0])
+        |> validateField
+            #hoursWorked
+            ( validateAny [isInList [0.0], isGreaterThan 0.0]
+                |> withCustomErrorMessage "This field must be greater than or equal to 0.0"
+            )
         |> validateField #workDone nonEmpty
         |> validateField #invoiceTranslation nonEmpty
         |> validateFieldIO #date (matchesTimecard (get #timecardId timecardEntry))
