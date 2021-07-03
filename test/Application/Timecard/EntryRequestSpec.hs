@@ -11,7 +11,7 @@ import Text.Read (read)
 
 spec :: Spec
 spec = do
-    describe "Timecard.EntryRequest.nextRequestTime" $ do
+    describe "nextRequestTime" $ do
         describe "Monday" $ do
             it "returns a request time for Monday if the current time is before the deadline" $ do
                 Timecard.EntryRequest.nextRequestTime
