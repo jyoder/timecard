@@ -70,6 +70,8 @@ data CommunicationsController
         }
     | CreateTimecardEntryAction
     | UpdateTimecardEntryAction
+        { timecardEntryId :: !(Id TimecardEntry)
+        }
     | CreateOutgoingPhoneMessageAction
     | CancelScheduledMessageAction
         { sendMessageActionId :: !(Id SendMessageAction)
@@ -94,6 +96,8 @@ data TimecardsController
         { timecardId :: !(Id Timecard)
         }
     | TimecardUpdateTimecardEntryAction
+        { timecardEntryId :: !(Id TimecardEntry)
+        }
     deriving (Eq, Show, Data)
 
 data TimecardReviewsController

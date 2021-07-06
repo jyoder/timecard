@@ -1,13 +1,8 @@
 module Web.View.Communications.Index where
 
 import qualified Application.Action.SendMessageAction as SendMessageAction
-import qualified Application.Timecard.Timecard as Timecard
 import qualified Application.Timecard.View as V
 import qualified Application.Twilio.TwilioMessage as TwilioMessage
-import Data.Time.Format.ISO8601 (iso8601Show)
-import IHP.View.TimeAgo as TO
-import qualified Text.Blaze.Html5 as H
-import qualified Text.Blaze.Html5.Attributes as A
 import Web.View.Navigation (Section (Communications), renderNavigation)
 import Web.View.Prelude
 import Web.View.Service.Style (removeScrollbars)
@@ -45,184 +40,218 @@ data TimecardActivity
     | EditingModifiedEntry
     deriving (Eq)
 
+data Page = Page
+    { selectedPerson :: !(Maybe Person)
+    , peopleColumn :: !PeopleColumn
+    , messagesColumn :: !MessagesColumn
+    , timecardColumn :: !TimecardColumn
+    }
+
+newtype PeopleColumn = PeopleColumn
+    { personItems :: [PersonItem]
+    }
+    deriving (Eq, Show)
+
+data PersonItem = PersonItem
+    { selectionAction :: !CommunicationsController
+    , activeClass :: !Text
+    , ariaCurrent :: !Text
+    , firstName :: !Text
+    , lastName :: !Text
+    }
+    deriving (Eq, Show)
+
+data MessagesColumn
+    = MessagesColumnNotVisible
+    | MessagesColumnVisible
+        { messageItems :: ![MessageItem]
+        , scheduledMessageItems :: ![ScheduledMessageItem]
+        , sendMessageForm :: !SendMessageForm
+        }
+    deriving (Eq, Show)
+
+data MessageItem = MessageItem
+    { fromName :: !Text
+    , sentAt :: !Text
+    , body :: !Text
+    , statusClass :: !Text
+    , status :: !Text
+    , linkButtonActiveClass :: !Text
+    , linkButtonText :: !Text
+    , linkButtonAction :: !CommunicationsController
+    }
+    deriving (Eq, Show)
+
+data ScheduledMessageItem = ScheduledMessageItem
+    { runsAt :: !Text
+    , body :: !Text
+    , cancelAction :: !CommunicationsController
+    }
+    deriving (Eq, Show)
+
+newtype SendMessageForm = SendMessageForm
+    { toPhoneNumberId :: Text
+    }
+    deriving (Eq, Show)
+
+data TimecardColumn
+    = TimecardList
+        { timecardBlocks :: ![TimecardBlock]
+        }
+    | NewTimecardEntry
+        { timecardEntryForm :: !TimecardEntryForm
+        }
+    | EditTimecardEntry
+        { timecardEntryForm :: !TimecardEntryForm
+        }
+    | EditModifiedTimecardEntry
+        { timecardEntryForm :: !TimecardEntryForm
+        }
+    deriving (Eq, Show)
+
+data TimecardBlock = TimecardBlock
+    { weekOf :: !Text
+    , status :: !TimecardStatus
+    , actions :: !TimecardActions
+    , entryCards :: ![TimecardEntryCard]
+    }
+    deriving (Eq, Show)
+
+data TimecardStatus = TimecardStatus
+    { statusClasses :: !Text
+    , statusLabel :: !Text
+    }
+    deriving (Eq, Show)
+
+data TimecardActions
+    = TimecardInProgress
+    | TimecardReadyForReview
+        { selectedPersonId :: !Text
+        , timecardId :: !Text
+        }
+    | TimecardUnderReview
+        { reviewAction :: !TimecardReviewsController
+        }
+    | TimecardSigned
+    deriving (Eq, Show)
+
+data TimecardEntryCard = TimecardEntryCard
+    { dayOfWeek' :: !Text
+    , date :: !Text
+    , jobName :: !Text
+    , invoiceTranslation :: !Text
+    , editAction :: !CommunicationsController
+    }
+    deriving (Eq, Show)
+
+data TimecardEntryForm = TimecardEntryForm
+    { date :: !Text
+    , dateInvalidClass :: !Text
+    , dateError :: !(Maybe Text)
+    , jobName :: !Text
+    , jobNameInvalidClass :: !Text
+    , jobNameError :: !(Maybe Text)
+    , hoursWorked :: !Text
+    , hoursWorkedInvalidClass :: !Text
+    , hoursWorkedError :: !(Maybe Text)
+    , workDone :: !Text
+    , workDoneInvalidClass :: !Text
+    , workDoneError :: !(Maybe Text)
+    , invoiceTranslation :: !Text
+    , invoiceTranslationInvalidClass :: !Text
+    , invoiceTranslationError :: !(Maybe Text)
+    , selectedMessageIdsParam :: !Text
+    , selectedPersonIdParam :: !Text
+    , submitLabel :: !Text
+    , submitAction :: !CommunicationsController
+    , cancelAction :: !CommunicationsController
+    }
+    deriving (Eq, Show)
+
 instance View IndexView where
-    html view =
-        [hsx|
-            {renderNavigation Communications selectedPerson'}
+    html view = renderPage $ buildPage view
+
+renderPage :: Page -> Html
+renderPage Page {..} =
+    [hsx|
+            {renderNavigation Communications selectedPerson}
 
             <div class="row align-items start">
-                {renderPeopleColumn view}
-                {renderMessagesColumn view}
-                {renderTimecardColumn view}
+                {renderPeopleColumn peopleColumn}
+                {renderMessagesColumn messagesColumn}
+                {renderTimecardColumn timecardColumn}
             </div>
 
             {styles}
         |]
-      where
-        selectedPerson' = case get #personSelection view of
-            NoPersonSelected -> Nothing
-            PersonSelected {..} -> Just selectedPerson
 
-renderPeopleColumn :: IndexView -> Html
-renderPeopleColumn IndexView {..} =
-    [hsx|
-        <div class="people-column col-2">
-            <div class="list-group">
-                {forEach people renderPerson'}
-            </div>
-        </div>        
-    |]
+buildPage :: IndexView -> Page
+buildPage view =
+    Page
+        { selectedPerson = selectedPerson'
+        , peopleColumn = buildPeopleColumn view
+        , messagesColumn = buildMessagesColumn view
+        , timecardColumn = buildTimecardColumn view
+        }
   where
-    renderPerson' = case personSelection of
-        NoPersonSelected -> renderPerson False
+    selectedPerson' = case get #personSelection view of
+        NoPersonSelected -> Nothing
+        PersonSelected {..} -> Just selectedPerson
+
+buildPeopleColumn :: IndexView -> PeopleColumn
+buildPeopleColumn IndexView {..} =
+    PeopleColumn $ buildPersonItem' <$> people
+  where
+    buildPersonItem' = case personSelection of
+        NoPersonSelected -> buildPersonItem False
         PersonSelected {..} ->
             let isSelected person = get #id person == get #id selectedPerson
-             in (\person -> renderPerson (isSelected person) person)
+             in (\person -> buildPersonItem (isSelected person) person)
 
-renderMessagesColumn :: IndexView -> Html
-renderMessagesColumn IndexView {..} =
+buildPersonItem :: Bool -> Person -> PersonItem
+buildPersonItem isSelected person =
+    PersonItem
+        { selectionAction = PersonSelectionAction $ get #id person
+        , activeClass = if isSelected then "active" else ""
+        , ariaCurrent = if isSelected then "true" else "false"
+        , firstName = get #firstName person
+        , lastName = get #lastName person
+        }
+
+buildMessagesColumn :: IndexView -> MessagesColumn
+buildMessagesColumn IndexView {..} =
     case personSelection of
-        NoPersonSelected -> [hsx||]
+        NoPersonSelected -> MessagesColumnNotVisible
         PersonSelected {..} ->
-            let selectedMessageIds = case personActivity of
-                    SendingMessage {..} -> []
-                    WorkingOnTimecardEntry {..} -> get #id <$> selectedMessages
-             in [hsx|
-                <div class="col-6">
-                    {renderMessages selectedPerson personActivity selectedMessageIds messages scheduledMessages}
-                    <div class="message-input">
-                        {renderSendMessageForm toPhoneNumber newMessage}
-                    </div>
-                </div>
-            |]
+            MessagesColumnVisible
+                { messageItems = buildMessageItems selectedPerson personActivity messages
+                , scheduledMessageItems = buildScheduledMessageItems scheduledMessages
+                , sendMessageForm = buildSendMessageForm toPhoneNumber
+                }
 
-renderTimecardColumn :: IndexView -> Html
-renderTimecardColumn view =
-    [hsx|
-        <div class="timecard-column col-4">
-            {renderTimecardBlock view}
-        </div>
-    |]
+buildMessageItems :: Person -> PersonActivity -> [TwilioMessage.T] -> [MessageItem]
+buildMessageItems selectedPerson personActivity messages =
+    let selectedMessageIds = case personActivity of
+            SendingMessage {..} -> []
+            WorkingOnTimecardEntry {..} -> get #id <$> selectedMessages
+     in buildMessageItem selectedPerson personActivity selectedMessageIds <$> messages
 
-renderTimecardBlock :: IndexView -> Html
-renderTimecardBlock IndexView {..} =
-    case personSelection of
-        NoPersonSelected -> [hsx||]
-        PersonSelected {..} ->
-            case personActivity of
-                SendingMessage {..} ->
-                    renderTimecards
-                        selectedPerson
-                        timecards
-                WorkingOnTimecardEntry {..} ->
-                    renderTimecardEntryForm
-                        selectedPerson
-                        selectedMessages
-                        timecardActivity
-                        timecardEntry
-
-renderPerson :: Bool -> Person -> Html
-renderPerson isSelected person =
-    [hsx|
-        <a
-            href={PersonSelectionAction (get #id person)}
-            class={"list-group-item " <> activeClass}
-            aria-current={ariaCurrent}>
-            {get #firstName person} {get #lastName person}
-        </a>
-    |]
+buildMessageItem :: Person -> PersonActivity -> [Id TwilioMessage] -> TwilioMessage.T -> MessageItem
+buildMessageItem selectedPerson personActivity selectedMessageIds message =
+    MessageItem
+        { fromName = get #fromName message
+        , sentAt = show $ get #createdAt message
+        , body = get #body message
+        , statusClass = messageStatusClass'
+        , status = messageStatus
+        , linkButtonActiveClass = if isSelected then "active" else ""
+        , linkButtonText = if isSelected then "Unlink" else "Link"
+        , linkButtonAction
+        }
   where
-    activeClass = if isSelected then "active" else "" :: Text
-    ariaCurrent = if isSelected then "true" else "false" :: Text
-
-renderMessages ::
-    Person ->
-    PersonActivity ->
-    [Id TwilioMessage] ->
-    [TwilioMessage.T] ->
-    [SendMessageAction.T] ->
-    Html
-renderMessages
-    selectedPerson
-    personActivity
-    selectedMessageIds
-    messages
-    scheduledMessages =
-        [hsx|
-        <div class="message-history list-group-flush">
-            {forEach messages $ renderMessage selectedPerson personActivity selectedMessageIds}
-            {forEach scheduledMessages renderScheduledMessage}
-            <div class="scroll-pinned"></div>
-        </div>
-    |]
-
-renderSendMessageForm :: PhoneNumber -> TwilioMessage -> Html
-renderSendMessageForm phoneNumber newMessage =
-    [hsx|
-        <div class="message-input">
-            <form 
-                method="POST"
-                action="/CreateOutgoingPhoneMessage"
-                id="send-message-form" 
-                class="new-form"
-                data-disable-javascript-submission="false">
-                
-                <div class="form-group" id="form-group-twilioMessage_toId">
-                    <input 
-                        type="hidden"
-                        name="toId"
-                        id="twilioMessage_toId"
-                        class="form-control"
-                        value={show $ get #id phoneNumber}>
-                </div>
-
-                <div class="input-group">
-                    <textarea 
-                        class="form-control"
-                        id="twilioMessage_body"
-                        name="body"
-                        rows="3">
-                    </textarea>
-
-                    <div class="input-group-append">
-                        <button class="btn btn-primary">Send</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    |]
-
-renderMessage :: Person -> PersonActivity -> [Id TwilioMessage] -> TwilioMessage.T -> Html
-renderMessage selectedPerson personActivity selectedMessageIds message =
-    [hsx|
-        <div
-            class="list-group-item flex-column align-items-start">
-            <div class="d-flex w-100 justify-content-between">
-                <h5 class="mb-1">{fromName}</h5>
-                <span class="message-sent-at">{renderSentAt message}</span>
-            </div>
-            <p class="message-body mb-1">{body}</p>
-
-            <div class="d-flex w-100 justify-content-between">
-                <span class={messageStatusClass'}>
-                    {messageStatus}
-                </span>
-                <a href={nextAction}
-                    data-turbolinks="false"
-                    class={"btn btn-outline-primary btn-sm " <> activeClass}>
-                    {linkButtonText}
-                </a>
-            </div>
-        </div>
-    |]
-  where
-    fromName = get #fromName message
-    body = get #body message
     messageStatusClass' = messageStatusClass $ get #status message
     messageStatus = show $ get #status message
-    activeClass = if isSelected then "active" else "" :: Text
-    linkButtonText = if isSelected then "Unlink" else "Link" :: Text
-    nextAction = case personActivity of
+    linkButtonAction = case personActivity of
         SendingMessage {..} -> NewTimecardEntryAction {selectedMessageIds = toggledMessageIds, ..}
         WorkingOnTimecardEntry {..} -> case timecardActivity of
             CreatingEntry -> NewTimecardEntryAction {selectedMessageIds = toggledMessageIds, ..}
@@ -245,14 +274,243 @@ renderMessage selectedPerson personActivity selectedMessageIds message =
     includeMessageId = messageId : selectedMessageIds
     messageId = get #id message
 
-renderScheduledMessage :: SendMessageAction.T -> Html
-renderScheduledMessage scheduledMessage =
+messageStatusClass :: TwilioMessage.Status -> Text
+messageStatusClass status =
+    case status of
+        TwilioMessage.Delivered -> "message-status delivered"
+        TwilioMessage.Received -> "message-status received"
+        TwilioMessage.Failed -> "message-status failed"
+        _ -> "message-status sending"
+
+buildScheduledMessageItems :: [SendMessageAction.T] -> [ScheduledMessageItem]
+buildScheduledMessageItems scheduledMessages =
+    buildScheduledMessageItem <$> scheduledMessages
+
+buildScheduledMessageItem :: SendMessageAction.T -> ScheduledMessageItem
+buildScheduledMessageItem scheduledMessage =
+    ScheduledMessageItem
+        { runsAt = show $ get #runsAt scheduledMessage
+        , body = get #body scheduledMessage
+        , cancelAction = cancelAction
+        }
+  where
+    cancelAction = CancelScheduledMessageAction (get #id scheduledMessage)
+
+buildSendMessageForm :: PhoneNumber -> SendMessageForm
+buildSendMessageForm toPhoneNumber =
+    SendMessageForm
+        { toPhoneNumberId = show $ get #id toPhoneNumber
+        }
+
+buildTimecardColumn :: IndexView -> TimecardColumn
+buildTimecardColumn IndexView {..} =
+    case personSelection of
+        NoPersonSelected -> TimecardList []
+        PersonSelected {..} ->
+            case personActivity of
+                SendingMessage {..} ->
+                    TimecardList $
+                        buildTimecardBlock selectedPerson
+                            <$> timecards
+                WorkingOnTimecardEntry {..} ->
+                    EditTimecardEntry $
+                        buildTimecardEntryForm
+                            selectedPerson
+                            selectedMessages
+                            timecardActivity
+                            timecardEntry
+
+buildTimecardBlock :: Person -> V.Timecard -> TimecardBlock
+buildTimecardBlock selectedPerson timecard =
+    TimecardBlock
+        { weekOf = formatDay $ get #weekOf timecard
+        , status = timecardStatus (get #status timecard)
+        , actions = timecardActions selectedPerson timecard
+        , entryCards = buildTimecardEntryCard selectedPerson <$> get #entries timecard
+        }
+
+timecardStatus :: V.Status -> TimecardStatus
+timecardStatus status =
+    TimecardStatus
+        { statusClasses = timecardStatusClasses status
+        , statusLabel = timecardStatusLabel status
+        }
+
+timecardStatusClasses :: V.Status -> Text
+timecardStatusClasses =
+    \case
+        V.TimecardInProgress -> "badge badge-pill badge-secondary"
+        V.TimecardReadyForReview -> "badge badge-pill badge-primary"
+        V.TimecardUnderReview _ -> "badge badge-pill badge-primary"
+        V.TimecardSigned _ -> "badge badge-pill badge-success"
+
+timecardStatusLabel :: V.Status -> Text
+timecardStatusLabel =
+    \case
+        V.TimecardInProgress -> "In Progress"
+        V.TimecardReadyForReview -> "Ready For Review"
+        V.TimecardUnderReview _ -> "Under Review"
+        V.TimecardSigned _ -> "Signed"
+
+timecardActions :: Person -> V.Timecard -> TimecardActions
+timecardActions selectedPerson timecard =
+    case get #status timecard of
+        V.TimecardInProgress -> TimecardInProgress
+        V.TimecardReadyForReview ->
+            TimecardReadyForReview
+                { selectedPersonId = show $ get #id selectedPerson
+                , timecardId = show $ get #id timecard
+                }
+        V.TimecardUnderReview V.AccessToken {..} ->
+            TimecardUnderReview
+                { reviewAction = ShowTimecardReviewAction value
+                }
+        V.TimecardSigned _ -> TimecardSigned
+
+buildTimecardEntryCard :: Person -> V.TimecardEntry -> TimecardEntryCard
+buildTimecardEntryCard selectedPerson timecardEntry =
+    TimecardEntryCard
+        { dayOfWeek' = show $ dayOfWeek $ get #date timecardEntry
+        , date = formatDay $ get #date timecardEntry
+        , jobName = get #jobName timecardEntry
+        , invoiceTranslation = get #invoiceTranslation timecardEntry
+        , editAction = EditTimecardEntryAction (get #id selectedPerson) (get #id timecardEntry)
+        }
+
+buildTimecardEntryForm ::
+    Person ->
+    [TwilioMessage.T] ->
+    TimecardActivity ->
+    TimecardEntry ->
+    TimecardEntryForm
+buildTimecardEntryForm
+    selectedPerson
+    selectedMessages
+    timecardActivity
+    timecardEntry =
+        TimecardEntryForm
+            { date = show $ get #date timecardEntry
+            , dateInvalidClass = if hasErrorFor "date" then invalidClass else ""
+            , dateError = errorFor "date"
+            , jobName = get #jobName timecardEntry
+            , jobNameInvalidClass = if hasErrorFor "jobName" then invalidClass else ""
+            , jobNameError = errorFor "jobName"
+            , hoursWorked = show $ get #hoursWorked timecardEntry
+            , hoursWorkedInvalidClass = if hasErrorFor "hoursWorked" then invalidClass else ""
+            , hoursWorkedError = errorFor "hoursWorked"
+            , workDone = workDone
+            , workDoneInvalidClass = if hasErrorFor "workDone" then invalidClass else ""
+            , workDoneError = errorFor "workDone"
+            , invoiceTranslation = invoiceTranslations
+            , invoiceTranslationInvalidClass = if hasErrorFor "invoiceTranslation" then invalidClass else ""
+            , invoiceTranslationError = errorFor "invoiceTranslation"
+            , selectedMessageIdsParam = selectedMessageIdsParam
+            , selectedPersonIdParam = selectedPersonId
+            , submitLabel = if timecardActivity == CreatingEntry then "Create" else "Update"
+            , submitAction = if timecardActivity == CreatingEntry then createAction else updateAction
+            , cancelAction = PersonSelectionAction (get #id selectedPerson)
+            }
+      where
+        hasErrorFor = isJust . errorFor
+        errorFor fieldName = snd <$> find (\(name, errorMessage) -> name == fieldName) annotations
+        annotations = timecardEntry |> get #meta |> get #annotations
+        invalidClass = "is-invalid"
+        workDone = assembleMessageBodies (get #workDone timecardEntry) sortedMessages
+        invoiceTranslations = assembleMessageBodies (get #invoiceTranslation timecardEntry) sortedMessages
+        selectedPersonId = show $ get #id selectedPerson
+        selectedMessageIdsParam = intercalate "," (show . get #id <$> sortedMessages)
+        sortedMessages = sortBy (\m1 m2 -> get #createdAt m1 `compare` get #createdAt m2) selectedMessages
+        submitAction = if timecardActivity == CreatingEntry then createAction else updateAction
+        createAction = CreateTimecardEntryAction
+        updateAction = UpdateTimecardEntryAction $ get #id timecardEntry
+
+assembleMessageBodies :: Text -> [TwilioMessage.T] -> Text
+assembleMessageBodies existingText messages =
+    if existingText == ""
+        then intercalate "\n\n" (get #body <$> messages)
+        else existingText
+
+renderPeopleColumn :: PeopleColumn -> Html
+renderPeopleColumn PeopleColumn {..} =
     [hsx|
-        <div
-            class="scheduled-message list-group-item flex-column align-items-start">
+        <div class="people-column col-2">
+            <div class="list-group">
+                {forEach personItems renderPersonItem}
+            </div>
+        </div>        
+    |]
+
+renderPersonItem :: PersonItem -> Html
+renderPersonItem PersonItem {..} =
+    [hsx|
+        <a
+            href={selectionAction}
+            class={"list-group-item " <> activeClass}
+            aria-current={ariaCurrent}
+        >
+            {firstName} {lastName}
+        </a>
+    |]
+
+renderMessagesColumn :: MessagesColumn -> Html
+renderMessagesColumn messagesColumn =
+    case messagesColumn of
+        MessagesColumnNotVisible ->
+            [hsx|
+                <div class="col-6"></div>
+            |]
+        MessagesColumnVisible {..} ->
+            [hsx|
+                <div class="col-6">
+                    {renderMessageItems messageItems scheduledMessageItems}
+                    <div class="message-input">
+                        {renderSendMessageForm sendMessageForm}
+                    </div>
+                </div>
+            |]
+
+renderMessageItems :: [MessageItem] -> [ScheduledMessageItem] -> Html
+renderMessageItems messageItems scheduledMessageItems =
+    [hsx|
+        <div class="message-history list-group-flush">
+            {forEach messageItems renderMessageItem}
+            {forEach scheduledMessageItems renderScheduledMessageItem}
+            <div class="scroll-pinned"></div>
+        </div>
+    |]
+
+renderMessageItem :: MessageItem -> Html
+renderMessageItem MessageItem {..} =
+    [hsx|
+        <div class="list-group-item flex-column align-items-start">
+            <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">{fromName}</h5>
+                <span class="message-sent-at">
+                    <time class="date-time" datetime={sentAt}>{sentAt}</time>
+                </span>
+            </div>
+            <p class="message-body mb-1">{body}</p>
+
+            <div class="d-flex w-100 justify-content-between">
+                <span class={statusClass}>{status}</span>
+                <a href={linkButtonAction}
+                    data-turbolinks="false"
+                    class={"btn btn-outline-primary btn-sm " <> linkButtonActiveClass}>
+                    {linkButtonText}
+                </a>
+            </div>
+        </div>
+    |]
+
+renderScheduledMessageItem :: ScheduledMessageItem -> Html
+renderScheduledMessageItem ScheduledMessageItem {..} =
+    [hsx|
+        <div class="scheduled-message list-group-item flex-column align-items-start">
             <div class="d-flex w-100 justify-content-between">
                 <h5 class="mb-1">Scheduled</h5>
-                <span class="message-scheduled-for">{renderScheduledFor scheduledMessage}</span>
+                <span class="message-scheduled-for">
+                    <time class="date-time" datetime={runsAt}>{runsAt}</time>
+                </span>
             </div>
             <p class="message-body mb-1">{body}</p>
 
@@ -268,90 +526,117 @@ renderScheduledMessage scheduledMessage =
             </div>
         </div>
     |]
-  where
-    body = get #body scheduledMessage
-    cancelAction = CancelScheduledMessageAction (get #id scheduledMessage)
 
-renderTimecards :: Person -> [V.Timecard] -> Html
-renderTimecards selectedPerson timecards =
-    forEach timecards $ renderTimecard selectedPerson
+renderSendMessageForm :: SendMessageForm -> Html
+renderSendMessageForm SendMessageForm {..} =
+    [hsx|
+        <div class="message-input">
+            <form 
+                method="POST"
+                action={CreateOutgoingPhoneMessageAction}
+                id="send-message-form" 
+                class="new-form"
+                data-disable-javascript-submission="false">
+                
+                <div class="form-group" id="form-group-twilioMessage_toId">
+                    <input 
+                        type="hidden"
+                        name="toId"
+                        id="twilioMessage_toId"
+                        class="form-control"
+                        value={toPhoneNumberId}>
+                </div>
 
-renderTimecard :: Person -> V.Timecard -> Html
-renderTimecard selectedPerson timecard =
+                <div class="input-group">
+                    <textarea 
+                        class="form-control"
+                        id="twilioMessage_body"
+                        name="body"
+                        rows="3">
+                    </textarea>
+
+                    <div class="input-group-append">
+                        <button class="btn btn-primary">Send</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    |]
+
+renderTimecardColumn :: TimecardColumn -> Html
+renderTimecardColumn timecardColumn =
+    [hsx|
+        <div class="timecard-column col-4">
+            {renderTimecardColumn' timecardColumn}
+        </div>
+    |]
+
+renderTimecardColumn' :: TimecardColumn -> Html
+renderTimecardColumn' timecardColumn =
+    case timecardColumn of
+        TimecardList {..} ->
+            forEach timecardBlocks renderTimecardBlock
+        NewTimecardEntry {..} ->
+            renderTimecardEntryForm timecardEntryForm
+        EditTimecardEntry {..} ->
+            renderTimecardEntryForm timecardEntryForm
+        EditModifiedTimecardEntry {..} ->
+            renderTimecardEntryForm timecardEntryForm
+
+renderTimecardBlock :: TimecardBlock -> Html
+renderTimecardBlock TimecardBlock {..} =
     [hsx|
         <div class="card mb-4">
             <div class="card-body">
                 <div class="d-flex justify-content-between mb-2">
-                    <h5 class="card-title">Timecard for week of {formatDay $ get #weekOf timecard}</h5>
-                    <div>
-                        {renderTimecardStatus timecard}
-                    </div>
+                    <h5 class="card-title">Timecard for week of {weekOf}</h5>
+                    <div>{renderTimecardStatus status}</div>
                 </div>
                 <div class="mb-4">
-                    {renderTimecardActions selectedPerson timecard}
+                    {renderTimecardActions actions}
                 </div>
             
                 <div>
-                    {renderTimecardEntries selectedPerson timecard}
+                    <ul class="list-group">
+                        {forEach entryCards renderTimecardEntryCard}
+                    </ul>
                 </div>
             </div>
         </div>
     |]
 
-renderTimecardStatus :: V.Timecard -> Html
-renderTimecardStatus timecard =
-    case get #status timecard of
-        V.TimecardInProgress ->
-            [hsx|
-                <span class="badge badge-pill badge-secondary">In Progress</span>
-            |]
-        V.TimecardReadyForReview ->
-            [hsx|
-                <span class="badge badge-pill badge-primary">Ready for Review</span>
-            |]
-        V.TimecardUnderReview _ ->
-            [hsx|
-                <span class="badge badge-pill badge-primary">Under Review</span>
-            |]
-        V.TimecardSigned _ ->
-            [hsx|
-                <span class="badge badge-pill badge-success">Signed</span>
-            |]
+renderTimecardStatus :: TimecardStatus -> Html
+renderTimecardStatus TimecardStatus {..} =
+    [hsx|
+        <span class={statusClasses}>
+            {statusLabel}
+        </span>
+    |]
 
-renderTimecardActions :: Person -> V.Timecard -> Html
-renderTimecardActions selectedPerson timecard =
-    case get #status timecard of
-        V.TimecardInProgress ->
-            [hsx||]
-        V.TimecardReadyForReview ->
+renderTimecardActions :: TimecardActions -> Html
+renderTimecardActions timecardActions =
+    case timecardActions of
+        TimecardInProgress -> [hsx||]
+        TimecardReadyForReview {..} ->
             [hsx|
                 <form action={CreateTimecardReview} method="post">
-                    <input type="hidden" name="selectedPersonId" value={show $ get #id selectedPerson} />
-                    <input type="hidden" name="timecardId" value={show $ get #id timecard} />
+                    <input type="hidden" name="selectedPersonId" value={selectedPersonId} />
+                    <input type="hidden" name="timecardId" value={timecardId} />
                     <input type="submit" class="btn btn-outline-primary col-12" value="Send for Review">
                 </form>
             |]
-        V.TimecardUnderReview V.AccessToken {..} ->
+        TimecardUnderReview {..} ->
             [hsx|
-                <a href={ShowTimecardReviewAction value}>Timecard Review Link</a>
+                <a href={reviewAction}>Timecard Review Link</a>
             |]
-        V.TimecardSigned _ ->
-            [hsx||]
+        TimecardSigned -> [hsx||]
 
-renderTimecardEntries :: Person -> V.Timecard -> Html
-renderTimecardEntries selectedPerson V.Timecard {..} =
-    [hsx|
-        <ul class="list-group">
-            {forEach entries (renderTimecardEntry selectedPerson)}
-        </ul>
-    |]
-
-renderTimecardEntry :: Person -> V.TimecardEntry -> Html
-renderTimecardEntry selectedPerson timecardEntry =
+renderTimecardEntryCard :: TimecardEntryCard -> Html
+renderTimecardEntryCard TimecardEntryCard {..} =
     [hsx|
         <div class="card mb-4">
             <h5 class="card-header">
-                {dayOfWeek date} - {formatDay date}
+                {dayOfWeek'} - {date}
             </h5>
 
             <div class="card-body">
@@ -361,105 +646,124 @@ renderTimecardEntry selectedPerson timecardEntry =
             </div>
         </div>
     |]
-  where
-    date = get #date timecardEntry
-    jobName = get #jobName timecardEntry
-    invoiceTranslation = get #invoiceTranslation timecardEntry
-    editAction = EditTimecardEntryAction (get #id selectedPerson) (get #id timecardEntry)
 
-renderTimecardEntryForm :: Person -> [TwilioMessage.T] -> TimecardActivity -> TimecardEntry -> Html
-renderTimecardEntryForm selectedPerson selectedMessages timecardActivity timecardEntry =
-    formForWithOptions
-        timecardEntry
-        formOptions
-        [hsx|
-            {(dateField #date)}
-            {(textField #jobName)}
-            {(textField #hoursWorked)}
+renderTimecardEntryForm :: TimecardEntryForm -> Html
+renderTimecardEntryForm TimecardEntryForm {..} =
+    [hsx|
+        <form
+            method="POST" 
+            action={submitAction} 
+            id="timecard-form" 
+            class="edit-form" 
+            data-disable-javascript-submission="false">
+            
+            <div class="form-group" id="form-group-timecardEntry_date">
+                <label class="" for="timecardEntry_date">
+                    Date
+                </label>
 
+                <input 
+                    type="date" 
+                    name="date" 
+                    id="timecardEntry_date" 
+                    class={"form-control " <> dateInvalidClass} 
+                    value={date}>
+
+                {renderFieldError dateError}
+            </div>
+            
+            <div class="form-group" id="form-group-timecardEntry_jobName">
+                <label class="" for="timecardEntry_jobName">
+                    Job Name
+                </label>
+
+                <input 
+                    type="text"
+                    name="jobName"
+                    placeholder=""
+                    id="timecardEntry_jobName"
+                    class={"form-control " <> jobNameInvalidClass}
+                    value={jobName}>
+
+                {renderFieldError jobNameError}
+            </div>
+            
+            <div class="form-group" id="form-group-timecardEntry_hoursWorked">
+                <label class="" for="timecardEntry_hoursWorked">
+                    Hours Worked
+                </label>
+
+                <input 
+                    type="text"
+                    name="hoursWorked"
+                    placeholder=""
+                    id="timecardEntry_hoursWorked"
+                    class={"form-control " <> hoursWorkedInvalidClass}
+                    value={hoursWorked}>
+
+                {renderFieldError hoursWorkedError}
+            </div>
+            
             <div id="form-group-timecardEntry_workDone" class="form-group">
-                <label for="timecardEntry_workDone">Work Done</label>
-                <textarea id="timecardEntry_workDone" name="workDone" class="form-control">
+                <label for="timecardEntry_workDone">
+                    Work Done
+                </label>
+
+                <textarea 
+                    id="timecardEntry_workDone" 
+                    name="workDone" 
+                    class={"form-control " <> workDoneInvalidClass}>
                     {workDone}
                 </textarea>
-            </div>
 
+                {renderFieldError workDoneError}
+            </div>
+            
             <div id="form-group-timecardEntry_invoiceTranslation" class="form-group">
-                <label for="timecardEntry_invoiceTranslation">Invoice Translation</label>
-                <textarea 
+                <label for="timecardEntry_invoiceTranslation">
+                    Invoice Translation
+                </label>
+                
+                <textarea
                     id="timecardEntry_invoiceTranslation"
                     name="invoiceTranslation"
-                    class="form-control">
-                    {invoiceTranslations}
+                    class={"form-control " <> invoiceTranslationInvalidClass}>
+                    {invoiceTranslation}
                 </textarea>
-            </div>
 
+                {renderFieldError invoiceTranslationError}
+            </div>
+            
             <input 
                 type="hidden"
                 name="selectedMessageIds"
                 id="selectedMessageIds"
                 class="form-control"
-                value={selectedMessagesParam}
-            />
-
+                value={selectedMessageIdsParam}>
+            
             <input
                 type="hidden"
                 name="selectedPersonId"
                 id="selectedPersonId"
                 class="form-control"
-                value={selectedPersonId}
-            />
+                value={selectedPersonIdParam}>
+                
+            <button class="btn btn-primary">
+                {submitLabel}
+            </button>
+            
+            <a href={cancelAction} class="btn btn-secondary ml-2" role="button">
+                Cancel
+            </a>
+        </form>
+    |]
 
-            {submitButton { label = submitLabel } }
-            <a href={cancelAction} class="btn btn-secondary ml-2" role="button">Cancel</a>
-        |]
-  where
-    formOptions formContext = formContext |> set #formId "timecard-form"
-    workDone = renderMessageBodies (get #workDone timecardEntry) sortedMessages
-    invoiceTranslations = renderMessageBodies (get #invoiceTranslation timecardEntry) sortedMessages
-    selectedPersonId = show $ get #id selectedPerson
-    submitLabel = if timecardActivity == CreatingEntry then "Create" else "Update"
-    cancelAction = PersonSelectionAction (get #id selectedPerson)
-    selectedMessagesParam = intercalate "," (show . get #id <$> sortedMessages)
-    sortedMessages = sortBy (\m1 m2 -> get #createdAt m1 `compare` get #createdAt m2) selectedMessages
-
-renderMessageBodies :: Text -> [TwilioMessage.T] -> Html
-renderMessageBodies existingText messages =
-    if existingText == ""
-        then [hsx| {intercalate "\n\n" ((get #body) <$> messages)} |]
-        else [hsx| {existingText} |]
-
-renderSentAt :: TwilioMessage.T -> Html
-renderSentAt message =
-    let sentAt = get #createdAt message
-     in [hsx|
-            <time class="date-time" datetime={show sentAt}>
-                {show sentAt}
-            </time>
-        |]
-
-messageStatusClass :: TwilioMessage.Status -> Text
-messageStatusClass status =
-    case status of
-        TwilioMessage.Delivered -> "message-status delivered"
-        TwilioMessage.Received -> "message-status received"
-        TwilioMessage.Failed -> "message-status failed"
-        _ -> "message-status sending"
-
-renderScheduledFor :: SendMessageAction.T -> Html
-renderScheduledFor scheduledMessage =
-    let runsAt = get #runsAt scheduledMessage
-     in [hsx|
-            <time class="date-time" datetime={show runsAt}>
-                {show runsAt}
-            </time>
-        |]
-
-sendMessageFormOptions :: FormContext TwilioMessage -> FormContext TwilioMessage
-sendMessageFormOptions formContext =
-    formContext
-        |> set #formId "send-message-form"
-        |> set #formAction (pathTo CreateOutgoingPhoneMessageAction)
+renderFieldError :: Maybe Text -> Html
+renderFieldError Nothing = [hsx||]
+renderFieldError (Just errorMessage) =
+    [hsx| 
+        <div class="invalid-feedback">{errorMessage}</div>
+    |]
 
 styles :: Html
 styles =

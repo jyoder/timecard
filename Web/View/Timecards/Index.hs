@@ -204,7 +204,8 @@ renderInvoiceTranslationForm selectedPerson timecardEntry =
     formOptions formContext =
         formContext
             |> set #formId "edit-timecard-entry-form"
-            |> set #formAction (pathTo TimecardUpdateTimecardEntryAction)
+            |> set #formAction updateAction
+    updateAction = pathTo $ TimecardUpdateTimecardEntryAction $ get #id timecardEntry
     personSelectionAction = TimecardPersonSelectionAction (get #id selectedPerson)
 
 renderLastRow :: Double -> Html

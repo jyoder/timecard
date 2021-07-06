@@ -77,8 +77,7 @@ instance Controller TimecardsController where
         respondAndExit $ responseLBS status200 [(hContentType, "application/pdf")] pdf
 
     --
-    action TimecardUpdateTimecardEntryAction = do
-        let timecardEntryId = param @(Id TimecardEntry) "id"
+    action TimecardUpdateTimecardEntryAction {..} = do
         let invoiceTranslation = param @Text "invoiceTranslation"
 
         timecardEntry <- fetch timecardEntryId

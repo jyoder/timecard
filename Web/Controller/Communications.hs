@@ -164,12 +164,10 @@ instance Controller CommunicationsController where
                         redirectTo PersonSelectionAction {..}
                     )
     --
-    action UpdateTimecardEntryAction = do
+    action UpdateTimecardEntryAction {timecardEntryId} = do
         now <- getCurrentTime
         let selectedPersonId = param @(Id Person) "selectedPersonId"
         let selectedMessageIds = param @[Id TwilioMessage] "selectedMessageIds"
-
-        let timecardEntryId = param @(Id TimecardEntry) "timecardEntryId"
         timecardEntry <- fetch timecardEntryId
 
         timecardEntry
@@ -194,7 +192,7 @@ instance Controller CommunicationsController where
                         let personActivity = WorkingOnTimecardEntry {..}
                         let personSelection = PersonSelected {..}
 
-                        render IndexView {people, personSelection}
+                        render IndexView {..}
                     )
                     ( \timecardEntry ->
                         redirectTo PersonSelectionAction {..}
