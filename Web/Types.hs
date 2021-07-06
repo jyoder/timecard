@@ -52,31 +52,31 @@ data PhoneContactsController
 
 data CommunicationsController
     = CommunicationsAction
-    | PersonSelectionAction
+    | CommunicationsPersonSelectionAction
         { selectedPersonId :: !(Id Person)
         }
-    | NewTimecardEntryAction
+    | CommunicationsNewTimecardEntryAction
         { selectedPersonId :: !(Id Person)
         , selectedMessageIds :: ![Text]
         }
-    | EditTimecardEntryAction
+    | CommunicationsEditTimecardEntryAction
         { selectedPersonId :: !(Id Person)
         , timecardEntryId :: !(Id TimecardEntry)
         }
-    | EditModifiedTimecardEntryAction
+    | CommunicationsEditModifiedTimecardEntryAction
         { selectedPersonId :: !(Id Person)
         , timecardEntryId :: !(Id TimecardEntry)
         , selectedMessageIds :: ![Text]
         }
-    | CreateTimecardEntryAction
-    | UpdateTimecardEntryAction
+    | CommunicationsCreateTimecardEntryAction
+    | CommunicationsUpdateTimecardEntryAction
         { timecardEntryId :: !(Id TimecardEntry)
         }
-    | CreateOutgoingPhoneMessageAction
-    | CancelScheduledMessageAction
+    | CommunicationsSendPhoneMessageAction
+    | CommunicationsCancelScheduledMessageAction
         { sendMessageActionId :: !(Id SendMessageAction)
         }
-    | CreateTimecardReview
+    | CommunicationsCreateTimecardReview
     deriving (Eq, Show, Data)
 
 data TwilioCallbacksController

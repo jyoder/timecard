@@ -211,7 +211,7 @@ buildPeopleColumn IndexView {..} =
 buildPersonItem :: Bool -> Person -> PersonItem
 buildPersonItem isSelected person =
     PersonItem
-        { selectionAction = PersonSelectionAction $ get #id person
+        { selectionAction = CommunicationsPersonSelectionAction $ get #id person
         , activeClass = if isSelected then "active" else ""
         , ariaCurrent = if isSelected then "true" else "false"
         , firstName = get #firstName person
@@ -252,17 +252,25 @@ buildMessageItem selectedPerson personActivity selectedMessageIds message =
     messageStatusClass' = messageStatusClass $ get #status message
     messageStatus = show $ get #status message
     linkButtonAction = case personActivity of
-        SendingMessage {..} -> NewTimecardEntryAction {selectedMessageIds = toggledMessageIds, ..}
+        SendingMessage {..} ->
+            CommunicationsNewTimecardEntryAction
+                { selectedMessageIds = toggledMessageIds
+                , ..
+                }
         WorkingOnTimecardEntry {..} -> case timecardActivity of
-            CreatingEntry -> NewTimecardEntryAction {selectedMessageIds = toggledMessageIds, ..}
+            CreatingEntry ->
+                CommunicationsNewTimecardEntryAction
+                    { selectedMessageIds = toggledMessageIds
+                    , ..
+                    }
             EditingEntry ->
-                EditModifiedTimecardEntryAction
+                CommunicationsEditModifiedTimecardEntryAction
                     { selectedMessageIds = toggledMessageIds
                     , timecardEntryId = get #id timecardEntry
                     , ..
                     }
             EditingModifiedEntry ->
-                EditModifiedTimecardEntryAction
+                CommunicationsEditModifiedTimecardEntryAction
                     { selectedMessageIds = toggledMessageIds
                     , timecardEntryId = get #id timecardEntry
                     , ..
@@ -294,7 +302,7 @@ buildScheduledMessageItem scheduledMessage =
         , cancelAction = cancelAction
         }
   where
-    cancelAction = CancelScheduledMessageAction (get #id scheduledMessage)
+    cancelAction = CommunicationsCancelScheduledMessageAction (get #id scheduledMessage)
 
 buildSendMessageForm :: PhoneNumber -> SendMessageForm
 buildSendMessageForm toPhoneNumber =
@@ -374,7 +382,10 @@ buildTimecardEntryCard selectedPerson timecardEntry =
         , date = formatDay $ get #date timecardEntry
         , jobName = get #jobName timecardEntry
         , invoiceTranslation = get #invoiceTranslation timecardEntry
-        , editAction = EditTimecardEntryAction (get #id selectedPerson) (get #id timecardEntry)
+        , editAction =
+            CommunicationsEditTimecardEntryAction
+                (get #id selectedPerson)
+                (get #id timecardEntry)
         }
 
 buildTimecardEntryForm ::
@@ -408,7 +419,7 @@ buildTimecardEntryForm
             , selectedPersonIdParam = selectedPersonId
             , submitLabel = if timecardActivity == CreatingEntry then "Create" else "Update"
             , submitAction = if timecardActivity == CreatingEntry then createAction else updateAction
-            , cancelAction = PersonSelectionAction (get #id selectedPerson)
+            , cancelAction = CommunicationsPersonSelectionAction (get #id selectedPerson)
             }
       where
         hasErrorFor = isJust . errorFor
@@ -421,8 +432,8 @@ buildTimecardEntryForm
         selectedMessageIdsParam = intercalate "," (show . get #id <$> sortedMessages)
         sortedMessages = sortBy (\m1 m2 -> get #createdAt m1 `compare` get #createdAt m2) selectedMessages
         submitAction = if timecardActivity == CreatingEntry then createAction else updateAction
-        createAction = CreateTimecardEntryAction
-        updateAction = UpdateTimecardEntryAction $ get #id timecardEntry
+        createAction = CommunicationsCreateTimecardEntryAction
+        updateAction = CommunicationsUpdateTimecardEntryAction $ get #id timecardEntry
 
 assembleMessageBodies :: Text -> [Twilio.View.TwilioMessage] -> Text
 assembleMessageBodies existingText messages =
@@ -533,7 +544,7 @@ renderSendMessageForm SendMessageForm {..} =
         <div class="message-input">
             <form 
                 method="POST"
-                action={CreateOutgoingPhoneMessageAction}
+                action={CommunicationsSendPhoneMessageAction}
                 id="send-message-form" 
                 class="new-form"
                 data-disable-javascript-submission="false">
@@ -619,7 +630,7 @@ renderTimecardActions timecardActions =
         TimecardInProgress -> [hsx||]
         TimecardReadyForReview {..} ->
             [hsx|
-                <form action={CreateTimecardReview} method="post">
+                <form action={CommunicationsCreateTimecardReview} method="post">
                     <input type="hidden" name="selectedPersonId" value={selectedPersonId} />
                     <input type="hidden" name="timecardId" value={timecardId} />
                     <input type="submit" class="btn btn-outline-primary col-12" value="Send for Review">

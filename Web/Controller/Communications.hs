@@ -31,7 +31,7 @@ instance Controller CommunicationsController where
 
         render IndexView {..}
     --
-    action PersonSelectionAction {..} = autoRefresh do
+    action CommunicationsPersonSelectionAction {..} = autoRefresh do
         now <- getCurrentTime
         botId <- People.fetchBotId
         people <- People.fetchExcludingId botId
@@ -53,7 +53,7 @@ instance Controller CommunicationsController where
 
         render IndexView {..}
     --
-    action NewTimecardEntryAction {..} = autoRefresh do
+    action CommunicationsNewTimecardEntryAction {..} = autoRefresh do
         now <- getCurrentTime
         botId <- People.fetchBotId
         people <- People.fetchExcludingId botId
@@ -75,12 +75,12 @@ instance Controller CommunicationsController where
         let personSelection = PersonSelected {..}
 
         if null selectedMessageIds
-            then redirectTo PersonSelectionAction {..}
+            then redirectTo CommunicationsPersonSelectionAction {..}
             else render IndexView {..}
       where
         toLocalDay = localDay . utcToLocalTime companyTimeZone
     --
-    action EditTimecardEntryAction {..} = autoRefresh do
+    action CommunicationsEditTimecardEntryAction {..} = autoRefresh do
         now <- getCurrentTime
         botId <- People.fetchBotId
         people <- People.fetchExcludingId botId
@@ -101,17 +101,17 @@ instance Controller CommunicationsController where
         let personSelection = PersonSelected {..}
 
         if null selectedMessageIds
-            then redirectTo PersonSelectionAction {..}
+            then redirectTo CommunicationsPersonSelectionAction {..}
             else render IndexView {..}
     --
-    action EditModifiedTimecardEntryAction {..} = autoRefresh do
+    action CommunicationsEditModifiedTimecardEntryAction {..} = autoRefresh do
         now <- getCurrentTime
         botId <- People.fetchBotId
         people <- People.fetchExcludingId botId
         selectedPerson <- fetch selectedPersonId
 
-        messages <- Twilio.Query.fetchByPeople botId selectedPersonId
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
+        messages <- Twilio.Query.fetchByPeople botId selectedPersonId
         let selectedMessageIds = paramOrDefault @[Id TwilioMessage] [] "selectedMessageIds"
         let selectedMessages = findSelectedMessages messages selectedMessageIds
         scheduledMessages <- SendMessageAction.fetchAfterByPhoneNumber now (get #id toPhoneNumber)
@@ -124,10 +124,10 @@ instance Controller CommunicationsController where
         let personSelection = PersonSelected {..}
 
         if null selectedMessageIds
-            then redirectTo PersonSelectionAction {..}
+            then redirectTo CommunicationsPersonSelectionAction {..}
             else render IndexView {..}
     --
-    action CreateTimecardEntryAction = do
+    action CommunicationsCreateTimecardEntryAction = do
         let selectedPersonId = param @(Id Person) "selectedPersonId"
         let selectedMessageIds = param @[Id TwilioMessage] "selectedMessageIds"
 
@@ -163,10 +163,10 @@ instance Controller CommunicationsController where
                             selectedPerson
                             (get #id fromPhoneNumber)
                             (get #id toPhoneNumber)
-                        redirectTo PersonSelectionAction {..}
+                        redirectTo CommunicationsPersonSelectionAction {..}
                     )
     --
-    action UpdateTimecardEntryAction {timecardEntryId} = do
+    action CommunicationsUpdateTimecardEntryAction {timecardEntryId} = do
         now <- getCurrentTime
         let selectedPersonId = param @(Id Person) "selectedPersonId"
         let selectedMessageIds = param @[Id TwilioMessage] "selectedMessageIds"
@@ -197,10 +197,10 @@ instance Controller CommunicationsController where
                         render IndexView {..}
                     )
                     ( \timecardEntry ->
-                        redirectTo PersonSelectionAction {..}
+                        redirectTo CommunicationsPersonSelectionAction {..}
                     )
     --
-    action CreateOutgoingPhoneMessageAction = do
+    action CommunicationsSendPhoneMessageAction = do
         let toPhoneNumberId = Id (param "toId")
         toPhoneNumber <- fetchOne toPhoneNumberId
 
@@ -210,21 +210,21 @@ instance Controller CommunicationsController where
 
         let body = strip $ param "body"
         if body == ""
-            then redirectTo $ PersonSelectionAction (get #id toPerson)
+            then redirectTo $ CommunicationsPersonSelectionAction (get #id toPerson)
             else do
                 TwilioMessage.send fromPhoneNumber toPhoneNumber body
-                redirectTo $ PersonSelectionAction (get #id toPerson)
+                redirectTo $ CommunicationsPersonSelectionAction (get #id toPerson)
     --
-    action CancelScheduledMessageAction {..} = do
+    action CommunicationsCancelScheduledMessageAction {..} = do
         sendMessageAction <- fetch sendMessageActionId
         actionRunState <- fetch (get #actionRunStateId sendMessageAction)
         toPerson <- People.fetchByPhoneNumber (get #toId sendMessageAction)
 
         ActionRunState.updateCanceled actionRunState
 
-        redirectTo $ PersonSelectionAction (get #id toPerson)
+        redirectTo $ CommunicationsPersonSelectionAction (get #id toPerson)
     --
-    action CreateTimecardReview = do
+    action CommunicationsCreateTimecardReview = do
         let selectedPersonId = param @(Id Person) "selectedPersonId"
         let timecardId = param @(Id Timecard) "timecardId"
 
@@ -232,7 +232,7 @@ instance Controller CommunicationsController where
         let expiresAt = Timecard.AccessToken.expirationFrom now
         Timecard.AccessToken.create expiresAt timecardId
 
-        redirectTo $ PersonSelectionAction selectedPersonId
+        redirectTo $ CommunicationsPersonSelectionAction selectedPersonId
 
 findSelectedMessages ::
     [Twilio.View.TwilioMessage] ->
