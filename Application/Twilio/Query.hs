@@ -1,4 +1,8 @@
-module Application.Twilio.Query where
+module Application.Twilio.Query (
+    Row (..),
+    Status (..),
+    fetchByPeople,
+) where
 
 import Data.ByteString.UTF8 (toString)
 import "string-interpolate" Data.String.Interpolate (i)
@@ -81,8 +85,8 @@ messagesQuery =
 select
     twilio_messages.id,
     (case when twilio_messages.from_id = phone_numbers_a.id
-          then phone_number_a.number
-          else phone_number_b.number
+          then phone_numbers_a.number
+          else phone_numbers_b.number
     end) from_phone_number,
     (case when twilio_messages.from_id = phone_numbers_a.id
           then people_a.first_name
@@ -93,8 +97,8 @@ select
           else people_b.last_name
     end) from_last_name,
     (case when twilio_messages.to_id = phone_numbers_a.id
-          then phone_number_a.number
-          else phone_number_b.number
+          then phone_numbers_a.number
+          else phone_numbers_b.number
     end) to_phone_number,
     (case when twilio_messages.to_id = phone_numbers_a.id
           then people_a.first_name

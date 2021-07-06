@@ -13,7 +13,9 @@ import qualified Application.Timecard.EntryRequest as Timecard.EntryRequest
 import qualified Application.Timecard.Query as Timecard.Query
 import qualified Application.Timecard.Timecard as Timecard
 import qualified Application.Timecard.View as Timecard.View
+import qualified Application.Twilio.Query as Twilio.Query
 import qualified Application.Twilio.TwilioMessage as TwilioMessage
+import qualified Application.Twilio.View as Twilio.View
 import Data.Text (strip)
 import Text.Read (read)
 import Web.Controller.Prelude
@@ -35,7 +37,7 @@ instance Controller CommunicationsController where
         people <- People.fetchExcludingId botId
         selectedPerson <- fetch selectedPersonId
 
-        messages <- TwilioMessage.fetchByPeople botId selectedPersonId
+        messages <- Twilio.Query.fetchByPeople botId selectedPersonId
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
         scheduledMessages <- SendMessageAction.fetchAfterByPhoneNumber now (get #id toPhoneNumber)
         let newMessage = newRecord @TwilioMessage
@@ -57,7 +59,7 @@ instance Controller CommunicationsController where
         people <- People.fetchExcludingId botId
         selectedPerson <- fetch selectedPersonId
 
-        messages <- TwilioMessage.fetchByPeople botId selectedPersonId
+        messages <- Twilio.Query.fetchByPeople botId selectedPersonId
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
         let selectedMessageIds = paramOrDefault @[Id TwilioMessage] [] "selectedMessageIds"
         let selectedMessages = findSelectedMessages messages selectedMessageIds
@@ -85,7 +87,7 @@ instance Controller CommunicationsController where
         selectedPerson <- fetch selectedPersonId
 
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
-        messages <- TwilioMessage.fetchByPeople botId selectedPersonId
+        messages <- Twilio.Query.fetchByPeople botId selectedPersonId
         timecardEntryMessages <- Timecard.EntryMessage.fetchByTimecardEntry timecardEntryId
         let selectedMessageIds = map (get #twilioMessageId) timecardEntryMessages
         let selectedMessages = findSelectedMessages messages selectedMessageIds
@@ -108,7 +110,7 @@ instance Controller CommunicationsController where
         people <- People.fetchExcludingId botId
         selectedPerson <- fetch selectedPersonId
 
-        messages <- TwilioMessage.fetchByPeople botId selectedPersonId
+        messages <- Twilio.Query.fetchByPeople botId selectedPersonId
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
         let selectedMessageIds = paramOrDefault @[Id TwilioMessage] [] "selectedMessageIds"
         let selectedMessages = findSelectedMessages messages selectedMessageIds
@@ -140,7 +142,7 @@ instance Controller CommunicationsController where
                 >>= either
                     ( \timecardEntry -> do
                         people <- People.fetchExcludingId botId
-                        messages <- TwilioMessage.fetchByPeople botId selectedPersonId
+                        messages <- Twilio.Query.fetchByPeople botId selectedPersonId
                         let selectedMessages = findSelectedMessages messages selectedMessageIds
                         scheduledMessages <-
                             SendMessageAction.fetchAfterByPhoneNumber now (get #id toPhoneNumber)
@@ -179,7 +181,7 @@ instance Controller CommunicationsController where
                         people <- People.fetchExcludingId botId
                         selectedPerson <- fetch selectedPersonId
 
-                        messages <- TwilioMessage.fetchByPeople botId selectedPersonId
+                        messages <- Twilio.Query.fetchByPeople botId selectedPersonId
                         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
                         let selectedMessages = findSelectedMessages messages selectedMessageIds
                         scheduledMessages <-
@@ -233,9 +235,9 @@ instance Controller CommunicationsController where
         redirectTo $ PersonSelectionAction selectedPersonId
 
 findSelectedMessages ::
-    [TwilioMessage.T] ->
+    [Twilio.View.TwilioMessage] ->
     [Id TwilioMessage] ->
-    [TwilioMessage.T]
+    [Twilio.View.TwilioMessage]
 findSelectedMessages messages selectedMessageIds =
     catMaybes $ findMessage <$> selectedMessageIds
   where

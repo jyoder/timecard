@@ -2,7 +2,7 @@ module Web.View.Communications.Index where
 
 import qualified Application.Action.SendMessageAction as SendMessageAction
 import qualified Application.Timecard.View as V
-import qualified Application.Twilio.TwilioMessage as TwilioMessage
+import qualified Application.Twilio.View as Twilio.View
 import Web.View.Navigation (Section (Communications), renderNavigation)
 import Web.View.Prelude
 import Web.View.Service.Style (removeScrollbars)
@@ -17,7 +17,7 @@ data PersonSelection
     = NoPersonSelected
     | PersonSelected
         { selectedPerson :: !Person
-        , messages :: ![TwilioMessage.T]
+        , messages :: ![Twilio.View.TwilioMessage]
         , toPhoneNumber :: !PhoneNumber
         , scheduledMessages :: ![SendMessageAction.T]
         , newMessage :: !TwilioMessage
@@ -30,7 +30,7 @@ data PersonActivity
         }
     | WorkingOnTimecardEntry
         { timecardEntry :: !TimecardEntry
-        , selectedMessages :: ![TwilioMessage.T]
+        , selectedMessages :: ![Twilio.View.TwilioMessage]
         , timecardActivity :: TimecardActivity
         }
 
@@ -229,17 +229,17 @@ buildMessagesColumn IndexView {..} =
                 , sendMessageForm = buildSendMessageForm toPhoneNumber
                 }
 
-buildMessageItems :: Person -> PersonActivity -> [TwilioMessage.T] -> [MessageItem]
+buildMessageItems :: Person -> PersonActivity -> [Twilio.View.TwilioMessage] -> [MessageItem]
 buildMessageItems selectedPerson personActivity messages =
     let selectedMessageIds = case personActivity of
             SendingMessage {..} -> []
             WorkingOnTimecardEntry {..} -> get #id <$> selectedMessages
      in buildMessageItem selectedPerson personActivity selectedMessageIds <$> messages
 
-buildMessageItem :: Person -> PersonActivity -> [Id TwilioMessage] -> TwilioMessage.T -> MessageItem
+buildMessageItem :: Person -> PersonActivity -> [Id TwilioMessage] -> Twilio.View.TwilioMessage -> MessageItem
 buildMessageItem selectedPerson personActivity selectedMessageIds message =
     MessageItem
-        { fromName = get #fromName message
+        { fromName = get #fromFirstName message <> " " <> get #fromLastName message
         , sentAt = show $ get #createdAt message
         , body = get #body message
         , statusClass = messageStatusClass'
@@ -274,12 +274,12 @@ buildMessageItem selectedPerson personActivity selectedMessageIds message =
     includeMessageId = messageId : selectedMessageIds
     messageId = get #id message
 
-messageStatusClass :: TwilioMessage.Status -> Text
+messageStatusClass :: Twilio.View.Status -> Text
 messageStatusClass status =
     case status of
-        TwilioMessage.Delivered -> "message-status delivered"
-        TwilioMessage.Received -> "message-status received"
-        TwilioMessage.Failed -> "message-status failed"
+        Twilio.View.Delivered -> "message-status delivered"
+        Twilio.View.Received -> "message-status received"
+        Twilio.View.Failed -> "message-status failed"
         _ -> "message-status sending"
 
 buildScheduledMessageItems :: [SendMessageAction.T] -> [ScheduledMessageItem]
@@ -379,7 +379,7 @@ buildTimecardEntryCard selectedPerson timecardEntry =
 
 buildTimecardEntryForm ::
     Person ->
-    [TwilioMessage.T] ->
+    [Twilio.View.TwilioMessage] ->
     TimecardActivity ->
     TimecardEntry ->
     TimecardEntryForm
@@ -424,7 +424,7 @@ buildTimecardEntryForm
         createAction = CreateTimecardEntryAction
         updateAction = UpdateTimecardEntryAction $ get #id timecardEntry
 
-assembleMessageBodies :: Text -> [TwilioMessage.T] -> Text
+assembleMessageBodies :: Text -> [Twilio.View.TwilioMessage] -> Text
 assembleMessageBodies existingText messages =
     if existingText == ""
         then intercalate "\n\n" (get #body <$> messages)

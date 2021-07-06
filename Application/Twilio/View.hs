@@ -1,5 +1,9 @@
-module Application.Twilio.View where
+module Application.Twilio.View (
+    TwilioMessage (..),
+    Row (..),
+    Status (..),
+) where
 
-import Application.Twilio.Query (Row (..))
+import Application.Twilio.Query (Row (..), Status (..))
 
 type TwilioMessage = Row
