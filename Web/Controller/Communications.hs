@@ -15,7 +15,6 @@ import qualified Application.Timecard.Timecard as Timecard
 import qualified Application.Timecard.View as Timecard.View
 import qualified Application.Twilio.Query as Twilio.Query
 import qualified Application.Twilio.TwilioMessage as TwilioMessage
-import qualified Application.Twilio.View as Twilio.View
 import Data.Text (strip)
 import Text.Read (read)
 import Web.Controller.Prelude
@@ -235,9 +234,9 @@ instance Controller CommunicationsController where
         redirectTo $ CommunicationsPersonSelectionAction selectedPersonId
 
 findSelectedMessages ::
-    [Twilio.View.TwilioMessage] ->
+    [Twilio.Query.Row] ->
     [Id TwilioMessage] ->
-    [Twilio.View.TwilioMessage]
+    [Twilio.Query.Row]
 findSelectedMessages messages selectedMessageIds =
     catMaybes $ findMessage <$> selectedMessageIds
   where
