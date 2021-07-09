@@ -13,7 +13,7 @@ import qualified Web.View.Communications.Index as Index
 spec :: Spec
 spec = do
     describe "buildMessagesColumn" $ do
-        it "" $ do
+        it "returns a visible messages column when a person is selected" $ do
             let person =
                     newRecord @Person
                         |> set #id "10000000-0000-0000-0000-000000000000"
@@ -134,6 +134,18 @@ spec = do
                             { toPhoneNumberId = "20000000-0000-0000-0000-000000000000"
                             }
                     }
+
+        it "returns a non-visible messages column when no person is selected" $ do
+            let person =
+                    newRecord @Person
+                        |> set #id "10000000-0000-0000-0000-000000000000"
+
+            let people = [person]
+
+            let personSelection = Index.NoPersonSelected
+
+            Index.buildMessagesColumn Index.IndexView {..}
+                `shouldBe` Index.MessagesColumnNotVisible
 
     describe "buildMessageItems" $ do
         it "returns a list of messages that are currently linked when we are editing a timecard entry" $ do
