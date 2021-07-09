@@ -226,7 +226,7 @@ buildMessagesColumn IndexView {..} =
         PersonSelected {..} ->
             MessagesColumnVisible
                 { messageItems = buildMessageItems selectedPerson personActivity messages
-                , scheduledMessageItems = buildScheduledMessageItems scheduledMessages
+                , scheduledMessageItems = buildScheduledMessageItem <$> scheduledMessages
                 , sendMessageForm = buildSendMessageForm toPhoneNumber
                 }
 
@@ -296,10 +296,6 @@ messageStatusClass status =
         Twilio.Query.Failed -> "message-status failed"
         _ -> "message-status sending"
 
-buildScheduledMessageItems :: [SendMessageAction.T] -> [ScheduledMessageItem]
-buildScheduledMessageItems scheduledMessages =
-    buildScheduledMessageItem <$> scheduledMessages
-
 buildScheduledMessageItem :: SendMessageAction.T -> ScheduledMessageItem
 buildScheduledMessageItem scheduledMessage =
     ScheduledMessageItem
@@ -339,7 +335,7 @@ buildTimecardBlock selectedPerson timecard =
     TimecardBlock
         { weekOf = formatDay $ get #weekOf timecard
         , status = timecardStatus (get #status timecard)
-        , actions = timecardActions selectedPerson timecard
+        , actions = buildTimecardActions selectedPerson timecard
         , entryCards = buildTimecardEntryCard selectedPerson <$> get #entries timecard
         }
 
@@ -366,8 +362,8 @@ timecardStatusLabel =
         V.TimecardUnderReview _ -> "Under Review"
         V.TimecardSigned _ -> "Signed"
 
-timecardActions :: Person -> V.Timecard -> TimecardActions
-timecardActions selectedPerson timecard =
+buildTimecardActions :: Person -> V.Timecard -> TimecardActions
+buildTimecardActions selectedPerson timecard =
     case get #status timecard of
         V.TimecardInProgress -> TimecardInProgress
         V.TimecardReadyForReview ->

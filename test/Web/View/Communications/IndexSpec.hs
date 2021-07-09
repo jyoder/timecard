@@ -1,5 +1,6 @@
 module Web.View.Communications.IndexSpec where
 
+import qualified Application.Action.SendMessageAction as SendMessageAction
 import qualified Application.Timecard.View as Timecard.View
 import qualified Application.Twilio.Query as Twilio.Query
 import Generated.Types
@@ -11,6 +12,872 @@ import qualified Web.View.Communications.Index as Index
 
 spec :: Spec
 spec = do
+    describe "buildMessagesColumn" $ do
+        it "" $ do
+            let person =
+                    newRecord @Person
+                        |> set #id "10000000-0000-0000-0000-000000000000"
+
+            let people = [person]
+
+            let phoneNumber =
+                    newRecord @PhoneNumber
+                        |> set #id "20000000-0000-0000-0000-000000000000"
+
+            let timecardEntry =
+                    Timecard.View.TimecardEntry
+                        { id = "30000000-0000-0000-0000-000000000000"
+                        , date = toDay "2021-06-23"
+                        , jobName = "job name"
+                        , hoursWorked = 5.5
+                        , workDone = "work done"
+                        , invoiceTranslation = "invoice translation"
+                        }
+
+            let personActivity = Index.SendingMessage {timecards = []}
+
+            let twilioMessage1 =
+                    Twilio.Query.Row
+                        { id = "40000000-0000-0000-0000-000000000000"
+                        , fromPhoneNumber = "+15555555555"
+                        , fromFirstName = "Barbara"
+                        , fromLastName = "Bush"
+                        , toPhoneNumber = "+16666666666"
+                        , toFirstName = "Jackie"
+                        , toLastName = "Kennedy"
+                        , createdAt = toUtc "2021-06-23 15:29:00 PDT"
+                        , status = Twilio.Query.Delivered
+                        , body = "What's up?"
+                        }
+
+            let twilioMessage2 =
+                    Twilio.Query.Row
+                        { id = "50000000-0000-0000-0000-000000000000"
+                        , fromPhoneNumber = "+16666666666"
+                        , fromFirstName = "Jackie"
+                        , fromLastName = "Kennedy"
+                        , toPhoneNumber = "+15555555555"
+                        , toFirstName = "Barbara"
+                        , toLastName = "Bush"
+                        , createdAt = toUtc "2021-06-23 15:30:00 PDT"
+                        , status = Twilio.Query.Delivered
+                        , body = "Not much."
+                        }
+
+            let scheduledMessage =
+                    SendMessageAction.T
+                        { id = "60000000-0000-0000-0000-000000000000"
+                        , actionRunStateId = "20000000-0000-0000-0000-000000000000"
+                        , state = "not_running"
+                        , runsAt = toUtc "2021-06-23 15:30:00 PDT"
+                        , body = "Hello World!"
+                        , fromId = "30000000-0000-0000-0000-000000000000"
+                        , fromNumber = "+15555555555"
+                        , toId = "40000000-0000-0000-0000-000000000000"
+                        , toNumber = "+16666666666"
+                        }
+
+            let personSelection =
+                    Index.PersonSelected
+                        { selectedPerson = person
+                        , messages = [twilioMessage1, twilioMessage2]
+                        , toPhoneNumber = phoneNumber
+                        , scheduledMessages = [scheduledMessage]
+                        , newMessage = newRecord @TwilioMessage
+                        , personActivity = personActivity
+                        }
+
+            Index.buildMessagesColumn Index.IndexView {..}
+                `shouldBe` Index.MessagesColumnVisible
+                    { messageItems =
+                        [ Index.MessageItem
+                            { fromName = "Barbara Bush"
+                            , sentAt = "2021-06-23 22:29:00 UTC"
+                            , body = "What's up?"
+                            , statusClass = "message-status delivered"
+                            , status = "Delivered"
+                            , linkButtonActiveClass = ""
+                            , linkButtonText = "Link"
+                            , linkButtonAction =
+                                CommunicationsNewTimecardEntryAction
+                                    { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                                    , selectedMessageIds = ["40000000-0000-0000-0000-000000000000"]
+                                    }
+                            }
+                        , Index.MessageItem
+                            { fromName = "Jackie Kennedy"
+                            , sentAt = "2021-06-23 22:30:00 UTC"
+                            , body = "Not much."
+                            , statusClass = "message-status delivered"
+                            , status = "Delivered"
+                            , linkButtonActiveClass = ""
+                            , linkButtonText = "Link"
+                            , linkButtonAction =
+                                CommunicationsNewTimecardEntryAction
+                                    { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                                    , selectedMessageIds = ["50000000-0000-0000-0000-000000000000"]
+                                    }
+                            }
+                        ]
+                    , scheduledMessageItems =
+                        [ Index.ScheduledMessageItem
+                            { runsAt = "2021-06-23 22:30:00 UTC"
+                            , body = "Hello World!"
+                            , cancelAction =
+                                CommunicationsCancelScheduledMessageAction
+                                    { sendMessageActionId = "60000000-0000-0000-0000-000000000000"
+                                    }
+                            }
+                        ]
+                    , sendMessageForm =
+                        Index.SendMessageForm
+                            { toPhoneNumberId = "20000000-0000-0000-0000-000000000000"
+                            }
+                    }
+
+    describe "buildMessageItems" $ do
+        it "returns a list of messages that are currently linked when we are editing a timecard entry" $ do
+            let person =
+                    newRecord @Person
+                        |> set #id "10000000-0000-0000-0000-000000000000"
+
+            let timecardEntry =
+                    Timecard.View.TimecardEntry
+                        { id = "20000000-0000-0000-0000-000000000000"
+                        , date = toDay "2021-06-23"
+                        , jobName = "job name"
+                        , hoursWorked = 5.5
+                        , workDone = "work done"
+                        , invoiceTranslation = "invoice translation"
+                        }
+
+            let personActivity = Index.SendingMessage {timecards = []}
+
+            let twilioMessage1 =
+                    Twilio.Query.Row
+                        { id = "30000000-0000-0000-0000-000000000000"
+                        , fromPhoneNumber = "+15555555555"
+                        , fromFirstName = "Barbara"
+                        , fromLastName = "Bush"
+                        , toPhoneNumber = "+16666666666"
+                        , toFirstName = "Jackie"
+                        , toLastName = "Kennedy"
+                        , createdAt = toUtc "2021-06-23 15:29:00 PDT"
+                        , status = Twilio.Query.Delivered
+                        , body = "What's up?"
+                        }
+
+            let twilioMessage2 =
+                    Twilio.Query.Row
+                        { id = "40000000-0000-0000-0000-000000000000"
+                        , fromPhoneNumber = "+16666666666"
+                        , fromFirstName = "Jackie"
+                        , fromLastName = "Kennedy"
+                        , toPhoneNumber = "+15555555555"
+                        , toFirstName = "Barbara"
+                        , toLastName = "Bush"
+                        , createdAt = toUtc "2021-06-23 15:30:00 PDT"
+                        , status = Twilio.Query.Delivered
+                        , body = "Not much."
+                        }
+
+            Index.buildMessageItems
+                person
+                personActivity
+                [twilioMessage1, twilioMessage2]
+                `shouldBe` [ Index.MessageItem
+                                { fromName = "Barbara Bush"
+                                , sentAt = "2021-06-23 22:29:00 UTC"
+                                , body = "What's up?"
+                                , statusClass = "message-status delivered"
+                                , status = "Delivered"
+                                , linkButtonActiveClass = ""
+                                , linkButtonText = "Link"
+                                , linkButtonAction =
+                                    CommunicationsNewTimecardEntryAction
+                                        { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                                        , selectedMessageIds =
+                                            [ "30000000-0000-0000-0000-000000000000"
+                                            ]
+                                        }
+                                }
+                           , Index.MessageItem
+                                { fromName = "Jackie Kennedy"
+                                , sentAt = "2021-06-23 22:30:00 UTC"
+                                , body = "Not much."
+                                , statusClass = "message-status delivered"
+                                , status = "Delivered"
+                                , linkButtonActiveClass = ""
+                                , linkButtonText = "Link"
+                                , linkButtonAction =
+                                    CommunicationsNewTimecardEntryAction
+                                        { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                                        , selectedMessageIds = ["40000000-0000-0000-0000-000000000000"]
+                                        }
+                                }
+                           ]
+
+        it "returns a list of unlinked message items when we are in sending message mode" $ do
+            let person =
+                    newRecord @Person
+                        |> set #id "10000000-0000-0000-0000-000000000000"
+
+            let timecardEntry =
+                    newRecord @TimecardEntry
+                        |> set #id "20000000-0000-0000-0000-000000000000"
+
+            let twilioMessage1 =
+                    Twilio.Query.Row
+                        { id = "30000000-0000-0000-0000-000000000000"
+                        , fromPhoneNumber = "+15555555555"
+                        , fromFirstName = "Barbara"
+                        , fromLastName = "Bush"
+                        , toPhoneNumber = "+16666666666"
+                        , toFirstName = "Jackie"
+                        , toLastName = "Kennedy"
+                        , createdAt = toUtc "2021-06-23 15:29:00 PDT"
+                        , status = Twilio.Query.Delivered
+                        , body = "What's up?"
+                        }
+
+            let twilioMessage2 =
+                    Twilio.Query.Row
+                        { id = "40000000-0000-0000-0000-000000000000"
+                        , fromPhoneNumber = "+16666666666"
+                        , fromFirstName = "Jackie"
+                        , fromLastName = "Kennedy"
+                        , toPhoneNumber = "+15555555555"
+                        , toFirstName = "Barbara"
+                        , toLastName = "Bush"
+                        , createdAt = toUtc "2021-06-23 15:30:00 PDT"
+                        , status = Twilio.Query.Delivered
+                        , body = "Not much."
+                        }
+
+            let personActivity =
+                    Index.WorkingOnTimecardEntry
+                        { timecardEntry = timecardEntry
+                        , selectedMessages = [twilioMessage2]
+                        , timecardActivity = Index.CreatingEntry
+                        }
+
+            Index.buildMessageItems
+                person
+                personActivity
+                [twilioMessage1, twilioMessage2]
+                `shouldBe` [ Index.MessageItem
+                                { fromName = "Barbara Bush"
+                                , sentAt = "2021-06-23 22:29:00 UTC"
+                                , body = "What's up?"
+                                , statusClass = "message-status delivered"
+                                , status = "Delivered"
+                                , linkButtonActiveClass = ""
+                                , linkButtonText = "Link"
+                                , linkButtonAction =
+                                    CommunicationsNewTimecardEntryAction
+                                        { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                                        , selectedMessageIds = ["30000000-0000-0000-0000-000000000000", "40000000-0000-0000-0000-000000000000"]
+                                        }
+                                }
+                           , Index.MessageItem
+                                { fromName = "Jackie Kennedy"
+                                , sentAt = "2021-06-23 22:30:00 UTC"
+                                , body = "Not much."
+                                , statusClass = "message-status delivered"
+                                , status = "Delivered"
+                                , linkButtonActiveClass = "active"
+                                , linkButtonText = "Unlink"
+                                , linkButtonAction =
+                                    CommunicationsNewTimecardEntryAction
+                                        { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                                        , selectedMessageIds = []
+                                        }
+                                }
+                           ]
+
+    describe "buildMessageItem" $ do
+        it "returns a message item with a link to create a new timecard entry when we are in sending message mode" $ do
+            let person =
+                    newRecord @Person
+                        |> set #id "10000000-0000-0000-0000-000000000000"
+
+            let timecardEntry =
+                    newRecord @TimecardEntry
+                        |> set #id "20000000-0000-0000-0000-000000000000"
+
+            let twilioMessage =
+                    Twilio.Query.Row
+                        { id = "30000000-0000-0000-0000-000000000000"
+                        , fromPhoneNumber = "+15555555555"
+                        , fromFirstName = "Barbara"
+                        , fromLastName = "Bush"
+                        , toPhoneNumber = "+16666666666"
+                        , toFirstName = "Jackie"
+                        , toLastName = "Kennedy"
+                        , createdAt = toUtc "2021-06-23 15:29:00 PDT"
+                        , status = Twilio.Query.Delivered
+                        , body = "What's up?"
+                        }
+
+            let personActivity = Index.SendingMessage {timecards = []}
+
+            Index.buildMessageItem
+                person
+                personActivity
+                [ "30000000-0000-0000-0000-000000000000"
+                ]
+                twilioMessage
+                `shouldBe` Index.MessageItem
+                    { fromName = "Barbara Bush"
+                    , sentAt = "2021-06-23 22:29:00 UTC"
+                    , body = "What's up?"
+                    , statusClass = "message-status delivered"
+                    , status = "Delivered"
+                    , linkButtonActiveClass = "active"
+                    , linkButtonText = "Unlink"
+                    , linkButtonAction =
+                        CommunicationsNewTimecardEntryAction
+                            { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                            , selectedMessageIds = []
+                            }
+                    }
+
+        it "returns a message item with a link to create a new timecard entry when we are editing a timecard entry" $ do
+            let person =
+                    newRecord @Person
+                        |> set #id "10000000-0000-0000-0000-000000000000"
+
+            let timecardEntry =
+                    newRecord @TimecardEntry
+                        |> set #id "20000000-0000-0000-0000-000000000000"
+
+            let twilioMessage =
+                    Twilio.Query.Row
+                        { id = "30000000-0000-0000-0000-000000000000"
+                        , fromPhoneNumber = "+15555555555"
+                        , fromFirstName = "Barbara"
+                        , fromLastName = "Bush"
+                        , toPhoneNumber = "+16666666666"
+                        , toFirstName = "Jackie"
+                        , toLastName = "Kennedy"
+                        , createdAt = toUtc "2021-06-23 15:29:00 PDT"
+                        , status = Twilio.Query.Delivered
+                        , body = "What's up?"
+                        }
+
+            let personActivity =
+                    Index.WorkingOnTimecardEntry
+                        { timecardEntry = timecardEntry
+                        , selectedMessages = [twilioMessage]
+                        , timecardActivity = Index.CreatingEntry
+                        }
+
+            Index.buildMessageItem
+                person
+                personActivity
+                [ "40000000-0000-0000-0000-000000000000"
+                ]
+                twilioMessage
+                `shouldBe` Index.MessageItem
+                    { fromName = "Barbara Bush"
+                    , sentAt = "2021-06-23 22:29:00 UTC"
+                    , body = "What's up?"
+                    , statusClass = "message-status delivered"
+                    , status = "Delivered"
+                    , linkButtonActiveClass = ""
+                    , linkButtonText = "Link"
+                    , linkButtonAction =
+                        CommunicationsNewTimecardEntryAction
+                            { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                            , selectedMessageIds =
+                                [ "30000000-0000-0000-0000-000000000000"
+                                , "40000000-0000-0000-0000-000000000000"
+                                ]
+                            }
+                    }
+
+        it "returns a message to unlink the message if it is currently linked" $ do
+            let person =
+                    newRecord @Person
+                        |> set #id "10000000-0000-0000-0000-000000000000"
+
+            let timecardEntry =
+                    newRecord @TimecardEntry
+                        |> set #id "20000000-0000-0000-0000-000000000000"
+
+            let twilioMessage =
+                    Twilio.Query.Row
+                        { id = "30000000-0000-0000-0000-000000000000"
+                        , fromPhoneNumber = "+15555555555"
+                        , fromFirstName = "Barbara"
+                        , fromLastName = "Bush"
+                        , toPhoneNumber = "+16666666666"
+                        , toFirstName = "Jackie"
+                        , toLastName = "Kennedy"
+                        , createdAt = toUtc "2021-06-23 15:29:00 PDT"
+                        , status = Twilio.Query.Delivered
+                        , body = "What's up?"
+                        }
+
+            let personActivity =
+                    Index.WorkingOnTimecardEntry
+                        { timecardEntry = timecardEntry
+                        , selectedMessages = [twilioMessage]
+                        , timecardActivity = Index.CreatingEntry
+                        }
+
+            Index.buildMessageItem
+                person
+                personActivity
+                [ "30000000-0000-0000-0000-000000000000"
+                , "40000000-0000-0000-0000-000000000000"
+                ]
+                twilioMessage
+                `shouldBe` Index.MessageItem
+                    { fromName = "Barbara Bush"
+                    , sentAt = "2021-06-23 22:29:00 UTC"
+                    , body = "What's up?"
+                    , statusClass = "message-status delivered"
+                    , status = "Delivered"
+                    , linkButtonActiveClass = "active"
+                    , linkButtonText = "Unlink"
+                    , linkButtonAction =
+                        CommunicationsNewTimecardEntryAction
+                            { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                            , selectedMessageIds = ["40000000-0000-0000-0000-000000000000"]
+                            }
+                    }
+
+    describe "messageStatusClass" $ do
+        it "returns a delivered message status class when the message has been delivered" $ do
+            Index.messageStatusClass Twilio.Query.Delivered
+                `shouldBe` "message-status delivered"
+
+        it "returns a received message status class when the message has been received" $ do
+            Index.messageStatusClass Twilio.Query.Received
+                `shouldBe` "message-status received"
+
+        it "returns a failed message status class when the message has failed to send" $ do
+            Index.messageStatusClass Twilio.Query.Failed
+                `shouldBe` "message-status failed"
+
+        it "returns a sending message status class for other statuses" $ do
+            Index.messageStatusClass Twilio.Query.Queued
+                `shouldBe` "message-status sending"
+
+    describe "buildScheduledMessageItem" $ do
+        it "returns a scheduled message item based on the given parameters" $ do
+            let sendMessageAction =
+                    SendMessageAction.T
+                        { id = "10000000-0000-0000-0000-000000000000"
+                        , actionRunStateId = "20000000-0000-0000-0000-000000000000"
+                        , state = "not_running"
+                        , runsAt = toUtc "2021-06-23 15:30:00 PDT"
+                        , body = "Hello World!"
+                        , fromId = "30000000-0000-0000-0000-000000000000"
+                        , fromNumber = "+15555555555"
+                        , toId = "40000000-0000-0000-0000-000000000000"
+                        , toNumber = "+16666666666"
+                        }
+
+            Index.buildScheduledMessageItem sendMessageAction
+                `shouldBe` Index.ScheduledMessageItem
+                    { runsAt = "2021-06-23 22:30:00 UTC"
+                    , body = "Hello World!"
+                    , cancelAction =
+                        CommunicationsCancelScheduledMessageAction
+                            "10000000-0000-0000-0000-000000000000"
+                    }
+
+    describe "buildSendMessageForm" $ do
+        it "returns a send message form based on the given parameters" $ do
+            let phoneNumber =
+                    newRecord @PhoneNumber
+                        |> set #id "10000000-0000-0000-0000-000000000000"
+
+            Index.buildSendMessageForm phoneNumber
+                `shouldBe` Index.SendMessageForm
+                    { toPhoneNumberId = "10000000-0000-0000-0000-000000000000"
+                    }
+
+    describe "buildTimecardColumn" $ do
+        it "returns a timecard column with timecard blocks when we are in message sending mode" $ do
+            let person =
+                    newRecord @Person
+                        |> set #id "10000000-0000-0000-0000-000000000000"
+
+            let people = [person]
+
+            let timecardEntry =
+                    Timecard.View.TimecardEntry
+                        { id = "20000000-0000-0000-0000-000000000000"
+                        , date = toDay "2021-06-23"
+                        , jobName = "job name"
+                        , hoursWorked = 5.5
+                        , workDone = "work done"
+                        , invoiceTranslation = "invoice translation"
+                        }
+
+            let timecard =
+                    Timecard.View.Timecard
+                        { id = "30000000-0000-0000-0000-000000000000"
+                        , personId = "40000000-0000-0000-0000-000000000000"
+                        , weekOf = toDay "2021-06-21"
+                        , status = Timecard.View.TimecardInProgress
+                        , entries = [timecardEntry]
+                        }
+
+            let personSelection =
+                    Index.PersonSelected
+                        { selectedPerson = person
+                        , messages = []
+                        , toPhoneNumber = newRecord @PhoneNumber
+                        , scheduledMessages = []
+                        , newMessage = newRecord @TwilioMessage
+                        , personActivity =
+                            Index.SendingMessage
+                                { timecards = [timecard]
+                                }
+                        }
+            Index.buildTimecardColumn Index.IndexView {..}
+                `shouldBe` Index.TimecardList
+                    [ Index.TimecardBlock
+                        { weekOf = "06/21/2021"
+                        , status =
+                            Index.TimecardStatus
+                                { statusClasses = "badge badge-pill badge-secondary"
+                                , statusLabel = "In Progress"
+                                }
+                        , actions = Index.TimecardInProgress
+                        , entryCards =
+                            [ Index.TimecardEntryCard
+                                { dayOfWeek' = "Wednesday"
+                                , date = "06/23/2021"
+                                , jobName = "job name"
+                                , invoiceTranslation = "invoice translation"
+                                , editAction =
+                                    CommunicationsEditTimecardEntryAction
+                                        { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                                        , timecardEntryId = "20000000-0000-0000-0000-000000000000"
+                                        }
+                                }
+                            ]
+                        }
+                    ]
+
+        it "returns a timecard column with a timecard entry form when we are linking messages" $ do
+            let person =
+                    newRecord @Person
+                        |> set #id "10000000-0000-0000-0000-000000000000"
+
+            let people = [person]
+
+            let timecardEntry =
+                    newRecord @TimecardEntry
+                        |> set #id "20000000-0000-0000-0000-000000000000"
+                        |> set #date (toDay "2021-06-21")
+
+            let twilioMessage =
+                    Twilio.Query.Row
+                        { id = "30000000-0000-0000-0000-000000000000"
+                        , fromPhoneNumber = "+15555555555"
+                        , fromFirstName = "Barbara"
+                        , fromLastName = "Bush"
+                        , toPhoneNumber = "+16666666666"
+                        , toFirstName = "Jackie"
+                        , toLastName = "Kennedy"
+                        , createdAt = toUtc "2021-06-23 15:29:00 PDT"
+                        , status = Twilio.Query.Delivered
+                        , body = "What's up?"
+                        }
+
+            let personSelection =
+                    Index.PersonSelected
+                        { selectedPerson = person
+                        , messages = []
+                        , toPhoneNumber = newRecord @PhoneNumber
+                        , scheduledMessages = []
+                        , newMessage = newRecord @TwilioMessage
+                        , personActivity =
+                            Index.WorkingOnTimecardEntry
+                                { timecardEntry = timecardEntry
+                                , selectedMessages = [twilioMessage]
+                                , timecardActivity = Index.CreatingEntry
+                                }
+                        }
+            Index.buildTimecardColumn Index.IndexView {..}
+                `shouldBe` Index.EditTimecardEntry
+                    { timecardEntryForm =
+                        Index.TimecardEntryForm
+                            { date = "2021-06-21"
+                            , dateInvalidClass = ""
+                            , dateError = Nothing
+                            , jobName = ""
+                            , jobNameInvalidClass = ""
+                            , jobNameError = Nothing
+                            , hoursWorked = "0.0"
+                            , hoursWorkedInvalidClass = ""
+                            , hoursWorkedError = Nothing
+                            , workDone = "What's up?"
+                            , workDoneInvalidClass = ""
+                            , workDoneError = Nothing
+                            , invoiceTranslation = "What's up?"
+                            , invoiceTranslationInvalidClass = ""
+                            , invoiceTranslationError = Nothing
+                            , selectedMessageIdsParam = "30000000-0000-0000-0000-000000000000"
+                            , selectedPersonIdParam = "10000000-0000-0000-0000-000000000000"
+                            , submitLabel = "Create"
+                            , submitAction = CommunicationsCreateTimecardEntryAction
+                            , cancelAction =
+                                CommunicationsPersonSelectionAction
+                                    { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                                    }
+                            }
+                    }
+
+    describe "buildTimecardBlock" $ do
+        it "returns a timecard block based on the given parameters" $ do
+            let person =
+                    newRecord @Person
+                        |> set #id "10000000-0000-0000-0000-000000000000"
+
+            let timecardEntry =
+                    Timecard.View.TimecardEntry
+                        { id = "20000000-0000-0000-0000-000000000000"
+                        , date = toDay "2021-06-23"
+                        , jobName = "job name"
+                        , hoursWorked = 5.5
+                        , workDone = "work done"
+                        , invoiceTranslation = "invoice translation"
+                        }
+
+            let timecard =
+                    Timecard.View.Timecard
+                        { id = "30000000-0000-0000-0000-000000000000"
+                        , personId = "40000000-0000-0000-0000-000000000000"
+                        , weekOf = toDay "2021-06-21"
+                        , status = Timecard.View.TimecardInProgress
+                        , entries = [timecardEntry]
+                        }
+
+            Index.buildTimecardBlock person timecard
+                `shouldBe` Index.TimecardBlock
+                    { weekOf = "06/21/2021"
+                    , status = Index.TimecardStatus {statusClasses = "badge badge-pill badge-secondary", statusLabel = "In Progress"}
+                    , actions = Index.TimecardInProgress
+                    , entryCards =
+                        [ Index.TimecardEntryCard
+                            { dayOfWeek' = "Wednesday"
+                            , date = "06/23/2021"
+                            , jobName = "job name"
+                            , invoiceTranslation = "invoice translation"
+                            , editAction =
+                                CommunicationsEditTimecardEntryAction
+                                    { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                                    , timecardEntryId = "20000000-0000-0000-0000-000000000000"
+                                    }
+                            }
+                        ]
+                    }
+
+    describe "timecardStatus" $ do
+        it "returns a timecard status based on the given parameters" $ do
+            Index.timecardStatus Timecard.View.TimecardInProgress
+                `shouldBe` Index.TimecardStatus
+                    { statusClasses = "badge badge-pill badge-secondary"
+                    , statusLabel = "In Progress"
+                    }
+
+    describe "timecardStatusClasses" $ do
+        it "returns a secondary badge when the status is in progress" $ do
+            Index.timecardStatusClasses Timecard.View.TimecardInProgress
+                `shouldBe` "badge badge-pill badge-secondary"
+
+        it "returns a primary badge when the status is ready for review" $ do
+            Index.timecardStatusClasses Timecard.View.TimecardReadyForReview
+                `shouldBe` "badge badge-pill badge-primary"
+
+        it "returns a primary badge when the status is under review" $ do
+            Index.timecardStatusClasses
+                ( Timecard.View.TimecardUnderReview
+                    Timecard.View.AccessToken
+                        { id = "10000000-0000-0000-0000-000000000000"
+                        , value = "secret"
+                        , expiresAt = toUtc "2021-06-23 15:30:00 PDT"
+                        , isRevoked = False
+                        }
+                )
+                `shouldBe` "badge badge-pill badge-primary"
+
+        it "returns a success badge when the status is signed" $ do
+            Index.timecardStatusClasses
+                ( Timecard.View.TimecardSigned
+                    Timecard.View.Signing
+                        { id = "10000000-0000-0000-0000-000000000000"
+                        , signedAt = toUtc "2021-06-23 15:30:00 PDT"
+                        }
+                )
+                `shouldBe` "badge badge-pill badge-success"
+
+    describe "timecardStatusLabel" $ do
+        it "returns In Progress when the status is in progress" $ do
+            Index.timecardStatusLabel Timecard.View.TimecardInProgress
+                `shouldBe` "In Progress"
+
+        it "returns Ready for Review when the status is ready for review" $ do
+            Index.timecardStatusLabel Timecard.View.TimecardReadyForReview
+                `shouldBe` "Ready For Review"
+
+        it "returns Under Review when the status is under review" $ do
+            Index.timecardStatusLabel
+                ( Timecard.View.TimecardUnderReview
+                    Timecard.View.AccessToken
+                        { id = "10000000-0000-0000-0000-000000000000"
+                        , value = "secret"
+                        , expiresAt = toUtc "2021-06-23 15:30:00 PDT"
+                        , isRevoked = False
+                        }
+                )
+                `shouldBe` "Under Review"
+
+        it "returns Signed when the status is signed" $ do
+            Index.timecardStatusLabel
+                ( Timecard.View.TimecardSigned
+                    Timecard.View.Signing
+                        { id = "10000000-0000-0000-0000-000000000000"
+                        , signedAt = toUtc "2021-06-23 15:30:00 PDT"
+                        }
+                )
+                `shouldBe` "Signed"
+
+    describe "buildTimecardActions" $ do
+        it "returns in progress when the timecard is in progress" $ do
+            let person =
+                    newRecord @Person
+                        |> set #id "10000000-0000-0000-0000-000000000000"
+
+            let timecardEntry =
+                    Timecard.View.TimecardEntry
+                        { id = "20000000-0000-0000-0000-000000000000"
+                        , date = toDay "2021-06-23"
+                        , jobName = "job name"
+                        , hoursWorked = 5.5
+                        , workDone = "work done"
+                        , invoiceTranslation = "invoice translation"
+                        }
+
+            let timecard =
+                    Timecard.View.Timecard
+                        { id = "30000000-0000-0000-0000-000000000000"
+                        , personId = "40000000-0000-0000-0000-000000000000"
+                        , weekOf = toDay "2021-06-21"
+                        , status = Timecard.View.TimecardInProgress
+                        , entries = [timecardEntry]
+                        }
+
+            Index.buildTimecardActions person timecard
+                `shouldBe` Index.TimecardInProgress
+
+        it "returns ready for review when the timecard is ready for review" $ do
+            let person =
+                    newRecord @Person
+                        |> set #id "10000000-0000-0000-0000-000000000000"
+
+            let timecardEntry =
+                    Timecard.View.TimecardEntry
+                        { id = "20000000-0000-0000-0000-000000000000"
+                        , date = toDay "2021-06-23"
+                        , jobName = "job name"
+                        , hoursWorked = 5.5
+                        , workDone = "work done"
+                        , invoiceTranslation = "invoice translation"
+                        }
+
+            let timecard =
+                    Timecard.View.Timecard
+                        { id = "30000000-0000-0000-0000-000000000000"
+                        , personId = "40000000-0000-0000-0000-000000000000"
+                        , weekOf = toDay "2021-06-21"
+                        , status = Timecard.View.TimecardReadyForReview
+                        , entries = [timecardEntry]
+                        }
+
+            Index.buildTimecardActions person timecard
+                `shouldBe` Index.TimecardReadyForReview
+                    { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                    , timecardId = "30000000-0000-0000-0000-000000000000"
+                    }
+
+        it "returns under review when the timecard is under review" $ do
+            let person =
+                    newRecord @Person
+                        |> set #id "10000000-0000-0000-0000-000000000000"
+
+            let timecardEntry =
+                    Timecard.View.TimecardEntry
+                        { id = "20000000-0000-0000-0000-000000000000"
+                        , date = toDay "2021-06-23"
+                        , jobName = "job name"
+                        , hoursWorked = 5.5
+                        , workDone = "work done"
+                        , invoiceTranslation = "invoice translation"
+                        }
+
+            let accessToken =
+                    Timecard.View.AccessToken
+                        { id = "30000000-0000-0000-0000-000000000000"
+                        , value = "secret"
+                        , expiresAt = toUtc "2021-06-23 15:30:00 PDT"
+                        , isRevoked = False
+                        }
+
+            let timecard =
+                    Timecard.View.Timecard
+                        { id = "40000000-0000-0000-0000-000000000000"
+                        , personId = "50000000-0000-0000-0000-000000000000"
+                        , weekOf = toDay "2021-06-21"
+                        , status = Timecard.View.TimecardUnderReview accessToken
+                        , entries = [timecardEntry]
+                        }
+
+            Index.buildTimecardActions person timecard
+                `shouldBe` Index.TimecardUnderReview
+                    { reviewAction = ShowTimecardReviewAction "secret"
+                    }
+
+        it "returns signed when the timecard is signed" $ do
+            let person =
+                    newRecord @Person
+                        |> set #id "10000000-0000-0000-0000-000000000000"
+
+            let timecardEntry =
+                    Timecard.View.TimecardEntry
+                        { id = "20000000-0000-0000-0000-000000000000"
+                        , date = toDay "2021-06-23"
+                        , jobName = "job name"
+                        , hoursWorked = 5.5
+                        , workDone = "work done"
+                        , invoiceTranslation = "invoice translation"
+                        }
+
+            let signing =
+                    Timecard.View.Signing
+                        { id = "30000000-0000-0000-0000-000000000000"
+                        , signedAt = toUtc "2021-06-23 15:30:00 PDT"
+                        }
+
+            let timecard =
+                    Timecard.View.Timecard
+                        { id = "40000000-0000-0000-0000-000000000000"
+                        , personId = "50000000-0000-0000-0000-000000000000"
+                        , weekOf = toDay "2021-06-21"
+                        , status = Timecard.View.TimecardSigned signing
+                        , entries = [timecardEntry]
+                        }
+
+            Index.buildTimecardActions person timecard
+                `shouldBe` Index.TimecardSigned
+
     describe "buildTimecardEntryCard" $ do
         it "returns a timecard entry card based on the given parameters" $ do
             let person =
@@ -103,7 +970,10 @@ spec = do
                     , selectedPersonIdParam = "10000000-0000-0000-0000-000000000000"
                     , submitLabel = "Create"
                     , submitAction = CommunicationsCreateTimecardEntryAction
-                    , cancelAction = CommunicationsPersonSelectionAction {selectedPersonId = "10000000-0000-0000-0000-000000000000"}
+                    , cancelAction =
+                        CommunicationsPersonSelectionAction
+                            { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                            }
                     }
 
         it "sets error fields when errors are present" $ do
@@ -168,7 +1038,10 @@ spec = do
                     , selectedPersonIdParam = "10000000-0000-0000-0000-000000000000"
                     , submitLabel = "Create"
                     , submitAction = CommunicationsCreateTimecardEntryAction
-                    , cancelAction = CommunicationsPersonSelectionAction {selectedPersonId = "10000000-0000-0000-0000-000000000000"}
+                    , cancelAction =
+                        CommunicationsPersonSelectionAction
+                            { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                            }
                     }
 
         it "sets submit label and action to update when the timecard activity is editing" $ do
@@ -228,8 +1101,14 @@ spec = do
                     , selectedMessageIdsParam = "20000000-0000-0000-0000-000000000000"
                     , selectedPersonIdParam = "10000000-0000-0000-0000-000000000000"
                     , submitLabel = "Update"
-                    , submitAction = CommunicationsUpdateTimecardEntryAction {timecardEntryId = "30000000-0000-0000-0000-000000000000"}
-                    , cancelAction = CommunicationsPersonSelectionAction {selectedPersonId = "10000000-0000-0000-0000-000000000000"}
+                    , submitAction =
+                        CommunicationsUpdateTimecardEntryAction
+                            { timecardEntryId = "30000000-0000-0000-0000-000000000000"
+                            }
+                    , cancelAction =
+                        CommunicationsPersonSelectionAction
+                            { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                            }
                     }
 
         it "concatenates message bodies in order of creation time" $ do
