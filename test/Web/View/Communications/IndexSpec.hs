@@ -13,8 +13,187 @@ import qualified Web.View.Communications.Index as Index
 
 spec :: Spec
 spec = do
-    describe "buildMessagesColumn" $ do
-        it "returns a visible messages column when a person is selected" $ do
+    describe "buildPage" do
+        it "returns the index page" do
+            let barbara =
+                    newRecord @Person
+                        |> set #id "10000000-0000-0000-0000-000000000000"
+                        |> set #firstName "Barbara"
+                        |> set #lastName "Bush"
+
+            let jackie =
+                    newRecord @Person
+                        |> set #id "20000000-0000-0000-0000-000000000000"
+                        |> set #firstName "Jackie"
+                        |> set #lastName "Kennedy"
+
+            let people = [barbara, jackie]
+
+            let personSelection = Index.NoPersonSelected
+
+            Index.buildPage Index.IndexView {..}
+                `shouldBe` Index.Page
+                    { selectedPerson = Nothing
+                    , peopleColumn =
+                        Index.PeopleColumn
+                            [ Index.PersonItem
+                                { selectionAction =
+                                    CommunicationsPersonSelectionAction
+                                        { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                                        }
+                                , activeClass = ""
+                                , ariaCurrent = "false"
+                                , firstName = "Barbara"
+                                , lastName = "Bush"
+                                }
+                            , Index.PersonItem
+                                { selectionAction =
+                                    CommunicationsPersonSelectionAction
+                                        { selectedPersonId = "20000000-0000-0000-0000-000000000000"
+                                        }
+                                , activeClass = ""
+                                , ariaCurrent = "false"
+                                , firstName = "Jackie"
+                                , lastName = "Kennedy"
+                                }
+                            ]
+                    , messagesColumn = Index.MessagesColumnNotVisible
+                    , timecardColumn = Index.TimecardList []
+                    }
+
+    describe "buildPeopleColumn" do
+        it "returns a people column with the selected person shown as active" do
+            let barbara =
+                    newRecord @Person
+                        |> set #id "10000000-0000-0000-0000-000000000000"
+                        |> set #firstName "Barbara"
+                        |> set #lastName "Bush"
+
+            let jackie =
+                    newRecord @Person
+                        |> set #id "20000000-0000-0000-0000-000000000000"
+                        |> set #firstName "Jackie"
+                        |> set #lastName "Kennedy"
+
+            let people = [barbara, jackie]
+
+            let personSelection =
+                    Index.PersonSelected
+                        { selectedPerson = barbara
+                        , messages = []
+                        , toPhoneNumber = newRecord @PhoneNumber
+                        , scheduledMessages = []
+                        , newMessage = newRecord @TwilioMessage
+                        , personActivity =
+                            Index.SendingMessage
+                                { timecards = []
+                                }
+                        }
+
+            Index.buildPeopleColumn Index.IndexView {..}
+                `shouldBe` Index.PeopleColumn
+                    { personItems =
+                        [ Index.PersonItem
+                            { selectionAction =
+                                CommunicationsPersonSelectionAction
+                                    { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                                    }
+                            , activeClass = "active"
+                            , ariaCurrent = "true"
+                            , firstName = "Barbara"
+                            , lastName = "Bush"
+                            }
+                        , Index.PersonItem
+                            { selectionAction =
+                                CommunicationsPersonSelectionAction
+                                    { selectedPersonId = "20000000-0000-0000-0000-000000000000"
+                                    }
+                            , activeClass = ""
+                            , ariaCurrent = "false"
+                            , firstName = "Jackie"
+                            , lastName = "Kennedy"
+                            }
+                        ]
+                    }
+
+        it "returns a people column with no one shown as active when no one is selected" do
+            let barbara =
+                    newRecord @Person
+                        |> set #id "10000000-0000-0000-0000-000000000000"
+                        |> set #firstName "Barbara"
+                        |> set #lastName "Bush"
+
+            let jackie =
+                    newRecord @Person
+                        |> set #id "20000000-0000-0000-0000-000000000000"
+                        |> set #firstName "Jackie"
+                        |> set #lastName "Kennedy"
+
+            let people = [barbara, jackie]
+
+            let personSelection = Index.NoPersonSelected
+
+            Index.buildPeopleColumn Index.IndexView {..}
+                `shouldBe` Index.PeopleColumn
+                    { personItems =
+                        [ Index.PersonItem
+                            { selectionAction =
+                                CommunicationsPersonSelectionAction
+                                    { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                                    }
+                            , activeClass = ""
+                            , ariaCurrent = "false"
+                            , firstName = "Barbara"
+                            , lastName = "Bush"
+                            }
+                        , Index.PersonItem
+                            { selectionAction =
+                                CommunicationsPersonSelectionAction
+                                    { selectedPersonId = "20000000-0000-0000-0000-000000000000"
+                                    }
+                            , activeClass = ""
+                            , ariaCurrent = "false"
+                            , firstName = "Jackie"
+                            , lastName = "Kennedy"
+                            }
+                        ]
+                    }
+
+    describe "buildPersonItem" do
+        it "returns an inactive person item when not selected" do
+            let person =
+                    newRecord @Person
+                        |> set #id "10000000-0000-0000-0000-000000000000"
+                        |> set #firstName "Barbara"
+                        |> set #lastName "Bush"
+
+            Index.buildPersonItem False person
+                `shouldBe` Index.PersonItem
+                    { selectionAction = CommunicationsPersonSelectionAction "10000000-0000-0000-0000-000000000000"
+                    , activeClass = ""
+                    , ariaCurrent = "false"
+                    , firstName = "Barbara"
+                    , lastName = "Bush"
+                    }
+
+        it "returns an active person item when selected" do
+            let person =
+                    newRecord @Person
+                        |> set #id "10000000-0000-0000-0000-000000000000"
+                        |> set #firstName "Barbara"
+                        |> set #lastName "Bush"
+
+            Index.buildPersonItem True person
+                `shouldBe` Index.PersonItem
+                    { selectionAction = CommunicationsPersonSelectionAction "10000000-0000-0000-0000-000000000000"
+                    , activeClass = "active"
+                    , ariaCurrent = "true"
+                    , firstName = "Barbara"
+                    , lastName = "Bush"
+                    }
+
+    describe "buildMessagesColumn" do
+        it "returns a visible messages column when a person is selected" do
             let person =
                     newRecord @Person
                         |> set #id "10000000-0000-0000-0000-000000000000"
@@ -136,7 +315,7 @@ spec = do
                             }
                     }
 
-        it "returns a non-visible messages column when no person is selected" $ do
+        it "returns a non-visible messages column when no person is selected" do
             let person =
                     newRecord @Person
                         |> set #id "10000000-0000-0000-0000-000000000000"
@@ -148,8 +327,8 @@ spec = do
             Index.buildMessagesColumn Index.IndexView {..}
                 `shouldBe` Index.MessagesColumnNotVisible
 
-    describe "buildMessageItems" $ do
-        it "returns a list of messages that are currently linked when we are editing a timecard entry" $ do
+    describe "buildMessageItems" do
+        it "returns a list of messages that are currently linked when we are editing a timecard entry" do
             let person =
                     newRecord @Person
                         |> set #id "10000000-0000-0000-0000-000000000000"
@@ -230,7 +409,7 @@ spec = do
                                 }
                            ]
 
-        it "returns a list of unlinked message items when we are in sending message mode" $ do
+        it "returns a list of unlinked message items when we are in sending message mode" do
             let person =
                     newRecord @Person
                         |> set #id "10000000-0000-0000-0000-000000000000"
@@ -308,8 +487,8 @@ spec = do
                                 }
                            ]
 
-    describe "buildMessageItem" $ do
-        it "returns a message item with a link to create a new timecard entry when we are in sending message mode" $ do
+    describe "buildMessageItem" do
+        it "returns a message item with a link to create a new timecard entry when we are in sending message mode" do
             let person =
                     newRecord @Person
                         |> set #id "10000000-0000-0000-0000-000000000000"
@@ -355,7 +534,7 @@ spec = do
                             }
                     }
 
-        it "returns a message item with a link to create a new timecard entry when we are editing a timecard entry" $ do
+        it "returns a message item with a link to create a new timecard entry when we are editing a timecard entry" do
             let person =
                     newRecord @Person
                         |> set #id "10000000-0000-0000-0000-000000000000"
@@ -409,7 +588,7 @@ spec = do
                             }
                     }
 
-        it "returns a message to unlink the message if it is currently linked" $ do
+        it "returns a message to unlink the message if it is currently linked" do
             let person =
                     newRecord @Person
                         |> set #id "10000000-0000-0000-0000-000000000000"
@@ -461,25 +640,25 @@ spec = do
                             }
                     }
 
-    describe "messageStatusClass" $ do
-        it "returns a delivered message status class when the message has been delivered" $ do
+    describe "messageStatusClass" do
+        it "returns a delivered message status class when the message has been delivered" do
             Index.messageStatusClass Twilio.Query.Delivered
                 `shouldBe` "message-status delivered"
 
-        it "returns a received message status class when the message has been received" $ do
+        it "returns a received message status class when the message has been received" do
             Index.messageStatusClass Twilio.Query.Received
                 `shouldBe` "message-status received"
 
-        it "returns a failed message status class when the message has failed to send" $ do
+        it "returns a failed message status class when the message has failed to send" do
             Index.messageStatusClass Twilio.Query.Failed
                 `shouldBe` "message-status failed"
 
-        it "returns a sending message status class for other statuses" $ do
+        it "returns a sending message status class for other statuses" do
             Index.messageStatusClass Twilio.Query.Queued
                 `shouldBe` "message-status sending"
 
-    describe "buildScheduledMessageItem" $ do
-        it "returns a scheduled message item based on the given parameters" $ do
+    describe "buildScheduledMessageItem" do
+        it "returns a scheduled message item based on the given parameters" do
             let sendMessageAction =
                     SendMessageAction.T
                         { id = "10000000-0000-0000-0000-000000000000"
@@ -502,8 +681,8 @@ spec = do
                             "10000000-0000-0000-0000-000000000000"
                     }
 
-    describe "buildSendMessageForm" $ do
-        it "returns a send message form based on the given parameters" $ do
+    describe "buildSendMessageForm" do
+        it "returns a send message form based on the given parameters" do
             let phoneNumber =
                     newRecord @PhoneNumber
                         |> set #id "10000000-0000-0000-0000-000000000000"
@@ -513,8 +692,8 @@ spec = do
                     { toPhoneNumberId = "10000000-0000-0000-0000-000000000000"
                     }
 
-    describe "buildTimecardColumn" $ do
-        it "returns a timecard column with timecard blocks when we are in message sending mode" $ do
+    describe "buildTimecardColumn" do
+        it "returns a timecard column with timecard blocks when we are in message sending mode" do
             let person =
                     newRecord @Person
                         |> set #id "10000000-0000-0000-0000-000000000000"
@@ -578,7 +757,7 @@ spec = do
                         }
                     ]
 
-        it "returns a timecard column with a timecard entry form when we are linking messages" $ do
+        it "returns a timecard column with a timecard entry form when we are linking messages" do
             let person =
                     newRecord @Person
                         |> set #id "10000000-0000-0000-0000-000000000000"
@@ -648,8 +827,8 @@ spec = do
                             }
                     }
 
-    describe "buildTimecardBlock" $ do
-        it "returns a timecard block based on the given parameters" $ do
+    describe "buildTimecardBlock" do
+        it "returns a timecard block based on the given parameters" do
             let person =
                     newRecord @Person
                         |> set #id "10000000-0000-0000-0000-000000000000"
@@ -693,24 +872,24 @@ spec = do
                         ]
                     }
 
-    describe "timecardStatus" $ do
-        it "returns a timecard status based on the given parameters" $ do
+    describe "timecardStatus" do
+        it "returns a timecard status based on the given parameters" do
             Index.timecardStatus Timecard.View.TimecardInProgress
                 `shouldBe` Index.TimecardStatus
                     { statusClasses = "badge badge-pill badge-secondary"
                     , statusLabel = "In Progress"
                     }
 
-    describe "timecardStatusClasses" $ do
-        it "returns a secondary badge when the status is in progress" $ do
+    describe "timecardStatusClasses" do
+        it "returns a secondary badge when the status is in progress" do
             Index.timecardStatusClasses Timecard.View.TimecardInProgress
                 `shouldBe` "badge badge-pill badge-secondary"
 
-        it "returns a primary badge when the status is ready for review" $ do
+        it "returns a primary badge when the status is ready for review" do
             Index.timecardStatusClasses Timecard.View.TimecardReadyForReview
                 `shouldBe` "badge badge-pill badge-primary"
 
-        it "returns a primary badge when the status is under review" $ do
+        it "returns a primary badge when the status is under review" do
             Index.timecardStatusClasses
                 ( Timecard.View.TimecardUnderReview
                     Timecard.View.AccessToken
@@ -722,7 +901,7 @@ spec = do
                 )
                 `shouldBe` "badge badge-pill badge-primary"
 
-        it "returns a success badge when the status is signed" $ do
+        it "returns a success badge when the status is signed" do
             Index.timecardStatusClasses
                 ( Timecard.View.TimecardSigned
                     Timecard.View.Signing
@@ -732,16 +911,16 @@ spec = do
                 )
                 `shouldBe` "badge badge-pill badge-success"
 
-    describe "timecardStatusLabel" $ do
-        it "returns In Progress when the status is in progress" $ do
+    describe "timecardStatusLabel" do
+        it "returns In Progress when the status is in progress" do
             Index.timecardStatusLabel Timecard.View.TimecardInProgress
                 `shouldBe` "In Progress"
 
-        it "returns Ready for Review when the status is ready for review" $ do
+        it "returns Ready for Review when the status is ready for review" do
             Index.timecardStatusLabel Timecard.View.TimecardReadyForReview
                 `shouldBe` "Ready For Review"
 
-        it "returns Under Review when the status is under review" $ do
+        it "returns Under Review when the status is under review" do
             Index.timecardStatusLabel
                 ( Timecard.View.TimecardUnderReview
                     Timecard.View.AccessToken
@@ -753,7 +932,7 @@ spec = do
                 )
                 `shouldBe` "Under Review"
 
-        it "returns Signed when the status is signed" $ do
+        it "returns Signed when the status is signed" do
             Index.timecardStatusLabel
                 ( Timecard.View.TimecardSigned
                     Timecard.View.Signing
@@ -763,8 +942,8 @@ spec = do
                 )
                 `shouldBe` "Signed"
 
-    describe "buildTimecardActions" $ do
-        it "returns in progress when the timecard is in progress" $ do
+    describe "buildTimecardActions" do
+        it "returns in progress when the timecard is in progress" do
             let person =
                     newRecord @Person
                         |> set #id "10000000-0000-0000-0000-000000000000"
@@ -791,7 +970,7 @@ spec = do
             Index.buildTimecardActions person timecard
                 `shouldBe` Index.TimecardInProgress
 
-        it "returns ready for review when the timecard is ready for review" $ do
+        it "returns ready for review when the timecard is ready for review" do
             let person =
                     newRecord @Person
                         |> set #id "10000000-0000-0000-0000-000000000000"
@@ -821,7 +1000,7 @@ spec = do
                     , timecardId = "30000000-0000-0000-0000-000000000000"
                     }
 
-        it "returns under review when the timecard is under review" $ do
+        it "returns under review when the timecard is under review" do
             let person =
                     newRecord @Person
                         |> set #id "10000000-0000-0000-0000-000000000000"
@@ -858,7 +1037,7 @@ spec = do
                     { reviewAction = ShowTimecardReviewAction "secret"
                     }
 
-        it "returns signed when the timecard is signed" $ do
+        it "returns signed when the timecard is signed" do
             let person =
                     newRecord @Person
                         |> set #id "10000000-0000-0000-0000-000000000000"
@@ -891,8 +1070,8 @@ spec = do
             Index.buildTimecardActions person timecard
                 `shouldBe` Index.TimecardSigned
 
-    describe "buildTimecardEntryCard" $ do
-        it "returns a timecard entry card based on the given parameters" $ do
+    describe "buildTimecardEntryCard" do
+        it "returns a timecard entry card based on the given parameters" do
             let person =
                     newRecord @Person
                         |> set #id "10000000-0000-0000-0000-000000000000"
@@ -925,8 +1104,8 @@ spec = do
                             }
                     }
 
-    describe "buildTimecardEntryForm" $ do
-        it "sets error fields to nothing when no errors are present" $ do
+    describe "buildTimecardEntryForm" do
+        it "sets error fields to nothing when no errors are present" do
             let person =
                     newRecord @Person
                         |> set #id "10000000-0000-0000-0000-000000000000"
@@ -989,7 +1168,7 @@ spec = do
                             }
                     }
 
-        it "sets error fields when errors are present" $ do
+        it "sets error fields when errors are present" do
             let person =
                     newRecord @Person
                         |> set #id "10000000-0000-0000-0000-000000000000"
@@ -1057,7 +1236,7 @@ spec = do
                             }
                     }
 
-        it "sets submit label and action to update when the timecard activity is editing" $ do
+        it "sets submit label and action to update when the timecard activity is editing" do
             let person =
                     newRecord @Person
                         |> set #id "10000000-0000-0000-0000-000000000000"
@@ -1124,7 +1303,7 @@ spec = do
                             }
                     }
 
-        it "concatenates message bodies in order of creation time" $ do
+        it "concatenates message bodies in order of creation time" do
             let person =
                     newRecord @Person
                         |> set #id "10000000-0000-0000-0000-000000000000"
@@ -1197,8 +1376,8 @@ spec = do
                     , cancelAction = CommunicationsPersonSelectionAction {selectedPersonId = "10000000-0000-0000-0000-000000000000"}
                     }
 
-    describe "assembleMessageBodies" $ do
-        it "returns the concatenated bodies of all of the twilio messages if the existing text is blank" $ do
+    describe "assembleMessageBodies" do
+        it "returns the concatenated bodies of all of the twilio messages if the existing text is blank" do
             let twilioMessage1 =
                     Twilio.Query.Row
                         { id = "10000000-0000-0000-0000-000000000000"
@@ -1228,7 +1407,7 @@ spec = do
             Index.assembleMessageBodies "" [twilioMessage1, twilioMessage2]
                 `shouldBe` "What's up?\n\nNothing much."
 
-        it "returns the existing text and ignores the messages if the existing text is not blank" $ do
+        it "returns the existing text and ignores the messages if the existing text is not blank" do
             let twilioMessage1 =
                     Twilio.Query.Row
                         { id = "10000000-0000-0000-0000-000000000000"
