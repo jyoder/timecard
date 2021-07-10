@@ -1,4 +1,4 @@
-module Web.View.Navigation (Section (..), renderNavigation) where
+module Web.View.Navigation.Section (Section (..), renderNavigation) where
 
 import IHP.RouterSupport (HasPath)
 import Web.View.Prelude

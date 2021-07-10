@@ -1,8 +1,8 @@
 module Web.View.Timecards.Index where
 
 import qualified Application.Timecard.View as V
-import Web.View.Navigation (Section (Timecards), renderNavigation)
-import Web.View.People.Navigation
+import Web.View.Navigation.People
+import Web.View.Navigation.Section (Section (Timecards), renderNavigation)
 import Web.View.Prelude
 import Web.View.Service.Style (removeScrollbars)
 import Web.View.Service.Time (formatDay)

@@ -1,9 +1,9 @@
-module Web.View.People.NavigationSpec where
+module Web.View.Navigation.PeopleSpec where
 
 import Generated.Types
 import IHP.ControllerPrelude
 import Test.Hspec
-import Web.View.People.Navigation
+import Web.View.Navigation.People
 
 newtype DummyController = DummyControllerAction
     { selectedPersonId :: Id Person

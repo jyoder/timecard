@@ -1,4 +1,4 @@
-module Web.View.People.Navigation where
+module Web.View.Navigation.People where
 
 import Generated.Types
 import IHP.ControllerPrelude (Controller)

@@ -10,7 +10,7 @@ import Tests.Support
 import Text.Read (read)
 import Web.Types
 import qualified Web.View.Communications.Index as Index
-import Web.View.People.Navigation
+import Web.View.Navigation.People
 import qualified Web.View.Timecards.Status as Status
 
 spec :: Spec
