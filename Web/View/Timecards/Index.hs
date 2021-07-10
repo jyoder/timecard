@@ -25,72 +25,279 @@ data PersonActivity
         { selectedTimecardEntry :: !TimecardEntry
         }
 
+data Page = Page
+    { selectedPerson :: !(Maybe Person)
+    , peopleColumn :: !PeopleColumn
+    , timecardColumn :: !TimecardColumn
+    }
+    deriving (Eq, Show)
+
+newtype PeopleColumn = PeopleColumn
+    { personItems :: [PersonItem]
+    }
+    deriving (Eq, Show)
+
+data PersonItem = PersonItem
+    { selectionAction :: !TimecardsController
+    , activeClass :: !Text
+    , ariaCurrent :: !Text
+    , firstName :: !Text
+    , lastName :: !Text
+    }
+    deriving (Eq, Show)
+
+data TimecardColumn
+    = TimecardColumnNotVisible
+    | TimecardColumnVisible
+        { timecardTables :: ![TimecardTable]
+        }
+    deriving (Eq, Show)
+
+data TimecardTable = TimecardTable
+    { weekOf :: !Text
+    , status :: !TimecardStatus
+    , firstName :: !Text
+    , lastName :: !Text
+    , jobRows :: ![JobRow]
+    , totalHoursRow :: !TotalHoursRow
+    , downloadAction :: !TimecardsController
+    , downloadFileName :: !Text
+    }
+    deriving (Eq, Show)
+
+data TimecardStatus = TimecardStatus
+    { statusClasses :: !Text
+    , statusLabel :: !Text
+    }
+    deriving (Eq, Show)
+
+data JobRow = JobRow
+    { dayOfWeek' :: !Text
+    , date :: !Text
+    , jobName :: !Text
+    , hoursWorked :: !Text
+    , workDone :: !Text
+    , invoiceTranslationCell :: !InvoiceTranslationCell
+    }
+    deriving (Eq, Show)
+
+newtype TotalHoursRow = TotalHoursRow
+    { totalHours :: Double
+    }
+    deriving (Eq, Show)
+
+data InvoiceTranslationCell
+    = ShowInvoiceTranslation
+        { invoiceTranslation :: !Text
+        , editAction :: !TimecardsController
+        }
+    | EditInvoiceTranslation
+        { invoiceTranslation :: !Text
+        , timecardEntryId :: !Text
+        , saveAction :: !TimecardsController
+        , cancelAction :: !TimecardsController
+        }
+    deriving (Eq, Show)
+
 instance View IndexView where
-    html view =
-        [hsx|
-            {renderNavigation Timecards selectedPerson'}
+    html view = renderPage $ buildPage view
+
+buildPage :: IndexView -> Page
+buildPage view =
+    Page
+        { selectedPerson = selectedPerson
+        , peopleColumn = buildPeopleColumn view
+        , timecardColumn = buildTimecardColumn view
+        }
+  where
+    selectedPerson = case get #personSelection view of
+        NoPersonSelected -> Nothing
+        PersonSelected {..} -> Just selectedPerson
+
+buildPeopleColumn :: IndexView -> PeopleColumn
+buildPeopleColumn IndexView {..} =
+    PeopleColumn $ buildPersonItem' <$> people
+  where
+    buildPersonItem' = case personSelection of
+        NoPersonSelected -> buildPersonItem False
+        PersonSelected {..} ->
+            let isSelected person = get #id person == get #id selectedPerson
+             in (\person -> buildPersonItem (isSelected person) person)
+
+buildPersonItem :: Bool -> Person -> PersonItem
+buildPersonItem isSelected person =
+    PersonItem
+        { selectionAction = TimecardPersonSelectionAction $ get #id person
+        , activeClass = if isSelected then "active" else ""
+        , ariaCurrent = if isSelected then "true" else "false"
+        , firstName = get #firstName person
+        , lastName = get #lastName person
+        }
+
+buildTimecardColumn :: IndexView -> TimecardColumn
+buildTimecardColumn IndexView {..} =
+    case personSelection of
+        NoPersonSelected -> TimecardColumnNotVisible
+        PersonSelected {..} ->
+            TimecardColumnVisible
+                { timecardTables =
+                    buildTimecardTable
+                        selectedPerson
+                        personActivity
+                        <$> timecards
+                }
+
+buildTimecardTable :: Person -> PersonActivity -> V.Timecard -> TimecardTable
+buildTimecardTable selectedPerson personActivity timecard =
+    TimecardTable
+        { weekOf = formatDay $ get #weekOf timecard
+        , status = timecardStatus $ get #status timecard
+        , firstName = firstName
+        , lastName = lastName
+        , jobRows =
+            buildJobRow selectedPerson personActivity
+                <$> get #entries timecard
+        , totalHoursRow = buildTotalHoursRow $ get #entries timecard
+        , downloadAction = downloadAction
+        , downloadFileName = downloadFileName
+        }
+  where
+    lastName = get #lastName selectedPerson
+    firstName = get #firstName selectedPerson
+    downloadAction = TimecardDownloadTimecardAction $ get #id timecard
+    downloadFileName = showWeekOf <> "-" <> lastName <> "-" <> firstName <> ".pdf"
+    showWeekOf = show weekOf
+    weekOf = get #weekOf timecard
+
+timecardStatus :: V.Status -> TimecardStatus
+timecardStatus status =
+    TimecardStatus
+        { statusClasses = timecardStatusClasses status
+        , statusLabel = timecardStatusLabel status
+        }
+
+timecardStatusClasses :: V.Status -> Text
+timecardStatusClasses =
+    \case
+        V.TimecardInProgress -> "badge badge-pill badge-secondary"
+        V.TimecardReadyForReview -> "badge badge-pill badge-primary"
+        V.TimecardUnderReview _ -> "badge badge-pill badge-primary"
+        V.TimecardSigned _ -> "badge badge-pill badge-success"
+
+timecardStatusLabel :: V.Status -> Text
+timecardStatusLabel =
+    \case
+        V.TimecardInProgress -> "In Progress"
+        V.TimecardReadyForReview -> "Ready For Review"
+        V.TimecardUnderReview _ -> "Under Review"
+        V.TimecardSigned _ -> "Signed"
+
+buildJobRow :: Person -> PersonActivity -> V.TimecardEntry -> JobRow
+buildJobRow selectedPerson personActivity timecardEntry =
+    JobRow
+        { dayOfWeek' = show $ dayOfWeek $ get #date timecardEntry
+        , date = formatDay $ get #date timecardEntry
+        , jobName = get #jobName timecardEntry
+        , hoursWorked = show $ get #hoursWorked timecardEntry
+        , workDone = get #workDone timecardEntry
+        , invoiceTranslationCell =
+            buildInvoiceTranslationCell
+                selectedPerson
+                personActivity
+                timecardEntry
+        }
+
+buildInvoiceTranslationCell ::
+    Person ->
+    PersonActivity ->
+    V.TimecardEntry ->
+    InvoiceTranslationCell
+buildInvoiceTranslationCell
+    selectedPerson
+    personActivity
+    timecardEntry =
+        case personActivity of
+            Viewing ->
+                ShowInvoiceTranslation
+                    { invoiceTranslation = get #invoiceTranslation timecardEntry
+                    , editAction = TimecardEditTimecardEntryAction $ get #id timecardEntry
+                    }
+            Editing {..} ->
+                if get #id timecardEntry == get #id selectedTimecardEntry
+                    then
+                        EditInvoiceTranslation
+                            { invoiceTranslation = get #invoiceTranslation timecardEntry
+                            , timecardEntryId = show $ get #id timecardEntry
+                            , saveAction = TimecardUpdateTimecardEntryAction $ get #id timecardEntry
+                            , cancelAction = TimecardPersonSelectionAction $ get #id selectedPerson
+                            }
+                    else
+                        ShowInvoiceTranslation
+                            { invoiceTranslation = get #invoiceTranslation timecardEntry
+                            , editAction = TimecardEditTimecardEntryAction $ get #id timecardEntry
+                            }
+
+buildTotalHoursRow :: [V.TimecardEntry] -> TotalHoursRow
+buildTotalHoursRow timecardEntries =
+    TotalHoursRow
+        { totalHours = sum $ get #hoursWorked <$> timecardEntries
+        }
+
+renderPage :: Page -> Html
+renderPage Page {..} =
+    [hsx|
+            {renderNavigation Timecards selectedPerson}
 
             <div class="row align-items start">
-                {renderPeopleColumn view}
-                {renderTimecardColumn view}
+                {renderPeopleColumn2 peopleColumn}
+                {renderTimecardColumn2 timecardColumn}
             </div>
 
             {styles}
         |]
-      where
-        selectedPerson' = case get #personSelection view of
-            NoPersonSelected -> Nothing
-            PersonSelected {..} -> Just selectedPerson
 
-renderPeopleColumn :: IndexView -> Html
-renderPeopleColumn IndexView {..} =
+renderPeopleColumn2 :: PeopleColumn -> Html
+renderPeopleColumn2 PeopleColumn {..} =
     [hsx|
         <div class="people-column col-2">
             <div class="list-group">
-                {forEach people renderPerson'}
+                {forEach personItems renderPersonItem}
             </div>
         </div>        
     |]
-  where
-    renderPerson' = case personSelection of
-        NoPersonSelected -> renderPerson False
-        PersonSelected {..} ->
-            let isSelected person = get #id person == get #id selectedPerson
-             in (\person -> renderPerson (isSelected person) person)
 
-renderPerson :: Bool -> Person -> Html
-renderPerson isSelected person =
+renderPersonItem :: PersonItem -> Html
+renderPersonItem PersonItem {..} =
     [hsx|
         <a
-            href={TimecardPersonSelectionAction (get #id person)}
+            href={selectionAction}
             class={"list-group-item " <> activeClass}
-            aria-current={ariaCurrent}>
-            {get #firstName person} {get #lastName person}
+            aria-current={ariaCurrent}
+        >
+            {firstName} {lastName}
         </a>
     |]
-  where
-    activeClass = if isSelected then "active" else "" :: Text
-    ariaCurrent = if isSelected then "true" else "false" :: Text
 
-renderTimecardColumn :: IndexView -> Html
-renderTimecardColumn IndexView {..} =
-    case personSelection of
-        NoPersonSelected -> [hsx||]
-        PersonSelected {..} ->
+renderTimecardColumn2 :: TimecardColumn -> Html
+renderTimecardColumn2 timecardColumn =
+    case timecardColumn of
+        TimecardColumnNotVisible ->
+            [hsx||]
+        TimecardColumnVisible {..} ->
             [hsx|
                 <div class="timecard-column col-10">
-                    {forEach timecards (renderTimecard selectedPerson personActivity)}
+                    {forEach timecardTables renderTimecardTable}
                 </div>
             |]
 
-renderTimecard :: Person -> PersonActivity -> V.Timecard -> Html
-renderTimecard selectedPerson personActivity timecard =
+renderTimecardTable :: TimecardTable -> Html
+renderTimecardTable TimecardTable {..} =
     [hsx|
         <div class="card mb-5">
             <div class="card-header d-flex justify-content-start mb-2">
-                <h5>Week Of {formatDay weekOf}</h5>
+                <h5>Week Of {weekOf}</h5>
                 <div class="ml-2">
-                    {renderTimecardStatus timecard}
+                    {renderTimecardStatus2 status}
                 </div>
             </div>
             
@@ -111,115 +318,101 @@ renderTimecard selectedPerson personActivity timecard =
                         </tr>
                     </thead>
                     <tbody>
-                        {forEach (get #entries timecard) (renderTimecardRow selectedPerson personActivity)}
-                        {renderLastRow $ totalHoursWorked timecard}
+                        {forEach jobRows renderJobRow}
+                        {renderTotalHoursRow totalHoursRow}
                     </tbody>
                 </table>
-                <a href={downloadAction} download={downloadFilename}>Download PDF</a>
+                <a href={downloadAction} download={downloadFileName}>Download PDF</a>
             </div>
         </div>
     |]
-  where
-    lastName = get #lastName selectedPerson
-    firstName = get #firstName selectedPerson
-    downloadAction = TimecardDownloadTimecardAction $ get #id timecard
-    downloadFilename = showWeekOf <> "-" <> lastName <> "-" <> firstName <> ".pdf"
-    showWeekOf = show $ get #weekOf timecard
-    weekOf = get #weekOf timecard
 
-renderTimecardStatus :: V.Timecard -> Html
-renderTimecardStatus timecard =
-    case get #status timecard of
-        V.TimecardInProgress ->
-            [hsx|
-                <span class="badge badge-pill badge-secondary">In Progress</span>
-            |]
-        V.TimecardReadyForReview ->
-            [hsx|
-                <span class="badge badge-pill badge-primary">Ready for Review</span>
-            |]
-        V.TimecardUnderReview _ ->
-            [hsx|
-                <span class="badge badge-pill badge-primary">Under Review</span>
-            |]
-        V.TimecardSigned _ ->
-            [hsx|
-                <span class="badge badge-pill badge-success">Signed</span>
-            |]
+renderTimecardStatus2 :: TimecardStatus -> Html
+renderTimecardStatus2 TimecardStatus {..} =
+    [hsx|
+        <span class={statusClasses}>
+            {statusLabel}
+        </span>
+    |]
 
-renderTimecardRow :: Person -> PersonActivity -> V.TimecardEntry -> Html
-renderTimecardRow selectedPerson personActivity timecardEntry =
+renderJobRow :: JobRow -> Html
+renderJobRow JobRow {..} =
     [hsx|
         <tr>
             <th scope="row">{dayOfWeek'}</th>
             <td>{date}</td>
-            <td>{get #jobName timecardEntry}</td>
-            <td class="work-done">{get #workDone timecardEntry}</td>
-            {renderInvoiceTranslation selectedPerson personActivity timecardEntry}
-            <td>{get #hoursWorked timecardEntry}</td>
+            <td>{jobName}</td>
+            <td class="work-done">{workDone}</td>
+            {renderInvoiceTranslationCell invoiceTranslationCell}
+            <td>{hoursWorked}</td>
         </tr>
     |]
-  where
-    dayOfWeek' = dayOfWeek $ get #date timecardEntry
-    date = formatDay $ get #date timecardEntry
 
-renderInvoiceTranslation :: Person -> PersonActivity -> V.TimecardEntry -> Html
-renderInvoiceTranslation selectedPerson personActivity timecardEntry =
-    case personActivity of
-        Viewing -> renderViewInvoiceTranslation timecardEntry
-        Editing {..} ->
-            if get #id timecardEntry == get #id selectedTimecardEntry
-                then
-                    [hsx|
-                        <td class="invoice-translation">
-                            {renderInvoiceTranslationForm selectedPerson selectedTimecardEntry}
-                        </td>
-                    |]
-                else renderViewInvoiceTranslation timecardEntry
+renderInvoiceTranslationCell :: InvoiceTranslationCell -> Html
+renderInvoiceTranslationCell invoiceTranslationCell =
+    case invoiceTranslationCell of
+        ShowInvoiceTranslation {..} ->
+            [hsx|
+                <td class="invoice-translation">
+                    {invoiceTranslation} (<a href={editAction}>Edit</a>)
+                </td>
+            |]
+        EditInvoiceTranslation {..} ->
+            [hsx|
+                <td class="invoice-translation">
+                    <form method="POST" 
+                        action={saveAction} id="edit-timecard-entry-form"
+                        class="edit-form"
+                        data-disable-javascript-submission="false">
+                        
+                        <div
+                            class="form-group"
+                            id="form-group-timecardEntry_invoiceTranslation">
+                            <textarea
+                                type="text"
+                                name="invoiceTranslation"
+                                placeholder=""
+                                id="timecardEntry_invoiceTranslation"
+                                class="form-control"
+                                value={invoiceTranslation}>
+                                {invoiceTranslation}
+                            </textarea> 
+                        </div>
+                        
+                        <div
+                            class="form-group"
+                            id="form-group-timecardEntry_id">
+                            <input
+                                type="hidden"
+                                name="id"
+                                placeholder=""
+                                id="timecardEntry_id"
+                                class="form-control"
+                                value={timecardEntryId}>
+                        </div>
+                        
+                        <button
+                            class="btn btn-primary btn btn-primary btn-sm">
+                            Save
+                        </button>
+                        
+                        <a 
+                            href={cancelAction}
+                            class="btn btn-secondary btn-sm ml-2">
+                            Cancel
+                        </a>
+                    </form>
+                </td>
+            |]
 
-renderViewInvoiceTranslation :: V.TimecardEntry -> Html
-renderViewInvoiceTranslation timecardEntry =
-    [hsx|
-        <td class="invoice-translation">
-            {get #invoiceTranslation timecardEntry} (<a href={editAction}>Edit</a>)
-        </td>
-    |]
-  where
-    editAction = TimecardEditTimecardEntryAction (get #id timecardEntry)
-
-renderInvoiceTranslationForm :: Person -> TimecardEntry -> Html
-renderInvoiceTranslationForm selectedPerson timecardEntry =
-    formForWithOptions
-        timecardEntry
-        formOptions
-        [hsx| 
-            {(textareaField #invoiceTranslation) {disableLabel = True}}
-
-            {hiddenField #id}
-            
-            {submitButton { label = "Save", buttonClass = "btn btn-primary btn-sm"}}
-            <a href={personSelectionAction} class="btn btn-secondary btn-sm ml-2">Cancel</a>
-        |]
-  where
-    formOptions formContext =
-        formContext
-            |> set #formId "edit-timecard-entry-form"
-            |> set #formAction updateAction
-    updateAction = pathTo $ TimecardUpdateTimecardEntryAction $ get #id timecardEntry
-    personSelectionAction = TimecardPersonSelectionAction (get #id selectedPerson)
-
-renderLastRow :: Double -> Html
-renderLastRow hours =
+renderTotalHoursRow :: TotalHoursRow -> Html
+renderTotalHoursRow TotalHoursRow {..} =
     [hsx|
         <tr class="table-active">
             <th scope="row" colspan="5">Total Hours</th>
-            <td>{hours}</td>
+            <td>{totalHours}</td>
         </tr>
     |]
-
-totalHoursWorked :: V.Timecard -> Double
-totalHoursWorked V.Timecard {..} =
-    sum (get #hoursWorked <$> entries)
 
 styles :: Html
 styles =
