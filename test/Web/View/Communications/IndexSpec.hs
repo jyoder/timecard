@@ -10,7 +10,7 @@ import Tests.Support
 import Text.Read (read)
 import Web.Types
 import qualified Web.View.Communications.Index as Index
-import qualified Web.View.People.Navigation as People.Navigation
+import Web.View.People.Navigation
 import qualified Web.View.Timecards.Status as Status
 
 spec :: Spec
@@ -37,8 +37,8 @@ spec = do
                 `shouldBe` Index.Page
                     { selectedPerson = Nothing
                     , peopleNavigation =
-                        People.Navigation.PeopleNavigation
-                            [ People.Navigation.PersonItem
+                        PeopleNavigation
+                            [ PersonItem
                                 { selectionAction =
                                     CommunicationsPersonSelectionAction
                                         { selectedPersonId = "10000000-0000-0000-0000-000000000000"
@@ -48,7 +48,7 @@ spec = do
                                 , firstName = "Barbara"
                                 , lastName = "Bush"
                                 }
-                            , People.Navigation.PersonItem
+                            , PersonItem
                                 { selectionAction =
                                     CommunicationsPersonSelectionAction
                                         { selectedPersonId = "20000000-0000-0000-0000-000000000000"
