@@ -2,7 +2,7 @@ module Web.View.Timecards.Index where
 
 import qualified Application.Timecard.View as V
 import Web.View.Navigation.People
-import Web.View.Navigation.Section (Section (Timecards), renderNavigation)
+import Web.View.Navigation.Section (Section (Timecards), renderSectionNavigation)
 import Web.View.Prelude
 import Web.View.Service.Style (removeScrollbars)
 import Web.View.Service.Time (formatDay)
@@ -189,7 +189,7 @@ buildTotalHoursRow timecardEntries =
 renderPage :: Page -> Html
 renderPage Page {..} =
     [hsx|
-            {renderNavigation Timecards selectedPerson}
+            {renderSectionNavigation Timecards selectedPerson}
 
             <div class="row align-items start">
                 {renderPeopleNavigation peopleNavigation}

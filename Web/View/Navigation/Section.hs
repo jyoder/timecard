@@ -1,4 +1,4 @@
-module Web.View.Navigation.Section (Section (..), renderNavigation) where
+module Web.View.Navigation.Section (Section (..), renderSectionNavigation) where
 
 import IHP.RouterSupport (HasPath)
 import Web.View.Prelude
@@ -8,8 +8,8 @@ data Section
     | Timecards
     deriving (Eq)
 
-renderNavigation :: Section -> Maybe Person -> Html
-renderNavigation currentSection selectedPerson =
+renderSectionNavigation :: Section -> Maybe Person -> Html
+renderSectionNavigation currentSection selectedPerson =
     [hsx|
         <nav class="navbar navbar-expand navbar-light bg-light">
             <div class="container-fluid">

@@ -4,7 +4,7 @@ import qualified Application.Action.SendMessageAction as SendMessageAction
 import qualified Application.Timecard.View as V
 import qualified Application.Twilio.Query as Twilio.Query
 import Web.View.Navigation.People
-import Web.View.Navigation.Section (Section (Communications), renderNavigation)
+import Web.View.Navigation.Section (Section (Communications), renderSectionNavigation)
 import Web.View.Prelude
 import Web.View.Service.Style (removeScrollbars)
 import Web.View.Service.Time (formatDay)
@@ -157,7 +157,7 @@ instance View IndexView where
 renderPage :: Page -> Html
 renderPage Page {..} =
     [hsx|
-            {renderNavigation Communications selectedPerson}
+            {renderSectionNavigation Communications selectedPerson}
 
             <div class="row align-items start">
                 {renderPeopleNavigation peopleNavigation}
