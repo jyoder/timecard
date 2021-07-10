@@ -2,6 +2,7 @@ module Web.View.Timecards.Index where
 
 import qualified Application.Timecard.View as V
 import Web.View.Navigation (Section (Timecards), renderNavigation)
+import Web.View.People.Navigation
 import Web.View.Prelude
 import Web.View.Service.Style (removeScrollbars)
 import Web.View.Service.Time (formatDay)
@@ -28,22 +29,8 @@ data PersonActivity
 
 data Page = Page
     { selectedPerson :: !(Maybe Person)
-    , peopleColumn :: !PeopleColumn
+    , peopleNavigation :: !(PeopleNavigation TimecardsController)
     , timecardColumn :: !TimecardColumn
-    }
-    deriving (Eq, Show)
-
-newtype PeopleColumn = PeopleColumn
-    { personItems :: [PersonItem]
-    }
-    deriving (Eq, Show)
-
-data PersonItem = PersonItem
-    { selectionAction :: !TimecardsController
-    , activeClass :: !Text
-    , ariaCurrent :: !Text
-    , firstName :: !Text
-    , lastName :: !Text
     }
     deriving (Eq, Show)
 
@@ -101,33 +88,17 @@ buildPage :: IndexView -> Page
 buildPage view =
     Page
         { selectedPerson = selectedPerson
-        , peopleColumn = buildPeopleColumn view
+        , peopleNavigation =
+            buildPeopleNavigation
+                TimecardPersonSelectionAction
+                selectedPerson
+                (get #people view)
         , timecardColumn = buildTimecardColumn view
         }
   where
     selectedPerson = case get #personSelection view of
         NoPersonSelected -> Nothing
         PersonSelected {..} -> Just selectedPerson
-
-buildPeopleColumn :: IndexView -> PeopleColumn
-buildPeopleColumn IndexView {..} =
-    PeopleColumn $ buildPersonItem' <$> people
-  where
-    buildPersonItem' = case personSelection of
-        NoPersonSelected -> buildPersonItem False
-        PersonSelected {..} ->
-            let isSelected person = get #id person == get #id selectedPerson
-             in (\person -> buildPersonItem (isSelected person) person)
-
-buildPersonItem :: Bool -> Person -> PersonItem
-buildPersonItem isSelected person =
-    PersonItem
-        { selectionAction = TimecardPersonSelectionAction $ get #id person
-        , activeClass = if isSelected then "active" else ""
-        , ariaCurrent = if isSelected then "true" else "false"
-        , firstName = get #firstName person
-        , lastName = get #lastName person
-        }
 
 buildTimecardColumn :: IndexView -> TimecardColumn
 buildTimecardColumn IndexView {..} =
@@ -221,34 +192,12 @@ renderPage Page {..} =
             {renderNavigation Timecards selectedPerson}
 
             <div class="row align-items start">
-                {renderPeopleColumn2 peopleColumn}
+                {renderPeopleNavigation peopleNavigation}
                 {renderTimecardColumn2 timecardColumn}
             </div>
 
             {styles}
         |]
-
-renderPeopleColumn2 :: PeopleColumn -> Html
-renderPeopleColumn2 PeopleColumn {..} =
-    [hsx|
-        <div class="people-column col-2">
-            <div class="list-group">
-                {forEach personItems renderPersonItem}
-            </div>
-        </div>        
-    |]
-
-renderPersonItem :: PersonItem -> Html
-renderPersonItem PersonItem {..} =
-    [hsx|
-        <a
-            href={selectionAction}
-            class={"list-group-item " <> activeClass}
-            aria-current={ariaCurrent}
-        >
-            {firstName} {lastName}
-        </a>
-    |]
 
 renderTimecardColumn2 :: TimecardColumn -> Html
 renderTimecardColumn2 timecardColumn =

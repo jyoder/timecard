@@ -4,6 +4,7 @@ import qualified Application.Action.SendMessageAction as SendMessageAction
 import qualified Application.Timecard.View as V
 import qualified Application.Twilio.Query as Twilio.Query
 import Web.View.Navigation (Section (Communications), renderNavigation)
+import Web.View.People.Navigation
 import Web.View.Prelude
 import Web.View.Service.Style (removeScrollbars)
 import Web.View.Service.Time (formatDay)
@@ -43,23 +44,9 @@ data TimecardActivity
 
 data Page = Page
     { selectedPerson :: !(Maybe Person)
-    , peopleColumn :: !PeopleColumn
+    , peopleNavigation :: !(PeopleNavigation CommunicationsController)
     , messagesColumn :: !MessagesColumn
     , timecardColumn :: !TimecardColumn
-    }
-    deriving (Eq, Show)
-
-newtype PeopleColumn = PeopleColumn
-    { personItems :: [PersonItem]
-    }
-    deriving (Eq, Show)
-
-data PersonItem = PersonItem
-    { selectionAction :: !CommunicationsController
-    , activeClass :: !Text
-    , ariaCurrent :: !Text
-    , firstName :: !Text
-    , lastName :: !Text
     }
     deriving (Eq, Show)
 
@@ -173,7 +160,7 @@ renderPage Page {..} =
             {renderNavigation Communications selectedPerson}
 
             <div class="row align-items start">
-                {renderPeopleColumn peopleColumn}
+                {renderPeopleNavigation peopleNavigation}
                 {renderMessagesColumn messagesColumn}
                 {renderTimecardColumn timecardColumn}
             </div>
@@ -184,35 +171,19 @@ renderPage Page {..} =
 buildPage :: IndexView -> Page
 buildPage view =
     Page
-        { selectedPerson = selectedPerson'
-        , peopleColumn = buildPeopleColumn view
+        { selectedPerson = selectedPerson
+        , peopleNavigation =
+            buildPeopleNavigation
+                CommunicationsPersonSelectionAction
+                selectedPerson
+                (get #people view)
         , messagesColumn = buildMessagesColumn view
         , timecardColumn = buildTimecardColumn view
         }
   where
-    selectedPerson' = case get #personSelection view of
+    selectedPerson = case get #personSelection view of
         NoPersonSelected -> Nothing
         PersonSelected {..} -> Just selectedPerson
-
-buildPeopleColumn :: IndexView -> PeopleColumn
-buildPeopleColumn IndexView {..} =
-    PeopleColumn $ buildPersonItem' <$> people
-  where
-    buildPersonItem' = case personSelection of
-        NoPersonSelected -> buildPersonItem False
-        PersonSelected {..} ->
-            let isSelected person = get #id person == get #id selectedPerson
-             in (\person -> buildPersonItem (isSelected person) person)
-
-buildPersonItem :: Bool -> Person -> PersonItem
-buildPersonItem isSelected person =
-    PersonItem
-        { selectionAction = CommunicationsPersonSelectionAction $ get #id person
-        , activeClass = if isSelected then "active" else ""
-        , ariaCurrent = if isSelected then "true" else "false"
-        , firstName = get #firstName person
-        , lastName = get #lastName person
-        }
 
 buildMessagesColumn :: IndexView -> MessagesColumn
 buildMessagesColumn IndexView {..} =
@@ -414,28 +385,6 @@ assembleMessageBodies existingText messages =
     if existingText == ""
         then intercalate "\n\n" (get #body <$> messages)
         else existingText
-
-renderPeopleColumn :: PeopleColumn -> Html
-renderPeopleColumn PeopleColumn {..} =
-    [hsx|
-        <div class="people-column col-2">
-            <div class="list-group">
-                {forEach personItems renderPersonItem}
-            </div>
-        </div>        
-    |]
-
-renderPersonItem :: PersonItem -> Html
-renderPersonItem PersonItem {..} =
-    [hsx|
-        <a
-            href={selectionAction}
-            class={"list-group-item " <> activeClass}
-            aria-current={ariaCurrent}
-        >
-            {firstName} {lastName}
-        </a>
-    |]
 
 renderMessagesColumn :: MessagesColumn -> Html
 renderMessagesColumn messagesColumn =

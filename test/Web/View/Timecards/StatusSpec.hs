@@ -1,4 +1,4 @@
-module Web.View.Communications.IndexSpec where
+module Web.View.Timecards.StatusSpec where
 
 import qualified Application.Timecard.View as Timecard.View
 import IHP.Prelude

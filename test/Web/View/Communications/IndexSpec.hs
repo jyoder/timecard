@@ -10,6 +10,7 @@ import Tests.Support
 import Text.Read (read)
 import Web.Types
 import qualified Web.View.Communications.Index as Index
+import qualified Web.View.People.Navigation as People.Navigation
 import qualified Web.View.Timecards.Status as Status
 
 spec :: Spec
@@ -35,9 +36,9 @@ spec = do
             Index.buildPage Index.IndexView {..}
                 `shouldBe` Index.Page
                     { selectedPerson = Nothing
-                    , peopleColumn =
-                        Index.PeopleColumn
-                            [ Index.PersonItem
+                    , peopleNavigation =
+                        People.Navigation.PeopleNavigation
+                            [ People.Navigation.PersonItem
                                 { selectionAction =
                                     CommunicationsPersonSelectionAction
                                         { selectedPersonId = "10000000-0000-0000-0000-000000000000"
@@ -47,7 +48,7 @@ spec = do
                                 , firstName = "Barbara"
                                 , lastName = "Bush"
                                 }
-                            , Index.PersonItem
+                            , People.Navigation.PersonItem
                                 { selectionAction =
                                     CommunicationsPersonSelectionAction
                                         { selectedPersonId = "20000000-0000-0000-0000-000000000000"
@@ -60,137 +61,6 @@ spec = do
                             ]
                     , messagesColumn = Index.MessagesColumnNotVisible
                     , timecardColumn = Index.TimecardList []
-                    }
-
-    describe "buildPeopleColumn" do
-        it "returns a people column with the selected person shown as active" do
-            let barbara =
-                    newRecord @Person
-                        |> set #id "10000000-0000-0000-0000-000000000000"
-                        |> set #firstName "Barbara"
-                        |> set #lastName "Bush"
-
-            let jackie =
-                    newRecord @Person
-                        |> set #id "20000000-0000-0000-0000-000000000000"
-                        |> set #firstName "Jackie"
-                        |> set #lastName "Kennedy"
-
-            let people = [barbara, jackie]
-
-            let personSelection =
-                    Index.PersonSelected
-                        { selectedPerson = barbara
-                        , messages = []
-                        , toPhoneNumber = newRecord @PhoneNumber
-                        , scheduledMessages = []
-                        , newMessage = newRecord @TwilioMessage
-                        , personActivity =
-                            Index.SendingMessage
-                                { timecards = []
-                                }
-                        }
-
-            Index.buildPeopleColumn Index.IndexView {..}
-                `shouldBe` Index.PeopleColumn
-                    { personItems =
-                        [ Index.PersonItem
-                            { selectionAction =
-                                CommunicationsPersonSelectionAction
-                                    { selectedPersonId = "10000000-0000-0000-0000-000000000000"
-                                    }
-                            , activeClass = "active"
-                            , ariaCurrent = "true"
-                            , firstName = "Barbara"
-                            , lastName = "Bush"
-                            }
-                        , Index.PersonItem
-                            { selectionAction =
-                                CommunicationsPersonSelectionAction
-                                    { selectedPersonId = "20000000-0000-0000-0000-000000000000"
-                                    }
-                            , activeClass = ""
-                            , ariaCurrent = "false"
-                            , firstName = "Jackie"
-                            , lastName = "Kennedy"
-                            }
-                        ]
-                    }
-
-        it "returns a people column with no one shown as active when no one is selected" do
-            let barbara =
-                    newRecord @Person
-                        |> set #id "10000000-0000-0000-0000-000000000000"
-                        |> set #firstName "Barbara"
-                        |> set #lastName "Bush"
-
-            let jackie =
-                    newRecord @Person
-                        |> set #id "20000000-0000-0000-0000-000000000000"
-                        |> set #firstName "Jackie"
-                        |> set #lastName "Kennedy"
-
-            let people = [barbara, jackie]
-
-            let personSelection = Index.NoPersonSelected
-
-            Index.buildPeopleColumn Index.IndexView {..}
-                `shouldBe` Index.PeopleColumn
-                    { personItems =
-                        [ Index.PersonItem
-                            { selectionAction =
-                                CommunicationsPersonSelectionAction
-                                    { selectedPersonId = "10000000-0000-0000-0000-000000000000"
-                                    }
-                            , activeClass = ""
-                            , ariaCurrent = "false"
-                            , firstName = "Barbara"
-                            , lastName = "Bush"
-                            }
-                        , Index.PersonItem
-                            { selectionAction =
-                                CommunicationsPersonSelectionAction
-                                    { selectedPersonId = "20000000-0000-0000-0000-000000000000"
-                                    }
-                            , activeClass = ""
-                            , ariaCurrent = "false"
-                            , firstName = "Jackie"
-                            , lastName = "Kennedy"
-                            }
-                        ]
-                    }
-
-    describe "buildPersonItem" do
-        it "returns an inactive person item when not selected" do
-            let person =
-                    newRecord @Person
-                        |> set #id "10000000-0000-0000-0000-000000000000"
-                        |> set #firstName "Barbara"
-                        |> set #lastName "Bush"
-
-            Index.buildPersonItem False person
-                `shouldBe` Index.PersonItem
-                    { selectionAction = CommunicationsPersonSelectionAction "10000000-0000-0000-0000-000000000000"
-                    , activeClass = ""
-                    , ariaCurrent = "false"
-                    , firstName = "Barbara"
-                    , lastName = "Bush"
-                    }
-
-        it "returns an active person item when selected" do
-            let person =
-                    newRecord @Person
-                        |> set #id "10000000-0000-0000-0000-000000000000"
-                        |> set #firstName "Barbara"
-                        |> set #lastName "Bush"
-
-            Index.buildPersonItem True person
-                `shouldBe` Index.PersonItem
-                    { selectionAction = CommunicationsPersonSelectionAction "10000000-0000-0000-0000-000000000000"
-                    , activeClass = "active"
-                    , ariaCurrent = "true"
-                    , firstName = "Barbara"
-                    , lastName = "Bush"
                     }
 
     describe "buildMessagesColumn" do
