@@ -6,6 +6,7 @@ import qualified Application.Twilio.Query as Twilio.Query
 import Generated.Types
 import IHP.ControllerPrelude
 import Test.Hspec
+import Tests.Support
 import Text.Read (read)
 import Web.Types
 import qualified Web.View.Communications.Index as Index
@@ -1256,9 +1257,3 @@ spec = do
                         }
             Index.assembleMessageBodies "Existing text" [twilioMessage1, twilioMessage2]
                 `shouldBe` "Existing text"
-
-toUtc :: String -> UTCTime
-toUtc time = zonedTimeToUTC (read time :: ZonedTime)
-
-toDay :: String -> Day
-toDay = read

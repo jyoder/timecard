@@ -383,6 +383,3 @@ spec = do
                                , ("hoursWorked", "This field must be greater than or equal to 0.0")
                                , ("jobName", "This field cannot be empty")
                                ]
-
-toDay :: String -> Day
-toDay = read

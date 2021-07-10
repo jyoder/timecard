@@ -435,12 +435,6 @@ spec = do
             Timecard.EntryRequest.requestBody person timecardEntry
                 `shouldBe` "Hey Big Bird - I've got you at Sesame St. today. Let me know what hours you worked and what you did when you have a chance. Thanks!"
 
-toUtc :: String -> UTCTime
-toUtc time = zonedTimeToUTC (read time :: ZonedTime)
-
-toDay :: String -> Day
-toDay = read
-
 pdt :: TimeZone
 pdt = read "PDT"
 

@@ -138,6 +138,3 @@ spec = do
                 get #personId ronTimecard2 `shouldBe` get #id ron
                 get #weekOf ronTimecard2 `shouldBe` toDay "2021-06-28"
                 get #id ronTimecard2 `shouldNotBe` get #id ronTimecard1
-
-toDay :: String -> Day
-toDay = read

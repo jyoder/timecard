@@ -229,6 +229,3 @@ spec = do
 
                 Set.fromList (get #id <$> fetchedMessages)
                     `shouldBe` Set.fromList (get #id <$> timecardEntryMessages)
-
-toDay :: String -> Day
-toDay = read

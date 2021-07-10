@@ -41,9 +41,3 @@ spec = do
         it "returns a time three weeks after the given time" $ do
             Timecard.AccessToken.expirationFrom (toUtc "2021-06-21 15:30:00 PDT")
                 `shouldBe` toUtc "2021-07-12 15:30:00 PDT"
-
-toUtc :: String -> UTCTime
-toUtc time = zonedTimeToUTC (read time :: ZonedTime)
-
-toDay :: String -> Day
-toDay = read

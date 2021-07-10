@@ -556,9 +556,3 @@ spec = do
                                     , timecardEntryInvoiceTranslation = get #invoiceTranslation timecardEntry
                                     }
                                ]
-
-toUtc :: String -> UTCTime
-toUtc time = zonedTimeToUTC (read time :: ZonedTime)
-
-toDay :: String -> Day
-toDay = read

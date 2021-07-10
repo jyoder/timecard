@@ -40,6 +40,3 @@ spec = do
                 timecardSigning <- fetch (get #id timecardSigning)
                 get #timecardId timecardSigning `shouldBe` get #id timecard
                 get #signingId timecardSigning `shouldBe` get #id signing
-
-toDay :: String -> Day
-toDay = read

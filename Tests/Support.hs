@@ -1,7 +1,8 @@
 module Tests.Support (
     testConfig,
     itIO,
-    withTransactionRollback,
+    toDay,
+    toUtc,
 ) where
 
 import IHP.ControllerPrelude
@@ -48,3 +49,9 @@ withTransactionRollback block = do
             throw $ ForceTransactionRollback result
         )
         (\(ForceTransactionRollback result) -> pure result)
+
+toUtc :: String -> UTCTime
+toUtc time = zonedTimeToUTC (read time :: ZonedTime)
+
+toDay :: String -> Day
+toDay = read
