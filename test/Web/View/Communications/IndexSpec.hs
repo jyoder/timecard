@@ -10,6 +10,7 @@ import Tests.Support
 import Text.Read (read)
 import Web.Types
 import qualified Web.View.Communications.Index as Index
+import qualified Web.View.Timecards.Status as Status
 
 spec :: Spec
 spec = do
@@ -736,7 +737,7 @@ spec = do
                     [ Index.TimecardBlock
                         { weekOf = "06/21/2021"
                         , status =
-                            Index.TimecardStatus
+                            Status.TimecardStatus
                                 { statusClasses = "badge badge-pill badge-secondary"
                                 , statusLabel = "In Progress"
                                 }
@@ -855,7 +856,7 @@ spec = do
             Index.buildTimecardBlock person timecard
                 `shouldBe` Index.TimecardBlock
                     { weekOf = "06/21/2021"
-                    , status = Index.TimecardStatus {statusClasses = "badge badge-pill badge-secondary", statusLabel = "In Progress"}
+                    , status = Status.TimecardStatus {statusClasses = "badge badge-pill badge-secondary", statusLabel = "In Progress"}
                     , actions = Index.TimecardInProgress
                     , entryCards =
                         [ Index.TimecardEntryCard
@@ -871,76 +872,6 @@ spec = do
                             }
                         ]
                     }
-
-    describe "timecardStatus" do
-        it "returns a timecard status based on the given parameters" do
-            Index.timecardStatus Timecard.View.TimecardInProgress
-                `shouldBe` Index.TimecardStatus
-                    { statusClasses = "badge badge-pill badge-secondary"
-                    , statusLabel = "In Progress"
-                    }
-
-    describe "timecardStatusClasses" do
-        it "returns a secondary badge when the status is in progress" do
-            Index.timecardStatusClasses Timecard.View.TimecardInProgress
-                `shouldBe` "badge badge-pill badge-secondary"
-
-        it "returns a primary badge when the status is ready for review" do
-            Index.timecardStatusClasses Timecard.View.TimecardReadyForReview
-                `shouldBe` "badge badge-pill badge-primary"
-
-        it "returns a primary badge when the status is under review" do
-            Index.timecardStatusClasses
-                ( Timecard.View.TimecardUnderReview
-                    Timecard.View.AccessToken
-                        { id = "10000000-0000-0000-0000-000000000000"
-                        , value = "secret"
-                        , expiresAt = toUtc "2021-06-23 15:30:00 PDT"
-                        , isRevoked = False
-                        }
-                )
-                `shouldBe` "badge badge-pill badge-primary"
-
-        it "returns a success badge when the status is signed" do
-            Index.timecardStatusClasses
-                ( Timecard.View.TimecardSigned
-                    Timecard.View.Signing
-                        { id = "10000000-0000-0000-0000-000000000000"
-                        , signedAt = toUtc "2021-06-23 15:30:00 PDT"
-                        }
-                )
-                `shouldBe` "badge badge-pill badge-success"
-
-    describe "timecardStatusLabel" do
-        it "returns In Progress when the status is in progress" do
-            Index.timecardStatusLabel Timecard.View.TimecardInProgress
-                `shouldBe` "In Progress"
-
-        it "returns Ready for Review when the status is ready for review" do
-            Index.timecardStatusLabel Timecard.View.TimecardReadyForReview
-                `shouldBe` "Ready For Review"
-
-        it "returns Under Review when the status is under review" do
-            Index.timecardStatusLabel
-                ( Timecard.View.TimecardUnderReview
-                    Timecard.View.AccessToken
-                        { id = "10000000-0000-0000-0000-000000000000"
-                        , value = "secret"
-                        , expiresAt = toUtc "2021-06-23 15:30:00 PDT"
-                        , isRevoked = False
-                        }
-                )
-                `shouldBe` "Under Review"
-
-        it "returns Signed when the status is signed" do
-            Index.timecardStatusLabel
-                ( Timecard.View.TimecardSigned
-                    Timecard.View.Signing
-                        { id = "10000000-0000-0000-0000-000000000000"
-                        , signedAt = toUtc "2021-06-23 15:30:00 PDT"
-                        }
-                )
-                `shouldBe` "Signed"
 
     describe "buildTimecardActions" do
         it "returns in progress when the timecard is in progress" do

@@ -5,6 +5,7 @@ import Web.View.Navigation (Section (Timecards), renderNavigation)
 import Web.View.Prelude
 import Web.View.Service.Style (removeScrollbars)
 import Web.View.Service.Time (formatDay)
+import Web.View.Timecards.Status
 
 data IndexView = IndexView
     { people :: ![Person]
@@ -62,12 +63,6 @@ data TimecardTable = TimecardTable
     , totalHoursRow :: !TotalHoursRow
     , downloadAction :: !TimecardsController
     , downloadFileName :: !Text
-    }
-    deriving (Eq, Show)
-
-data TimecardStatus = TimecardStatus
-    { statusClasses :: !Text
-    , statusLabel :: !Text
     }
     deriving (Eq, Show)
 
@@ -168,29 +163,6 @@ buildTimecardTable selectedPerson personActivity timecard =
     downloadFileName = showWeekOf <> "-" <> lastName <> "-" <> firstName <> ".pdf"
     showWeekOf = show weekOf
     weekOf = get #weekOf timecard
-
-timecardStatus :: V.Status -> TimecardStatus
-timecardStatus status =
-    TimecardStatus
-        { statusClasses = timecardStatusClasses status
-        , statusLabel = timecardStatusLabel status
-        }
-
-timecardStatusClasses :: V.Status -> Text
-timecardStatusClasses =
-    \case
-        V.TimecardInProgress -> "badge badge-pill badge-secondary"
-        V.TimecardReadyForReview -> "badge badge-pill badge-primary"
-        V.TimecardUnderReview _ -> "badge badge-pill badge-primary"
-        V.TimecardSigned _ -> "badge badge-pill badge-success"
-
-timecardStatusLabel :: V.Status -> Text
-timecardStatusLabel =
-    \case
-        V.TimecardInProgress -> "In Progress"
-        V.TimecardReadyForReview -> "Ready For Review"
-        V.TimecardUnderReview _ -> "Under Review"
-        V.TimecardSigned _ -> "Signed"
 
 buildJobRow :: Person -> PersonActivity -> V.TimecardEntry -> JobRow
 buildJobRow selectedPerson personActivity timecardEntry =
