@@ -12,35 +12,34 @@ spec :: Spec
 spec = do
     describe "create" $ do
         beforeAll (testConfig >>= mockContext RootApplication) do
-            it "inserts the signing" $ withContext do
-                withTransactionRollback do
-                    ron <-
-                        newRecord @Person
-                            |> set #firstName "Ronald"
-                            |> set #lastName "McDonald"
-                            |> set #goesBy "Ron"
-                            |> createRecord
+            itIO "inserts the signing" do
+                ron <-
+                    newRecord @Person
+                        |> set #firstName "Ronald"
+                        |> set #lastName "McDonald"
+                        |> set #goesBy "Ron"
+                        |> createRecord
 
-                    timecard <-
-                        newRecord @Timecard
-                            |> set #weekOf (toDay "2021-06-21")
-                            |> set #personId (get #id ron)
-                            |> createRecord
+                timecard <-
+                    newRecord @Timecard
+                        |> set #weekOf (toDay "2021-06-21")
+                        |> set #personId (get #id ron)
+                        |> createRecord
 
-                    signing <-
-                        newRecord @Signing
-                            |> set #name "Ronald McDonald"
-                            |> set #ipAddress "127.0.0.1"
-                            |> createRecord
+                signing <-
+                    newRecord @Signing
+                        |> set #name "Ronald McDonald"
+                        |> set #ipAddress "127.0.0.1"
+                        |> createRecord
 
-                    timecardSigning <-
-                        Timecard.Signing.create
-                            (get #id timecard)
-                            (get #id signing)
+                timecardSigning <-
+                    Timecard.Signing.create
+                        (get #id timecard)
+                        (get #id signing)
 
-                    timecardSigning <- fetch (get #id timecardSigning)
-                    get #timecardId timecardSigning `shouldBe` get #id timecard
-                    get #signingId timecardSigning `shouldBe` get #id signing
+                timecardSigning <- fetch (get #id timecardSigning)
+                get #timecardId timecardSigning `shouldBe` get #id timecard
+                get #signingId timecardSigning `shouldBe` get #id signing
 
 toDay :: String -> Day
 toDay = read

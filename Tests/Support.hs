@@ -1,5 +1,6 @@
 module Tests.Support (
     testConfig,
+    itIO,
     withTransactionRollback,
 ) where
 
@@ -25,6 +26,15 @@ testConfig :: IO ConfigBuilder
 testConfig = pure do
     option Development
     option (AppHostname "localhost")
+
+itIO ::
+    Example (MockContext application -> IO ()) =>
+    String ->
+    ((?modelContext :: ModelContext) => IO ()) ->
+    SpecWith (Arg (MockContext application -> IO ()))
+itIO description block =
+    it ("[IO] " <> description) $
+        withContext $ withTransactionRollback block
 
 withTransactionRollback ::
     forall a.

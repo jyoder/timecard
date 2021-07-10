@@ -12,60 +12,58 @@ spec :: Spec
 spec = do
     describe "validate" $ do
         beforeAll (testConfig >>= mockContext RootApplication) do
-            it "validates that weekOf is the start of the week" $ withContext do
-                withTransactionRollback do
-                    ron <-
-                        newRecord @Person
-                            |> set #firstName "Ronald"
-                            |> set #lastName "McDonald"
-                            |> set #goesBy "Ron"
-                            |> createRecord
+            itIO "validates that weekOf is the start of the week" do
+                ron <-
+                    newRecord @Person
+                        |> set #firstName "Ronald"
+                        |> set #lastName "McDonald"
+                        |> set #goesBy "Ron"
+                        |> createRecord
 
-                    let timecard =
-                            newRecord @Timecard
-                                |> set #weekOf (toDay "2021-06-22")
-                                |> set #personId (get #id ron)
-
-                    timecard <- Timecard.Timecard.validate timecard
-                    timecard |> get #meta |> get #annotations
-                        `shouldBe` [("weekOf", "weekOf must be a Monday, the start of the week")]
-
-            it "validates that weekOf matches associated timecard entry dates" $ withContext do
-                withTransactionRollback do
-                    ron <-
-                        newRecord @Person
-                            |> set #firstName "Ronald"
-                            |> set #lastName "McDonald"
-                            |> set #goesBy "Ron"
-                            |> createRecord
-
-                    timecard <-
+                let timecard =
                         newRecord @Timecard
-                            |> set #weekOf (toDay "2021-06-21")
+                            |> set #weekOf (toDay "2021-06-22")
                             |> set #personId (get #id ron)
-                            |> createRecord
 
-                    timecardEntry <-
-                        newRecord @TimecardEntry
-                            |> set #timecardId (get #id timecard)
-                            |> set #date (toDay "2021-06-22")
-                            |> set #jobName "McDonald's"
-                            |> set #hoursWorked 8.0
-                            |> set #workDone "work"
-                            |> set #invoiceTranslation "invoice"
-                            |> createRecord
+                timecard <- Timecard.Timecard.validate timecard
+                timecard |> get #meta |> get #annotations
+                    `shouldBe` [("weekOf", "weekOf must be a Monday, the start of the week")]
 
-                    timecard <-
-                        timecard
-                            |> set #weekOf (toDay "2021-07-12")
-                            |> Timecard.Timecard.validate
+            itIO "validates that weekOf matches associated timecard entry dates" do
+                ron <-
+                    newRecord @Person
+                        |> set #firstName "Ronald"
+                        |> set #lastName "McDonald"
+                        |> set #goesBy "Ron"
+                        |> createRecord
 
-                    timecard |> get #meta |> get #annotations
-                        `shouldBe` [("weekOf", "weekOf must match timecard entries")]
+                timecard <-
+                    newRecord @Timecard
+                        |> set #weekOf (toDay "2021-06-21")
+                        |> set #personId (get #id ron)
+                        |> createRecord
 
-    describe "fetchOrCreate" $ do
+                timecardEntry <-
+                    newRecord @TimecardEntry
+                        |> set #timecardId (get #id timecard)
+                        |> set #date (toDay "2021-06-22")
+                        |> set #jobName "McDonald's"
+                        |> set #hoursWorked 8.0
+                        |> set #workDone "work"
+                        |> set #invoiceTranslation "invoice"
+                        |> createRecord
+
+                timecard <-
+                    timecard
+                        |> set #weekOf (toDay "2021-07-12")
+                        |> Timecard.Timecard.validate
+
+                timecard |> get #meta |> get #annotations
+                    `shouldBe` [("weekOf", "weekOf must match timecard entries")]
+
+    describe "fetchOrCreate" do
         beforeAll (testConfig >>= mockContext RootApplication) do
-            it "fetches an existing timecard" $ withContext do
+            itIO "fetches an existing timecard" do
                 ron <-
                     newRecord @Person
                         |> set #firstName "Ronald"
@@ -105,7 +103,7 @@ spec = do
 
                 get #id timecard `shouldBe` get #id ronTimecard2
 
-            it "creates a new timecard if a matching one does not yet exist" $ withContext do
+            itIO "creates a new timecard if a matching one does not yet exist" do
                 ron <-
                     newRecord @Person
                         |> set #firstName "Ronald"

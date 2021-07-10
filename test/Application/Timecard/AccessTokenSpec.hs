@@ -12,31 +12,30 @@ spec :: Spec
 spec = do
     describe "create" $ do
         beforeAll (testConfig >>= mockContext RootApplication) do
-            it "inserts a timecard access token and associated access token with the correct expiration" $ withContext do
-                withTransactionRollback do
-                    ron <-
-                        newRecord @Person
-                            |> set #firstName "Ronald"
-                            |> set #lastName "McDonald"
-                            |> set #goesBy "Ron"
-                            |> createRecord
+            itIO "inserts a timecard access token and associated access token with the correct expiration" do
+                ron <-
+                    newRecord @Person
+                        |> set #firstName "Ronald"
+                        |> set #lastName "McDonald"
+                        |> set #goesBy "Ron"
+                        |> createRecord
 
-                    timecard <-
-                        newRecord @Timecard
-                            |> set #weekOf (toDay "2021-06-21")
-                            |> set #personId (get #id ron)
-                            |> createRecord
+                timecard <-
+                    newRecord @Timecard
+                        |> set #weekOf (toDay "2021-06-21")
+                        |> set #personId (get #id ron)
+                        |> createRecord
 
-                    timecardAccessToken <-
-                        Timecard.AccessToken.create
-                            (toUtc "2021-06-21 15:30:00 PDT")
-                            (get #id timecard)
+                timecardAccessToken <-
+                    Timecard.AccessToken.create
+                        (toUtc "2021-06-21 15:30:00 PDT")
+                        (get #id timecard)
 
-                    accessToken <-
-                        fetchOne (get #accessTokenId timecardAccessToken)
+                accessToken <-
+                    fetchOne (get #accessTokenId timecardAccessToken)
 
-                    get #expiresAt accessToken
-                        `shouldBe` toUtc "2021-06-21 15:30:00 PDT"
+                get #expiresAt accessToken
+                    `shouldBe` toUtc "2021-06-21 15:30:00 PDT"
 
     describe "expirationFrom" $ do
         it "returns a time three weeks after the given time" $ do
