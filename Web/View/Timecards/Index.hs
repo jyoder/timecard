@@ -23,7 +23,7 @@ data PersonSelection
 
 data PersonActivity
     = Viewing
-    | Editing
+    | EditingInvoiceTranslation
         { selectedTimecardEntry :: !TimecardEntry
         }
 
@@ -64,7 +64,7 @@ data JobRow = JobRow
     deriving (Eq, Show)
 
 newtype TotalHoursRow = TotalHoursRow
-    { totalHours :: Double
+    { totalHours :: Text
     }
     deriving (Eq, Show)
 
@@ -165,7 +165,7 @@ buildInvoiceTranslationCell
                     { invoiceTranslation = get #invoiceTranslation timecardEntry
                     , editAction = TimecardEditTimecardEntryAction $ get #id timecardEntry
                     }
-            Editing {..} ->
+            EditingInvoiceTranslation {..} ->
                 if get #id timecardEntry == get #id selectedTimecardEntry
                     then
                         EditInvoiceTranslation
@@ -183,7 +183,7 @@ buildInvoiceTranslationCell
 buildTotalHoursRow :: [V.TimecardEntry] -> TotalHoursRow
 buildTotalHoursRow timecardEntries =
     TotalHoursRow
-        { totalHours = sum $ get #hoursWorked <$> timecardEntries
+        { totalHours = show $ sum $ get #hoursWorked <$> timecardEntries
         }
 
 renderPage :: Page -> Html
@@ -338,39 +338,39 @@ renderTotalHoursRow TotalHoursRow {..} =
 styles :: Html
 styles =
     [hsx|
-    <style>
-        .people-column {
-            height: calc(100vh - 150px);
-            overflow-y: scroll;
-        }
+        <style>
+            .people-column {
+                height: calc(100vh - 150px);
+                overflow-y: scroll;
+            }
 
-        .timecard-column {
-            height: calc(100vh - 150px);
-            overflow-y: scroll;
-            font-size: .9rem;
-        }
+            .timecard-column {
+                height: calc(100vh - 150px);
+                overflow-y: scroll;
+                font-size: .9rem;
+            }
 
-        .sticky-header thead th { 
-            position: sticky;
-            top: 0;
-            z-index: 1;
-            background: white;
-            border: none;
-        }
+            .sticky-header thead th { 
+                position: sticky;
+                top: 0;
+                z-index: 1;
+                background: white;
+                border: none;
+            }
 
-        .work-done {
-            width: 300px;
-        }
+            .work-done {
+                width: 300px;
+            }
 
-        .invoice-translation {
-            width: 300px;
-        }
+            .invoice-translation {
+                width: 300px;
+            }
 
-        #timecardEntry_invoiceTranslation {
-            font-size: .9rem;
-            height: 150px;
-        }
-    </style>
+            #timecardEntry_invoiceTranslation {
+                font-size: .9rem;
+                height: 150px;
+            }
+        </style>
 
-    {removeScrollbars}
-|]
+        {removeScrollbars}
+    |]

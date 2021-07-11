@@ -56,7 +56,7 @@ instance Controller TimecardsController where
                     Timecard.Query.EntriesDateAscending
                     selectedPersonId
 
-        let personActivity = Editing {..}
+        let personActivity = EditingInvoiceTranslation {..}
         let personSelection = PersonSelected {..}
 
         render IndexView {..}
@@ -99,7 +99,7 @@ instance Controller TimecardsController where
                                 Timecard.Query.EntriesDateAscending
                                 selectedPersonId
 
-                    let personActivity = Editing {..}
+                    let personActivity = EditingInvoiceTranslation {..}
                     let personSelection = PersonSelected {..}
 
                     render IndexView {..}
