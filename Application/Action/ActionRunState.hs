@@ -1,11 +1,13 @@
 module Application.Action.ActionRunState (
     updateNotStarted,
+    updateSuspended,
     updateRunning,
     updateFinished,
     updateCanceled,
     updateFailed,
     validate,
     notStarted,
+    suspended,
     running,
     finished,
     canceled,
@@ -19,6 +21,9 @@ import IHP.ValidationSupport.ValidateField
 
 updateNotStarted :: (?modelContext :: ModelContext) => ActionRunState -> IO ActionRunState
 updateNotStarted = updateState notStarted
+
+updateSuspended :: (?modelContext :: ModelContext) => ActionRunState -> IO ActionRunState
+updateSuspended = updateState suspended
 
 updateRunning :: (?modelContext :: ModelContext) => ActionRunState -> IO ActionRunState
 updateRunning = updateState running
@@ -39,10 +44,23 @@ updateState newState actionRunState =
 validate :: ActionRunState -> ActionRunState
 validate actionRunState =
     actionRunState
-        |> validateField #state (isInList [notStarted, running, finished, canceled, failed])
+        |> validateField
+            #state
+            ( isInList
+                [ notStarted
+                , suspended
+                , running
+                , finished
+                , canceled
+                , failed
+                ]
+            )
 
 notStarted :: Text
 notStarted = "not_started"
+
+suspended :: Text
+suspended = "suspended"
 
 running :: Text
 running = "running"
