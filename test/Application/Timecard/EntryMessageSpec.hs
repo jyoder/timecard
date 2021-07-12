@@ -8,7 +8,6 @@ import IHP.ControllerPrelude
 import IHP.Test.Mocking
 import Test.Hspec
 import Tests.Support
-import Text.Read (read)
 
 spec :: Spec
 spec = do

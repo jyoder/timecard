@@ -4,7 +4,7 @@ import qualified Application.Timecard.Query as Timecard.Query
 import qualified Application.Timecard.View as Timecard.View
 import IHP.Prelude
 import Test.Hspec
-import Text.Read (read)
+import Tests.Support
 
 spec :: Spec
 spec = do
@@ -432,9 +432,3 @@ spec = do
                                     ]
                                 }
                            ]
-
-toUtc :: String -> UTCTime
-toUtc time = zonedTimeToUTC (read time :: ZonedTime)
-
-toDay :: String -> Day
-toDay = read
