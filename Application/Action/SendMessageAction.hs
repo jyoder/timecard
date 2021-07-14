@@ -2,7 +2,7 @@ module Application.Action.SendMessageAction (
     T (..),
     validate,
     fetchReady,
-    fetchFutureOrSuspendedByPhoneNumber,
+    fetchNotStartedOrSuspendedByPhoneNumber,
     fetchFutureCreatedBeforeByPhoneNumber,
     schedule,
     perform,
@@ -92,19 +92,18 @@ order by
     action_run_times.runs_at asc;
 |]
 
-fetchFutureOrSuspendedByPhoneNumber ::
+fetchNotStartedOrSuspendedByPhoneNumber ::
     (?modelContext :: ModelContext) =>
-    UTCTime ->
     Id PhoneNumber ->
     IO [T]
-fetchFutureOrSuspendedByPhoneNumber time toPhoneNumberId = do
+fetchNotStartedOrSuspendedByPhoneNumber toPhoneNumberId = do
     trackTableRead "send_message_actions"
     trackTableRead "action_run_times"
     trackTableRead "action_run_states"
-    sqlQuery fetchFutureByPhoneNumberQuery (toPhoneNumberId, time)
+    sqlQuery fetchNotStartedOrSuspendedByPhoneNumberQuery (Only toPhoneNumberId)
 
-fetchFutureByPhoneNumberQuery :: Query
-fetchFutureByPhoneNumberQuery =
+fetchNotStartedOrSuspendedByPhoneNumberQuery :: Query
+fetchNotStartedOrSuspendedByPhoneNumberQuery =
     [i|
 select
     send_message_actions.id,
@@ -128,10 +127,7 @@ where
     and from_phone_numbers.id = send_message_actions.from_id
     and send_message_actions.action_run_state_id = action_run_states.id
     and action_run_times.action_run_state_id = action_run_states.id
-    and (
-        (action_run_states.state = 'not_started' and action_run_times.runs_at > ?)
-        or action_run_states.state = 'suspended'
-    )
+    and (action_run_states.state = 'not_started' or action_run_states.state = 'suspended')
 order by
     action_run_times.runs_at asc;
 |]

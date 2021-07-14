@@ -45,7 +45,7 @@ scheduleNextRequest ::
     Id PhoneNumber ->
     IO (Maybe SendMessageAction)
 scheduleNextRequest timeZone now newEntry person fromId toId = do
-    alreadyScheduled <- scheduledRequestExists now toId
+    alreadyScheduled <- scheduledRequestExists toId
     workerPreference <-
         query @WorkerPreference
             |> filterWhere (#personId, get #id person)
@@ -81,15 +81,14 @@ requestBody person lastEntry =
         <> get #jobName lastEntry
         <> " today. Let me know what hours you worked and what you did when you have a chance. Thanks!"
 
+-- TODO: remove asOf
 scheduledRequestExists ::
     (?modelContext :: ModelContext) =>
-    UTCTime ->
     Id PhoneNumber ->
     IO Bool
-scheduledRequestExists asOf toPhoneNumberId = do
+scheduledRequestExists toPhoneNumberId = do
     sendMessageActions <-
-        SendMessageAction.fetchFutureOrSuspendedByPhoneNumber
-            asOf
+        SendMessageAction.fetchNotStartedOrSuspendedByPhoneNumber
             toPhoneNumberId
     pure $ not $ null sendMessageActions
 

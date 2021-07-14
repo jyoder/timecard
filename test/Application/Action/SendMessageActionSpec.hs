@@ -220,9 +220,9 @@ spec = do
                                    , "send_message_actions"
                                    ]
 
-    describe "fetchFutureOrSuspenedByPhoneNumber" do
+    describe "fetchNotStartedOrSuspendedByPhoneNumber" do
         beforeAll (testConfig >>= mockContext RootApplication) do
-            itIO "returns a send message action if the run time is after the given time and it has not been started" do
+            itIO "returns a send message action if it is not started" do
                 actionRunState <-
                     newRecord @ActionRunState
                         |> set #state ActionRunState.notStarted
@@ -253,13 +253,12 @@ spec = do
                         |> createRecord
 
                 sendMessageActions <-
-                    SendMessageAction.fetchFutureOrSuspendedByPhoneNumber
-                        (toUtc "2021-06-23 14:59:59 PDT")
+                    SendMessageAction.fetchNotStartedOrSuspendedByPhoneNumber
                         (get #id toPhoneNumber)
 
                 get #id <$> sendMessageActions `shouldBe` [get #id sendMessageAction]
 
-            itIO "returns a send message action if the run time is after the given time and it has been suspended" do
+            itIO "returns a send message action if it has been suspended" do
                 actionRunState <-
                     newRecord @ActionRunState
                         |> set #state ActionRunState.suspended
@@ -290,45 +289,7 @@ spec = do
                         |> createRecord
 
                 sendMessageActions <-
-                    SendMessageAction.fetchFutureOrSuspendedByPhoneNumber
-                        (toUtc "2021-06-23 14:59:59 PDT")
-                        (get #id toPhoneNumber)
-
-                get #id <$> sendMessageActions `shouldBe` [get #id sendMessageAction]
-
-            itIO "returns a send message action if the run time is before the given time and it has been suspended" do
-                actionRunState <-
-                    newRecord @ActionRunState
-                        |> set #state ActionRunState.suspended
-                        |> createRecord
-
-                actionRunTime <-
-                    newRecord @ActionRunTime
-                        |> set #actionRunStateId (get #id actionRunState)
-                        |> set #runsAt (toUtc "2021-06-23 15:00:00 PDT")
-                        |> createRecord
-
-                fromPhoneNumber <-
-                    newRecord @PhoneNumber
-                        |> set #number "+14444444444"
-                        |> createRecord
-
-                toPhoneNumber <-
-                    newRecord @PhoneNumber
-                        |> set #number "+15555555555"
-                        |> createRecord
-
-                sendMessageAction <-
-                    newRecord @SendMessageAction
-                        |> set #actionRunStateId (get #id actionRunState)
-                        |> set #fromId (get #id fromPhoneNumber)
-                        |> set #toId (get #id toPhoneNumber)
-                        |> set #body "Hello!"
-                        |> createRecord
-
-                sendMessageActions <-
-                    SendMessageAction.fetchFutureOrSuspendedByPhoneNumber
-                        (toUtc "2021-06-23 15:00:00 PDT")
+                    SendMessageAction.fetchNotStartedOrSuspendedByPhoneNumber
                         (get #id toPhoneNumber)
 
                 get #id <$> sendMessageActions `shouldBe` [get #id sendMessageAction]
@@ -364,8 +325,7 @@ spec = do
                         |> createRecord
 
                 sendMessageActions <-
-                    SendMessageAction.fetchFutureOrSuspendedByPhoneNumber
-                        (toUtc "2021-06-23 14:59:59 PDT")
+                    SendMessageAction.fetchNotStartedOrSuspendedByPhoneNumber
                         (get #id toPhoneNumber)
 
                 get #id <$> sendMessageActions `shouldBe` []
