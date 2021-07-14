@@ -1,5 +1,6 @@
 module Web.View.Communications.Index where
 
+import qualified Application.Action.ActionRunState as ActionRunState
 import qualified Application.Action.SendMessageAction as SendMessageAction
 import qualified Application.Timecard.View as V
 import qualified Application.Twilio.Query as Twilio.Query
@@ -71,11 +72,18 @@ data MessageItem = MessageItem
     }
     deriving (Eq, Show)
 
-data ScheduledMessageItem = ScheduledMessageItem
-    { runsAt :: !Text
-    , body :: !Text
-    , cancelAction :: !CommunicationsController
-    }
+data ScheduledMessageItem
+    = NotStartedScheduledMessageItem
+        { runsAt :: !Text
+        , body :: !Text
+        , cancelAction :: !CommunicationsController
+        }
+    | SuspendedScheduledMessageItem
+        { runsAt :: !Text
+        , body :: !Text
+        , resumeAction :: !CommunicationsController
+        , cancelAction :: !CommunicationsController
+        }
     deriving (Eq, Show)
 
 newtype SendMessageForm = SendMessageForm
@@ -264,7 +272,25 @@ messageStatusClass status =
 
 buildScheduledMessageItem :: SendMessageAction.T -> ScheduledMessageItem
 buildScheduledMessageItem scheduledMessage =
-    ScheduledMessageItem
+    if get #state scheduledMessage == ActionRunState.suspended
+        then buildSuspendedScheduledMessageItem scheduledMessage
+        else buildNotStartedScheduledMessageItem scheduledMessage
+
+buildSuspendedScheduledMessageItem :: SendMessageAction.T -> ScheduledMessageItem
+buildSuspendedScheduledMessageItem scheduledMessage =
+    SuspendedScheduledMessageItem
+        { runsAt = show $ get #runsAt scheduledMessage
+        , body = get #body scheduledMessage
+        , resumeAction = resumeAction
+        , cancelAction = cancelAction
+        }
+  where
+    resumeAction = CommunicationsResumeScheduledMessageAction (get #id scheduledMessage)
+    cancelAction = CommunicationsCancelScheduledMessageAction (get #id scheduledMessage)
+
+buildNotStartedScheduledMessageItem :: SendMessageAction.T -> ScheduledMessageItem
+buildNotStartedScheduledMessageItem scheduledMessage =
+    NotStartedScheduledMessageItem
         { runsAt = show $ get #runsAt scheduledMessage
         , body = get #body scheduledMessage
         , cancelAction = cancelAction
@@ -437,7 +463,7 @@ renderMessageItem MessageItem {..} =
     |]
 
 renderScheduledMessageItem :: ScheduledMessageItem -> Html
-renderScheduledMessageItem ScheduledMessageItem {..} =
+renderScheduledMessageItem NotStartedScheduledMessageItem {..} =
     [hsx|
         <div class="scheduled-message list-group-item flex-column align-items-start">
             <div class="d-flex w-100 justify-content-between">
@@ -457,6 +483,36 @@ renderScheduledMessageItem ScheduledMessageItem {..} =
                     class="btn btn-outline-primary btn-sm">
                     Cancel
                 </a>
+            </div>
+        </div>
+    |]
+renderScheduledMessageItem SuspendedScheduledMessageItem {..} =
+    [hsx|
+        <div class="scheduled-message-suspended list-group-item flex-column align-items-start">
+            <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">Suspended</h5>
+                <span class="message-scheduled-for">
+                    <time class="date-time" datetime={runsAt}>{runsAt}</time>
+                </span>
+            </div>
+            <p class="message-body mb-1">{body}</p>
+
+            <div class="d-flex w-100 justify-content-between">
+                <span class="message-status text-warning">
+                    Suspended
+                </span>
+                <span>
+                <a href={resumeAction}
+                    data-turbolinks="false"
+                    class="btn btn-outline-primary btn-sm mr-2">
+                    Resume
+                </a>
+                <a href={cancelAction}
+                    data-turbolinks="false"
+                    class="btn btn-outline-primary btn-sm">
+                    Cancel
+                </a>
+                </span>
             </div>
         </div>
     |]
@@ -754,6 +810,10 @@ styles =
 
         .scheduled-message {
             background-color: whitesmoke;
+        }
+
+        .scheduled-message-suspended {
+            background-color: #fff5ee;
         }
 
         .message-scheduled-for {

@@ -38,7 +38,10 @@ instance Controller CommunicationsController where
 
         messages <- Twilio.Query.fetchByPeople botId selectedPersonId
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
-        scheduledMessages <- SendMessageAction.fetchAfterByPhoneNumber now (get #id toPhoneNumber)
+        scheduledMessages <-
+            SendMessageAction.fetchFutureOrSuspendedByPhoneNumber
+                now
+                (get #id toPhoneNumber)
         let newMessage = newRecord @TwilioMessage
 
         timecards <-
@@ -62,7 +65,10 @@ instance Controller CommunicationsController where
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
         let selectedMessageIds = paramOrDefault @[Id TwilioMessage] [] "selectedMessageIds"
         let selectedMessages = findSelectedMessages messages selectedMessageIds
-        scheduledMessages <- SendMessageAction.fetchAfterByPhoneNumber now (get #id toPhoneNumber)
+        scheduledMessages <-
+            SendMessageAction.fetchFutureOrSuspendedByPhoneNumber
+                now
+                (get #id toPhoneNumber)
         let newMessage = newRecord @TwilioMessage
 
         now <- getCurrentTime
@@ -90,7 +96,10 @@ instance Controller CommunicationsController where
         timecardEntryMessages <- Timecard.EntryMessage.fetchByTimecardEntry timecardEntryId
         let selectedMessageIds = map (get #twilioMessageId) timecardEntryMessages
         let selectedMessages = findSelectedMessages messages selectedMessageIds
-        scheduledMessages <- SendMessageAction.fetchAfterByPhoneNumber now (get #id toPhoneNumber)
+        scheduledMessages <-
+            SendMessageAction.fetchFutureOrSuspendedByPhoneNumber
+                now
+                (get #id toPhoneNumber)
         let newMessage = newRecord @TwilioMessage
 
         timecardEntry <- fetch timecardEntryId
@@ -113,7 +122,10 @@ instance Controller CommunicationsController where
         messages <- Twilio.Query.fetchByPeople botId selectedPersonId
         let selectedMessageIds = paramOrDefault @[Id TwilioMessage] [] "selectedMessageIds"
         let selectedMessages = findSelectedMessages messages selectedMessageIds
-        scheduledMessages <- SendMessageAction.fetchAfterByPhoneNumber now (get #id toPhoneNumber)
+        scheduledMessages <-
+            SendMessageAction.fetchFutureOrSuspendedByPhoneNumber
+                now
+                (get #id toPhoneNumber)
         let newMessage = newRecord @TwilioMessage
 
         timecardEntry <- fetch timecardEntryId
@@ -144,7 +156,9 @@ instance Controller CommunicationsController where
                         messages <- Twilio.Query.fetchByPeople botId selectedPersonId
                         let selectedMessages = findSelectedMessages messages selectedMessageIds
                         scheduledMessages <-
-                            SendMessageAction.fetchAfterByPhoneNumber now (get #id toPhoneNumber)
+                            SendMessageAction.fetchFutureOrSuspendedByPhoneNumber
+                                now
+                                (get #id toPhoneNumber)
                         let newMessage = newRecord @TwilioMessage
 
                         let timecardActivity = CreatingEntry
@@ -184,7 +198,7 @@ instance Controller CommunicationsController where
                         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
                         let selectedMessages = findSelectedMessages messages selectedMessageIds
                         scheduledMessages <-
-                            SendMessageAction.fetchAfterByPhoneNumber
+                            SendMessageAction.fetchFutureOrSuspendedByPhoneNumber
                                 now
                                 (get #id toPhoneNumber)
                         let newMessage = newRecord @TwilioMessage
@@ -220,6 +234,15 @@ instance Controller CommunicationsController where
         toPerson <- People.fetchByPhoneNumber (get #toId sendMessageAction)
 
         ActionRunState.updateCanceled actionRunState
+
+        redirectTo $ CommunicationsPersonSelectionAction (get #id toPerson)
+    --
+    action CommunicationsResumeScheduledMessageAction {..} = do
+        sendMessageAction <- fetch sendMessageActionId
+        actionRunState <- fetch (get #actionRunStateId sendMessageAction)
+        toPerson <- People.fetchByPhoneNumber (get #toId sendMessageAction)
+
+        actionRunState <- ActionRunState.updateNotStarted actionRunState
 
         redirectTo $ CommunicationsPersonSelectionAction (get #id toPerson)
     --

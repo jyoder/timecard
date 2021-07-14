@@ -1,5 +1,6 @@
 module Web.Controller.TwilioCallbacks where
 
+import qualified Application.Brain.Process as Brain.Process
 import Application.Service.Transaction (withTransactionOrSavepoint)
 import Application.Service.Validation (validateAndUpdate)
 import qualified Application.Twilio.TwilioClient as TwilioClient
@@ -59,6 +60,9 @@ instance Controller TwilioCallbacksController where
                 Right twilioMessage -> do
                     createRecord twilioMessage
                     pure ()
+
+        now <- getCurrentTime
+        Brain.Process.processState now $ get #id fromPhoneNumber
 
         renderPlain ""
 

@@ -87,7 +87,10 @@ scheduledRequestExists ::
     Id PhoneNumber ->
     IO Bool
 scheduledRequestExists asOf toPhoneNumberId = do
-    sendMessageActions <- SendMessageAction.fetchAfterByPhoneNumber asOf toPhoneNumberId
+    sendMessageActions <-
+        SendMessageAction.fetchFutureOrSuspendedByPhoneNumber
+            asOf
+            toPhoneNumberId
     pure $ not $ null sendMessageActions
 
 nextTimecardEntryDay :: Day -> [Day] -> Day

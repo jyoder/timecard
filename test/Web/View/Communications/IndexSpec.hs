@@ -1,5 +1,6 @@
 module Web.View.Communications.IndexSpec where
 
+import qualified Application.Action.ActionRunState as ActionRunState
 import qualified Application.Action.SendMessageAction as SendMessageAction
 import qualified Application.Timecard.View as Timecard.View
 import qualified Application.Twilio.Query as Twilio.Query
@@ -119,7 +120,7 @@ spec = do
                     SendMessageAction.T
                         { id = "60000000-0000-0000-0000-000000000000"
                         , actionRunStateId = "20000000-0000-0000-0000-000000000000"
-                        , state = "not_running"
+                        , state = ActionRunState.notStarted
                         , runsAt = toUtc "2021-06-23 15:30:00 PDT"
                         , body = "Hello World!"
                         , fromId = "30000000-0000-0000-0000-000000000000"
@@ -171,7 +172,7 @@ spec = do
                             }
                         ]
                     , scheduledMessageItems =
-                        [ Index.ScheduledMessageItem
+                        [ Index.NotStartedScheduledMessageItem
                             { runsAt = "2021-06-23 22:30:00 UTC"
                             , body = "Hello World!"
                             , cancelAction =
@@ -529,12 +530,12 @@ spec = do
                 `shouldBe` "message-status sending"
 
     describe "buildScheduledMessageItem" do
-        it "returns a scheduled message item based on the given parameters" do
+        it "returns a not started scheduled message item when the action is not started" do
             let sendMessageAction =
                     SendMessageAction.T
                         { id = "10000000-0000-0000-0000-000000000000"
                         , actionRunStateId = "20000000-0000-0000-0000-000000000000"
-                        , state = "not_running"
+                        , state = ActionRunState.notStarted
                         , runsAt = toUtc "2021-06-23 15:30:00 PDT"
                         , body = "Hello World!"
                         , fromId = "30000000-0000-0000-0000-000000000000"
@@ -544,12 +545,40 @@ spec = do
                         }
 
             Index.buildScheduledMessageItem sendMessageAction
-                `shouldBe` Index.ScheduledMessageItem
+                `shouldBe` Index.NotStartedScheduledMessageItem
                     { runsAt = "2021-06-23 22:30:00 UTC"
                     , body = "Hello World!"
                     , cancelAction =
                         CommunicationsCancelScheduledMessageAction
                             "10000000-0000-0000-0000-000000000000"
+                    }
+
+        it "returns a suspended scheduled message item when the action has been suspended" do
+            let sendMessageAction =
+                    SendMessageAction.T
+                        { id = "10000000-0000-0000-0000-000000000000"
+                        , actionRunStateId = "20000000-0000-0000-0000-000000000000"
+                        , state = ActionRunState.suspended
+                        , runsAt = toUtc "2021-06-23 15:30:00 PDT"
+                        , body = "Hello World!"
+                        , fromId = "30000000-0000-0000-0000-000000000000"
+                        , fromNumber = "+15555555555"
+                        , toId = "40000000-0000-0000-0000-000000000000"
+                        , toNumber = "+16666666666"
+                        }
+
+            Index.buildScheduledMessageItem sendMessageAction
+                `shouldBe` Index.SuspendedScheduledMessageItem
+                    { runsAt = "2021-06-23 22:30:00 UTC"
+                    , body = "Hello World!"
+                    , resumeAction =
+                        CommunicationsResumeScheduledMessageAction
+                            { sendMessageActionId = "10000000-0000-0000-0000-000000000000"
+                            }
+                    , cancelAction =
+                        CommunicationsCancelScheduledMessageAction
+                            { sendMessageActionId = "10000000-0000-0000-0000-000000000000"
+                            }
                     }
 
     describe "buildSendMessageForm" do

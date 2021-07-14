@@ -13,7 +13,8 @@ instance Job ProcessEventsJob where
     perform ProcessEventsJob {..} = do
         whileM_ (pure True) do
             Log.debug ("Running scheduled actions" :: Text)
-            sendMessageActions <- SendMessageAction.fetchReady
+            now <- getCurrentTime
+            sendMessageActions <- SendMessageAction.fetchReady now
             mapM_ runSendMessageAction sendMessageActions
             threadDelay runInterval
 

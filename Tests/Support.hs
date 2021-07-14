@@ -5,6 +5,7 @@ module Tests.Support (
     toUtc,
 ) where
 
+import IHP.ApplicationContext (ApplicationContext (..))
 import IHP.ControllerPrelude
 import IHP.Environment
 import IHP.Test.Mocking
@@ -31,7 +32,7 @@ testConfig = pure do
 itIO ::
     Example (MockContext application -> IO ()) =>
     String ->
-    ((?modelContext :: ModelContext) => IO ()) ->
+    ((ContextParameters application) => IO ()) ->
     SpecWith (Arg (MockContext application -> IO ()))
 itIO description block =
     it ("[IO] " <> description) $
