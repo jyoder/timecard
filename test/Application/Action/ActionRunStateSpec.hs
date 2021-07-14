@@ -76,6 +76,14 @@ spec = do
                 get #state actionRunState `shouldBe` "failed"
 
     describe "validate" do
+        it "disallows an unknown state" do
+            newRecord @ActionRunState
+                |> set #state "unknown"
+                |> ActionRunState.validate
+                |> ifValid \case
+                    Left _ -> pure ()
+                    Right _ -> expectationFailure "should disallow unknown state"
+
         it "accepts not_started as a valid state" do
             newRecord @ActionRunState
                 |> set #state "not_started"
