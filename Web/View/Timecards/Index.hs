@@ -3,7 +3,7 @@ module Web.View.Timecards.Index where
 import qualified Application.Timecard.View as V
 import Web.View.Navigation.People
 import Web.View.Navigation.Section (Section (Timecards), renderSectionNavigation)
-import Web.View.Prelude
+import Web.View.Prelude hiding (Page)
 import Web.View.Service.Style (removeScrollbars)
 import Web.View.Service.Time (formatDay)
 import Web.View.Timecards.Status
