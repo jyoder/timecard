@@ -457,6 +457,7 @@ renderMessageItem MessageItem {..} =
             <div class="d-flex w-100 justify-content-between">
                 <span class={statusClass}>{status}</span>
                 <a href={linkButtonAction}
+                    data-turbolinks="false"
                     class={"btn btn-outline-primary btn-sm " <> linkButtonActiveClass}>
                     {linkButtonText}
                 </a>
