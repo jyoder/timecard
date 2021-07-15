@@ -60,8 +60,11 @@ instance Controller CommunicationsController where
 
         messages <- Twilio.Query.fetchByPeople botId selectedPersonId
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
-        let selectedMessageIds = paramOrDefault @[Id TwilioMessage] [] "selectedMessageIds"
-        let selectedMessages = findSelectedMessages messages selectedMessageIds
+
+        -- TODO: this is a workaround to deal with a bug in AutoRoute:
+        -- https://github.com/digitallyinduced/ihp/issues/971
+        let selectedMessageIds' = fromMaybe [] (tail (textToId <$> selectedMessageIds))
+        let selectedMessages = findSelectedMessages messages selectedMessageIds'
         scheduledMessages <-
             SendMessageAction.fetchNotStartedOrSuspendedByPhoneNumber
                 (get #id toPhoneNumber)
@@ -75,7 +78,7 @@ instance Controller CommunicationsController where
         let personActivity = WorkingOnTimecardEntry {..}
         let personSelection = PersonSelected {..}
 
-        if null selectedMessageIds
+        if null selectedMessageIds'
             then redirectTo CommunicationsPersonSelectionAction {..}
             else render IndexView {..}
       where
@@ -113,8 +116,11 @@ instance Controller CommunicationsController where
 
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
         messages <- Twilio.Query.fetchByPeople botId selectedPersonId
-        let selectedMessageIds = paramOrDefault @[Id TwilioMessage] [] "selectedMessageIds"
-        let selectedMessages = findSelectedMessages messages selectedMessageIds
+
+        -- TODO: this is a workaround to deal with a bug in AutoRoute:
+        -- https://github.com/digitallyinduced/ihp/issues/971
+        let selectedMessageIds' = fromMaybe [] (tail (textToId <$> selectedMessageIds))
+        let selectedMessages = findSelectedMessages messages selectedMessageIds'
         scheduledMessages <-
             SendMessageAction.fetchNotStartedOrSuspendedByPhoneNumber
                 (get #id toPhoneNumber)
@@ -126,7 +132,7 @@ instance Controller CommunicationsController where
         let personActivity = WorkingOnTimecardEntry {..}
         let personSelection = PersonSelected {..}
 
-        if null selectedMessageIds
+        if null selectedMessageIds'
             then redirectTo CommunicationsPersonSelectionAction {..}
             else render IndexView {..}
     --

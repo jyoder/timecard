@@ -153,7 +153,10 @@ spec = do
                             , linkButtonAction =
                                 CommunicationsNewTimecardEntryAction
                                     { selectedPersonId = "10000000-0000-0000-0000-000000000000"
-                                    , selectedMessageIds = ["40000000-0000-0000-0000-000000000000"]
+                                    , selectedMessageIds =
+                                        [ "00000000-0000-0000-0000-000000000000"
+                                        , "40000000-0000-0000-0000-000000000000"
+                                        ]
                                     }
                             }
                         , Index.MessageItem
@@ -167,7 +170,10 @@ spec = do
                             , linkButtonAction =
                                 CommunicationsNewTimecardEntryAction
                                     { selectedPersonId = "10000000-0000-0000-0000-000000000000"
-                                    , selectedMessageIds = ["50000000-0000-0000-0000-000000000000"]
+                                    , selectedMessageIds =
+                                        [ "00000000-0000-0000-0000-000000000000"
+                                        , "50000000-0000-0000-0000-000000000000"
+                                        ]
                                     }
                             }
                         ]
@@ -261,7 +267,8 @@ spec = do
                                     CommunicationsNewTimecardEntryAction
                                         { selectedPersonId = "10000000-0000-0000-0000-000000000000"
                                         , selectedMessageIds =
-                                            [ "30000000-0000-0000-0000-000000000000"
+                                            [ "00000000-0000-0000-0000-000000000000"
+                                            , "30000000-0000-0000-0000-000000000000"
                                             ]
                                         }
                                 }
@@ -276,7 +283,10 @@ spec = do
                                 , linkButtonAction =
                                     CommunicationsNewTimecardEntryAction
                                         { selectedPersonId = "10000000-0000-0000-0000-000000000000"
-                                        , selectedMessageIds = ["40000000-0000-0000-0000-000000000000"]
+                                        , selectedMessageIds =
+                                            [ "00000000-0000-0000-0000-000000000000"
+                                            , "40000000-0000-0000-0000-000000000000"
+                                            ]
                                         }
                                 }
                            ]
@@ -340,7 +350,11 @@ spec = do
                                 , linkButtonAction =
                                     CommunicationsNewTimecardEntryAction
                                         { selectedPersonId = "10000000-0000-0000-0000-000000000000"
-                                        , selectedMessageIds = ["30000000-0000-0000-0000-000000000000", "40000000-0000-0000-0000-000000000000"]
+                                        , selectedMessageIds =
+                                            [ "00000000-0000-0000-0000-000000000000"
+                                            , "30000000-0000-0000-0000-000000000000"
+                                            , "40000000-0000-0000-0000-000000000000"
+                                            ]
                                         }
                                 }
                            , Index.MessageItem
@@ -354,7 +368,7 @@ spec = do
                                 , linkButtonAction =
                                     CommunicationsNewTimecardEntryAction
                                         { selectedPersonId = "10000000-0000-0000-0000-000000000000"
-                                        , selectedMessageIds = []
+                                        , selectedMessageIds = ["00000000-0000-0000-0000-000000000000"]
                                         }
                                 }
                            ]
@@ -402,7 +416,7 @@ spec = do
                     , linkButtonAction =
                         CommunicationsNewTimecardEntryAction
                             { selectedPersonId = "10000000-0000-0000-0000-000000000000"
-                            , selectedMessageIds = []
+                            , selectedMessageIds = ["00000000-0000-0000-0000-000000000000"]
                             }
                     }
 
@@ -454,7 +468,8 @@ spec = do
                         CommunicationsNewTimecardEntryAction
                             { selectedPersonId = "10000000-0000-0000-0000-000000000000"
                             , selectedMessageIds =
-                                [ "30000000-0000-0000-0000-000000000000"
+                                [ "00000000-0000-0000-0000-000000000000"
+                                , "30000000-0000-0000-0000-000000000000"
                                 , "40000000-0000-0000-0000-000000000000"
                                 ]
                             }
@@ -493,7 +508,8 @@ spec = do
             Index.buildMessageItem
                 person
                 personActivity
-                [ "30000000-0000-0000-0000-000000000000"
+                [ "00000000-0000-0000-0000-000000000000"
+                , "30000000-0000-0000-0000-000000000000"
                 , "40000000-0000-0000-0000-000000000000"
                 ]
                 twilioMessage
@@ -508,7 +524,11 @@ spec = do
                     , linkButtonAction =
                         CommunicationsNewTimecardEntryAction
                             { selectedPersonId = "10000000-0000-0000-0000-000000000000"
-                            , selectedMessageIds = ["40000000-0000-0000-0000-000000000000"]
+                            , selectedMessageIds =
+                                [ "00000000-0000-0000-0000-000000000000"
+                                , "00000000-0000-0000-0000-000000000000"
+                                , "40000000-0000-0000-0000-000000000000"
+                                ]
                             }
                     }
 
