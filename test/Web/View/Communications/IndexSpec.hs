@@ -181,8 +181,8 @@ spec = do
                         [ Index.NotStartedScheduledMessageItem
                             { runsAt = "2021-06-23 22:30:00 UTC"
                             , body = "Hello World!"
-                            , cancelAction =
-                                CommunicationsCancelScheduledMessageAction
+                            , updateAction =
+                                CommunicationsUpdateScheduledMessageAction
                                     { sendMessageActionId = "60000000-0000-0000-0000-000000000000"
                                     }
                             }
@@ -568,8 +568,8 @@ spec = do
                 `shouldBe` Index.NotStartedScheduledMessageItem
                     { runsAt = "2021-06-23 22:30:00 UTC"
                     , body = "Hello World!"
-                    , cancelAction =
-                        CommunicationsCancelScheduledMessageAction
+                    , updateAction =
+                        CommunicationsUpdateScheduledMessageAction
                             "10000000-0000-0000-0000-000000000000"
                     }
 
@@ -591,12 +591,8 @@ spec = do
                 `shouldBe` Index.SuspendedScheduledMessageItem
                     { runsAt = "2021-06-23 22:30:00 UTC"
                     , body = "Hello World!"
-                    , resumeAction =
-                        CommunicationsResumeScheduledMessageAction
-                            { sendMessageActionId = "10000000-0000-0000-0000-000000000000"
-                            }
-                    , cancelAction =
-                        CommunicationsCancelScheduledMessageAction
+                    , updateAction =
+                        CommunicationsUpdateScheduledMessageAction
                             { sendMessageActionId = "10000000-0000-0000-0000-000000000000"
                             }
                     }

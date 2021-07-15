@@ -79,6 +79,9 @@ data CommunicationsController
     | CommunicationsResumeScheduledMessageAction
         { sendMessageActionId :: !(Id SendMessageAction)
         }
+    | CommunicationsUpdateScheduledMessageAction
+        { sendMessageActionId :: !(Id SendMessageAction)
+        }
     | CommunicationsCreateTimecardReview
     deriving (Eq, Show, Data)
 

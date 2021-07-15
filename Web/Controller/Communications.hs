@@ -223,6 +223,33 @@ instance Controller CommunicationsController where
                 TwilioMessage.send fromPhoneNumber toPhoneNumber body
                 redirectTo $ CommunicationsPersonSelectionAction (get #id toPerson)
     --
+    action CommunicationsUpdateScheduledMessageAction {..} = do
+        sendMessageAction <- fetch sendMessageActionId
+        actionRunState <- fetch (get #actionRunStateId sendMessageAction)
+        toPerson <- People.fetchByPhoneNumber (get #toId sendMessageAction)
+
+        case paramOrNothing @Text "body" of
+            Just body ->
+                sendMessageAction
+                    |> set #body body
+                    |> SendMessageAction.validate
+                    |> ifValid \case
+                        Left sendMessageAction ->
+                            pure ()
+                        Right sendMessageAction ->
+                            sendMessageAction
+                                |> updateRecord
+                                >> pure ()
+            Nothing ->
+                pure ()
+
+        case paramOrNothing @Text "state" of
+            Just "canceled" -> ActionRunState.updateCanceled actionRunState >> pure ()
+            Just "not_started" -> ActionRunState.updateNotStarted actionRunState >> pure ()
+            _ -> pure ()
+
+        redirectTo $ CommunicationsPersonSelectionAction (get #id toPerson)
+    --
     action CommunicationsCancelScheduledMessageAction {..} = do
         sendMessageAction <- fetch sendMessageActionId
         actionRunState <- fetch (get #actionRunStateId sendMessageAction)

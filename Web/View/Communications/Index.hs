@@ -76,13 +76,12 @@ data ScheduledMessageItem
     = NotStartedScheduledMessageItem
         { runsAt :: !Text
         , body :: !Text
-        , cancelAction :: !CommunicationsController
+        , updateAction :: !CommunicationsController
         }
     | SuspendedScheduledMessageItem
         { runsAt :: !Text
         , body :: !Text
-        , resumeAction :: !CommunicationsController
-        , cancelAction :: !CommunicationsController
+        , updateAction :: !CommunicationsController
         }
     deriving (Eq, Show)
 
@@ -284,22 +283,20 @@ buildSuspendedScheduledMessageItem scheduledMessage =
     SuspendedScheduledMessageItem
         { runsAt = show $ get #runsAt scheduledMessage
         , body = get #body scheduledMessage
-        , resumeAction = resumeAction
-        , cancelAction = cancelAction
+        , updateAction = updateAction
         }
   where
-    resumeAction = CommunicationsResumeScheduledMessageAction (get #id scheduledMessage)
-    cancelAction = CommunicationsCancelScheduledMessageAction (get #id scheduledMessage)
+    updateAction = CommunicationsUpdateScheduledMessageAction (get #id scheduledMessage)
 
 buildNotStartedScheduledMessageItem :: SendMessageAction.T -> ScheduledMessageItem
 buildNotStartedScheduledMessageItem scheduledMessage =
     NotStartedScheduledMessageItem
         { runsAt = show $ get #runsAt scheduledMessage
         , body = get #body scheduledMessage
-        , cancelAction = cancelAction
+        , updateAction = updateAction
         }
   where
-    cancelAction = CommunicationsCancelScheduledMessageAction (get #id scheduledMessage)
+    updateAction = CommunicationsUpdateScheduledMessageAction (get #id scheduledMessage)
 
 buildSendMessageForm :: PhoneNumber -> SendMessageForm
 buildSendMessageForm toPhoneNumber =
@@ -481,11 +478,10 @@ renderScheduledMessageItem NotStartedScheduledMessageItem {..} =
                 <span class="message-status scheduled">
                     Scheduled
                 </span>
-                <a href={cancelAction}
-                    data-turbolinks="false"
-                    class="btn btn-outline-primary btn-sm">
-                    Cancel
-                </a>
+                <form method="POST" action={updateAction}>
+                    <input type="hidden" name="state" value="canceled">
+                    <button type="submit" class="btn btn-outline-primary btn-sm">Cancel</button>
+                </form>
             </div>
         </div>
     |]
@@ -505,16 +501,15 @@ renderScheduledMessageItem SuspendedScheduledMessageItem {..} =
                     Suspended
                 </span>
                 <span>
-                <a href={resumeAction}
-                    data-turbolinks="false"
-                    class="btn btn-outline-primary btn-sm mr-2">
-                    Resume
-                </a>
-                <a href={cancelAction}
-                    data-turbolinks="false"
-                    class="btn btn-outline-primary btn-sm">
-                    Cancel
-                </a>
+                    <form method="POST" action={updateAction} class="mr-2" style="display: inline-block">
+                        <input type="hidden" name="state" value="not_started">
+                        <button type="submit" class="btn btn-outline-primary btn-sm">Resume</button>
+                    </form>
+
+                    <form method="POST" action={updateAction} style="display: inline-block">
+                        <input type="hidden" name="state" value="canceled">
+                        <button type="submit" class="btn btn-outline-primary btn-sm">Cancel</button>
+                    </form>
                 </span>
             </div>
         </div>
