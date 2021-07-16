@@ -73,10 +73,7 @@ data CommunicationsController
         { timecardEntryId :: !(Id TimecardEntry)
         }
     | CommunicationsSendPhoneMessageAction
-    | CommunicationsCancelScheduledMessageAction
-        { sendMessageActionId :: !(Id SendMessageAction)
-        }
-    | CommunicationsResumeScheduledMessageAction
+    | CommunicationsEditScheduledMessageAction
         { sendMessageActionId :: !(Id SendMessageAction)
         }
     | CommunicationsUpdateScheduledMessageAction

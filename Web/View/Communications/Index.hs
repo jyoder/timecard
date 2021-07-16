@@ -23,6 +23,7 @@ data PersonSelection
         , messages :: ![Twilio.Query.Row]
         , toPhoneNumber :: !PhoneNumber
         , scheduledMessages :: ![SendMessageAction.T]
+        , editingScheduledMessage :: !Bool
         , newMessage :: !TwilioMessage
         , personActivity :: !PersonActivity
         }
@@ -76,12 +77,21 @@ data ScheduledMessageItem
     = NotStartedScheduledMessageItem
         { runsAt :: !Text
         , body :: !Text
+        , editAction :: !CommunicationsController
         , updateAction :: !CommunicationsController
         }
     | SuspendedScheduledMessageItem
         { runsAt :: !Text
         , body :: !Text
+        , editAction :: !CommunicationsController
         , updateAction :: !CommunicationsController
+        }
+    | EditScheduledMessageForm
+        { runsAt :: !Text
+        , body :: !Text
+        , sendMessageActionId :: !Text
+        , saveAction :: !CommunicationsController
+        , cancelAction :: !CommunicationsController
         }
     deriving (Eq, Show)
 
@@ -199,7 +209,11 @@ buildMessagesColumn IndexView {..} =
         PersonSelected {..} ->
             MessagesColumnVisible
                 { messageItems = buildMessageItems selectedPerson personActivity messages
-                , scheduledMessageItems = buildScheduledMessageItem <$> scheduledMessages
+                , scheduledMessageItems =
+                    buildScheduledMessageItem
+                        editingScheduledMessage
+                        (get #id selectedPerson)
+                        <$> scheduledMessages
                 , sendMessageForm = buildSendMessageForm toPhoneNumber
                 }
 
@@ -272,20 +286,27 @@ messageStatusClass status =
         Twilio.Query.Failed -> "message-status failed"
         _ -> "message-status sending"
 
-buildScheduledMessageItem :: SendMessageAction.T -> ScheduledMessageItem
-buildScheduledMessageItem scheduledMessage =
-    if get #state scheduledMessage == ActionRunState.suspended
-        then buildSuspendedScheduledMessageItem scheduledMessage
-        else buildNotStartedScheduledMessageItem scheduledMessage
+buildScheduledMessageItem :: Bool -> Id Person -> SendMessageAction.T -> ScheduledMessageItem
+buildScheduledMessageItem
+    editingScheduledMessage
+    selectedPersonId
+    scheduledMessage
+        | editingScheduledMessage =
+            buildEditScheduledMessageForm selectedPersonId scheduledMessage
+        | get #state scheduledMessage == ActionRunState.suspended =
+            buildSuspendedScheduledMessageItem scheduledMessage
+        | otherwise = buildNotStartedScheduledMessageItem scheduledMessage
 
 buildSuspendedScheduledMessageItem :: SendMessageAction.T -> ScheduledMessageItem
 buildSuspendedScheduledMessageItem scheduledMessage =
     SuspendedScheduledMessageItem
         { runsAt = show $ get #runsAt scheduledMessage
         , body = get #body scheduledMessage
+        , editAction = editAction
         , updateAction = updateAction
         }
   where
+    editAction = CommunicationsEditScheduledMessageAction (get #id scheduledMessage)
     updateAction = CommunicationsUpdateScheduledMessageAction (get #id scheduledMessage)
 
 buildNotStartedScheduledMessageItem :: SendMessageAction.T -> ScheduledMessageItem
@@ -293,10 +314,25 @@ buildNotStartedScheduledMessageItem scheduledMessage =
     NotStartedScheduledMessageItem
         { runsAt = show $ get #runsAt scheduledMessage
         , body = get #body scheduledMessage
+        , editAction = editAction
         , updateAction = updateAction
         }
   where
+    editAction = CommunicationsEditScheduledMessageAction (get #id scheduledMessage)
     updateAction = CommunicationsUpdateScheduledMessageAction (get #id scheduledMessage)
+
+buildEditScheduledMessageForm :: Id Person -> SendMessageAction.T -> ScheduledMessageItem
+buildEditScheduledMessageForm selectedPersonId scheduledMessage =
+    EditScheduledMessageForm
+        { runsAt = show $ get #runsAt scheduledMessage
+        , body = get #body scheduledMessage
+        , sendMessageActionId = show $ get #id scheduledMessage
+        , saveAction = saveAction
+        , cancelAction = cancelAction
+        }
+  where
+    saveAction = CommunicationsUpdateScheduledMessageAction (get #id scheduledMessage)
+    cancelAction = CommunicationsPersonSelectionAction selectedPersonId
 
 buildSendMessageForm :: PhoneNumber -> SendMessageForm
 buildSendMessageForm toPhoneNumber =
@@ -478,10 +514,15 @@ renderScheduledMessageItem NotStartedScheduledMessageItem {..} =
                 <span class="message-status scheduled">
                     Scheduled
                 </span>
-                <form method="POST" action={updateAction}>
-                    <input type="hidden" name="state" value="canceled">
-                    <button type="submit" class="btn btn-outline-primary btn-sm">Cancel</button>
-                </form>
+                
+                <span>
+                    <a href={editAction} class="btn btn-outline-primary btn-sm mr-2">Edit</a>
+
+                    <form method="POST" action={updateAction} style="display: inline-block">
+                        <input type="hidden" name="state" value="canceled">
+                        <button type="submit" class="btn btn-outline-primary btn-sm">Cancel</button>
+                    </form>
+                </span>
             </div>
         </div>
     |]
@@ -501,6 +542,8 @@ renderScheduledMessageItem SuspendedScheduledMessageItem {..} =
                     Suspended
                 </span>
                 <span>
+                    <a href={editAction} class="btn btn-outline-primary btn-sm mr-2">Edit</a>
+
                     <form method="POST" action={updateAction} class="mr-2" style="display: inline-block">
                         <input type="hidden" name="state" value="not_started">
                         <button type="submit" class="btn btn-outline-primary btn-sm">Resume</button>
@@ -512,6 +555,52 @@ renderScheduledMessageItem SuspendedScheduledMessageItem {..} =
                     </form>
                 </span>
             </div>
+        </div>
+    |]
+renderScheduledMessageItem EditScheduledMessageForm {..} =
+    [hsx|
+        <div class="edit-scheduled-message list-group-item flex-column align-items-start">
+            <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-3">Edit Message</h5>
+                <span class="message-scheduled-for">
+                    <time class="date-time" datetime={runsAt}>{runsAt}</time>
+                </span>
+            </div>
+
+            <form method="POST" 
+                action={saveAction}
+                class="edit-form"
+                data-disable-javascript-submission="false">
+                
+                <div class="mb-3">
+                    <textarea
+                        type="text"
+                        name="body"
+                        class="form-control edit-scheduled-message-form"
+                        rows="3"
+                        value={body}>
+                        {body}
+                    </textarea> 
+                </div>
+                
+                <div>
+                    <input
+                        type="hidden"
+                        name="id"
+                        class="form-control"
+                        value={sendMessageActionId}>
+                </div>
+                
+                <div class="d-flex w-100 justify-content-end">
+                    <button class="btn btn-primary btn btn-primary btn-sm">
+                        Save
+                    </button>
+                
+                    <a href={cancelAction} class="btn btn-secondary btn-sm ml-2">
+                        Cancel
+                    </a>
+                </div>
+            </form>
         </div>
     |]
 
@@ -822,6 +911,15 @@ styles =
         .timecard-column {
             height: calc(100vh - 150px);
             overflow-y: scroll;
+        }
+
+        .edit-scheduled-message {
+            background-color: whitesmoke;
+            height: 200px;
+        }
+
+        .edit-scheduled-message-form {
+            font-size: .9rem;
         }
 
         #twilioMessage_body {

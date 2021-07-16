@@ -48,6 +48,7 @@ instance Controller CommunicationsController where
                     Timecard.Query.EntriesDateDescending
                     selectedPersonId
 
+        let editingScheduledMessage = False
         let personActivity = SendingMessage {..}
         let personSelection = PersonSelected {..}
 
@@ -75,6 +76,7 @@ instance Controller CommunicationsController where
         let timecardEntry = newRecord @TimecardEntry |> buildNewTimecardEntry timecardDate
         let timecardActivity = CreatingEntry
 
+        let editingScheduledMessage = False
         let personActivity = WorkingOnTimecardEntry {..}
         let personSelection = PersonSelected {..}
 
@@ -102,6 +104,7 @@ instance Controller CommunicationsController where
         timecardEntry <- fetch timecardEntryId
         let timecardActivity = EditingEntry
 
+        let editingScheduledMessage = False
         let personActivity = WorkingOnTimecardEntry {..}
         let personSelection = PersonSelected {..}
 
@@ -129,6 +132,7 @@ instance Controller CommunicationsController where
         timecardEntry <- fetch timecardEntryId
         let timecardActivity = EditingModifiedEntry
 
+        let editingScheduledMessage = False
         let personActivity = WorkingOnTimecardEntry {..}
         let personSelection = PersonSelected {..}
 
@@ -157,6 +161,7 @@ instance Controller CommunicationsController where
                                 (get #id toPhoneNumber)
                         let newMessage = newRecord @TwilioMessage
 
+                        let editingScheduledMessage = False
                         let timecardActivity = CreatingEntry
                         let personActivity = WorkingOnTimecardEntry {..}
                         let personSelection = PersonSelected {..}
@@ -198,6 +203,7 @@ instance Controller CommunicationsController where
                                 (get #id toPhoneNumber)
                         let newMessage = newRecord @TwilioMessage
 
+                        let editingScheduledMessage = False
                         let timecardActivity = EditingEntry
                         let personActivity = WorkingOnTimecardEntry {..}
                         let personSelection = PersonSelected {..}
@@ -223,6 +229,35 @@ instance Controller CommunicationsController where
                 TwilioMessage.send fromPhoneNumber toPhoneNumber body
                 redirectTo $ CommunicationsPersonSelectionAction (get #id toPerson)
     --
+    action CommunicationsEditScheduledMessageAction {..} = do
+        sendMessageAction <- fetch sendMessageActionId
+        actionRunState <- fetch (get #actionRunStateId sendMessageAction)
+        toPerson <- People.fetchByPhoneNumber (get #toId sendMessageAction)
+        let selectedPersonId = get #id toPerson
+
+        botId <- People.fetchBotId
+        people <- People.fetchExcludingId botId
+        selectedPerson <- fetch selectedPersonId
+
+        messages <- Twilio.Query.fetchByPeople botId selectedPersonId
+        toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
+        scheduledMessages <-
+            SendMessageAction.fetchNotStartedOrSuspendedByPhoneNumber
+                (get #id toPhoneNumber)
+        let newMessage = newRecord @TwilioMessage
+
+        timecards <-
+            Timecard.View.buildTimecards
+                <$> Timecard.Query.fetchByPerson
+                    Timecard.Query.EntriesDateDescending
+                    selectedPersonId
+
+        let editingScheduledMessage = True
+        let personActivity = SendingMessage {..}
+        let personSelection = PersonSelected {..}
+
+        render IndexView {..}
+    --
     action CommunicationsUpdateScheduledMessageAction {..} = do
         sendMessageAction <- fetch sendMessageActionId
         actionRunState <- fetch (get #actionRunStateId sendMessageAction)
@@ -243,28 +278,13 @@ instance Controller CommunicationsController where
             Nothing ->
                 pure ()
 
-        case paramOrNothing @Text "state" of
-            Just "canceled" -> ActionRunState.updateCanceled actionRunState >> pure ()
-            Just "not_started" -> ActionRunState.updateNotStarted actionRunState >> pure ()
-            _ -> pure ()
-
-        redirectTo $ CommunicationsPersonSelectionAction (get #id toPerson)
-    --
-    action CommunicationsCancelScheduledMessageAction {..} = do
-        sendMessageAction <- fetch sendMessageActionId
-        actionRunState <- fetch (get #actionRunStateId sendMessageAction)
-        toPerson <- People.fetchByPhoneNumber (get #toId sendMessageAction)
-
-        ActionRunState.updateCanceled actionRunState
-
-        redirectTo $ CommunicationsPersonSelectionAction (get #id toPerson)
-    --
-    action CommunicationsResumeScheduledMessageAction {..} = do
-        sendMessageAction <- fetch sendMessageActionId
-        actionRunState <- fetch (get #actionRunStateId sendMessageAction)
-        toPerson <- People.fetchByPhoneNumber (get #toId sendMessageAction)
-
-        actionRunState <- ActionRunState.updateNotStarted actionRunState
+        let state = paramOrNothing @Text "state"
+        if state == Just ActionRunState.canceled
+            then ActionRunState.updateCanceled actionRunState >> pure ()
+            else
+                if state == Just ActionRunState.notStarted
+                    then ActionRunState.updateNotStarted actionRunState >> pure ()
+                    else pure ()
 
         redirectTo $ CommunicationsPersonSelectionAction (get #id toPerson)
     --

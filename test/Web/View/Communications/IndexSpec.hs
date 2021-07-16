@@ -135,6 +135,7 @@ spec = do
                         , messages = [twilioMessage1, twilioMessage2]
                         , toPhoneNumber = phoneNumber
                         , scheduledMessages = [scheduledMessage]
+                        , editingScheduledMessage = False
                         , newMessage = newRecord @TwilioMessage
                         , personActivity = personActivity
                         }
@@ -181,6 +182,10 @@ spec = do
                         [ Index.NotStartedScheduledMessageItem
                             { runsAt = "2021-06-23 22:30:00 UTC"
                             , body = "Hello World!"
+                            , editAction =
+                                CommunicationsEditScheduledMessageAction
+                                    { sendMessageActionId = "60000000-0000-0000-0000-000000000000"
+                                    }
                             , updateAction =
                                 CommunicationsUpdateScheduledMessageAction
                                     { sendMessageActionId = "60000000-0000-0000-0000-000000000000"
@@ -564,13 +569,21 @@ spec = do
                         , toNumber = "+16666666666"
                         }
 
-            Index.buildScheduledMessageItem sendMessageAction
+            Index.buildScheduledMessageItem
+                False
+                "50000000-0000-0000-0000-000000000000"
+                sendMessageAction
                 `shouldBe` Index.NotStartedScheduledMessageItem
                     { runsAt = "2021-06-23 22:30:00 UTC"
                     , body = "Hello World!"
+                    , editAction =
+                        CommunicationsEditScheduledMessageAction
+                            { sendMessageActionId = "10000000-0000-0000-0000-000000000000"
+                            }
                     , updateAction =
                         CommunicationsUpdateScheduledMessageAction
-                            "10000000-0000-0000-0000-000000000000"
+                            { sendMessageActionId = "10000000-0000-0000-0000-000000000000"
+                            }
                     }
 
         it "returns a suspended scheduled message item when the action has been suspended" do
@@ -587,13 +600,52 @@ spec = do
                         , toNumber = "+16666666666"
                         }
 
-            Index.buildScheduledMessageItem sendMessageAction
+            Index.buildScheduledMessageItem
+                False
+                "50000000-0000-0000-0000-000000000000"
+                sendMessageAction
                 `shouldBe` Index.SuspendedScheduledMessageItem
                     { runsAt = "2021-06-23 22:30:00 UTC"
                     , body = "Hello World!"
+                    , editAction =
+                        CommunicationsEditScheduledMessageAction
+                            { sendMessageActionId = "10000000-0000-0000-0000-000000000000"
+                            }
                     , updateAction =
                         CommunicationsUpdateScheduledMessageAction
                             { sendMessageActionId = "10000000-0000-0000-0000-000000000000"
+                            }
+                    }
+
+        it "returns an edit scheduled message form when we are editing a scheduled message" do
+            let sendMessageAction =
+                    SendMessageAction.T
+                        { id = "10000000-0000-0000-0000-000000000000"
+                        , actionRunStateId = "20000000-0000-0000-0000-000000000000"
+                        , state = ActionRunState.suspended
+                        , runsAt = toUtc "2021-06-23 15:30:00 PDT"
+                        , body = "Hello World!"
+                        , fromId = "30000000-0000-0000-0000-000000000000"
+                        , fromNumber = "+15555555555"
+                        , toId = "40000000-0000-0000-0000-000000000000"
+                        , toNumber = "+16666666666"
+                        }
+
+            Index.buildScheduledMessageItem
+                True
+                "50000000-0000-0000-0000-000000000000"
+                sendMessageAction
+                `shouldBe` Index.EditScheduledMessageForm
+                    { runsAt = "2021-06-23 22:30:00 UTC"
+                    , body = "Hello World!"
+                    , sendMessageActionId = "10000000-0000-0000-0000-000000000000"
+                    , saveAction =
+                        CommunicationsUpdateScheduledMessageAction
+                            { sendMessageActionId = "10000000-0000-0000-0000-000000000000"
+                            }
+                    , cancelAction =
+                        CommunicationsPersonSelectionAction
+                            { selectedPersonId = "50000000-0000-0000-0000-000000000000"
                             }
                     }
 
@@ -641,6 +693,7 @@ spec = do
                         , messages = []
                         , toPhoneNumber = newRecord @PhoneNumber
                         , scheduledMessages = []
+                        , editingScheduledMessage = False
                         , newMessage = newRecord @TwilioMessage
                         , personActivity =
                             Index.SendingMessage
@@ -705,6 +758,7 @@ spec = do
                         , messages = []
                         , toPhoneNumber = newRecord @PhoneNumber
                         , scheduledMessages = []
+                        , editingScheduledMessage = False
                         , newMessage = newRecord @TwilioMessage
                         , personActivity =
                             Index.WorkingOnTimecardEntry
@@ -1219,7 +1273,10 @@ spec = do
                     , selectedPersonIdParam = "10000000-0000-0000-0000-000000000000"
                     , submitLabel = "Create"
                     , submitAction = CommunicationsCreateTimecardEntryAction
-                    , cancelAction = CommunicationsPersonSelectionAction {selectedPersonId = "10000000-0000-0000-0000-000000000000"}
+                    , cancelAction =
+                        CommunicationsPersonSelectionAction
+                            { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                            }
                     }
 
     describe "assembleMessageBodies" do
