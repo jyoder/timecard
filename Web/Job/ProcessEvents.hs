@@ -14,8 +14,11 @@ instance Job ProcessEventsJob where
         whileM_ (pure True) do
             Log.debug ("Running scheduled actions" :: Text)
             now <- getCurrentTime
+            updateTimestamp id now
+
             sendMessageActions <- SendMessageAction.fetchReady now
             mapM_ runSendMessageAction sendMessageActions
+
             threadDelay runInterval
 
 initSingleton :: ConfigBuilder -> IO ()
@@ -33,6 +36,12 @@ initSingleton configBuilder = do
 initModelContext :: FrameworkConfig -> IO ModelContext
 initModelContext FrameworkConfig {..} = do
     createModelContext dbPoolIdleTime dbPoolMaxConnections databaseUrl logger
+
+updateTimestamp :: (?modelContext :: ModelContext) => Id ProcessEventsJob -> UTCTime -> IO ()
+updateTimestamp processEventsJobId now = do
+    processEventsJob <- fetch processEventsJobId
+    processEventsJob |> set #updatedAt now |> updateRecord
+    pure ()
 
 runSendMessageAction ::
     (?modelContext :: ModelContext, ?context :: FrameworkConfig) =>
