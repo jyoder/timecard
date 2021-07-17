@@ -253,8 +253,8 @@ spec = do
                         |> createRecord
 
                 sendMessageActions <-
-                    SendMessageAction.fetchNotStartedOrSuspendedByPhoneNumber
-                        (get #id toPhoneNumber)
+                    SendMessageAction.fetchNotStartedOrSuspendedByPhoneNumber $
+                        get #id toPhoneNumber
 
                 get #id <$> sendMessageActions `shouldBe` [get #id sendMessageAction]
 
@@ -289,8 +289,8 @@ spec = do
                         |> createRecord
 
                 sendMessageActions <-
-                    SendMessageAction.fetchNotStartedOrSuspendedByPhoneNumber
-                        (get #id toPhoneNumber)
+                    SendMessageAction.fetchNotStartedOrSuspendedByPhoneNumber $
+                        get #id toPhoneNumber
 
                 get #id <$> sendMessageActions `shouldBe` [get #id sendMessageAction]
 
@@ -325,10 +325,24 @@ spec = do
                         |> createRecord
 
                 sendMessageActions <-
-                    SendMessageAction.fetchNotStartedOrSuspendedByPhoneNumber
-                        (get #id toPhoneNumber)
+                    SendMessageAction.fetchNotStartedOrSuspendedByPhoneNumber $
+                        get #id toPhoneNumber
 
                 get #id <$> sendMessageActions `shouldBe` []
+
+            itIO "tracks appropriate tables" do
+                withTableReadTracker do
+                    let toPhoneNumber = newRecord @PhoneNumber
+
+                    SendMessageAction.fetchNotStartedOrSuspendedByPhoneNumber $
+                        get #id toPhoneNumber
+
+                    trackedTables <- readIORef ?touchedTables
+                    elems trackedTables
+                        `shouldBe` [ "action_run_states"
+                                   , "action_run_times"
+                                   , "send_message_actions"
+                                   ]
 
     describe "fetchNotStartedCreatedBeforeByPhoneNumber" do
         beforeAll (testConfig >>= mockContext RootApplication) do
@@ -442,3 +456,18 @@ spec = do
                         (get #id toPhoneNumber)
 
                 get #id <$> sendMessageActions `shouldBe` []
+
+            itIO "tracks appropriate tables" do
+                withTableReadTracker do
+                    let toPhoneNumber = newRecord @PhoneNumber
+
+                    SendMessageAction.fetchNotStartedCreatedBeforeByPhoneNumber
+                        (toUtc "2021-06-23 15:00:01 PDT")
+                        (get #id toPhoneNumber)
+
+                    trackedTables <- readIORef ?touchedTables
+                    elems trackedTables
+                        `shouldBe` [ "action_run_states"
+                                   , "action_run_times"
+                                   , "send_message_actions"
+                                   ]
