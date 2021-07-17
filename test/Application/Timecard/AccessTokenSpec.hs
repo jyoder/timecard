@@ -9,7 +9,7 @@ import Tests.Support
 
 spec :: Spec
 spec = do
-    describe "create" $ do
+    describe "create" do
         beforeAll (testConfig >>= mockContext RootApplication) do
             itIO "inserts a timecard access token and associated access token with the correct expiration" do
                 ron <-
@@ -36,7 +36,7 @@ spec = do
                 get #expiresAt accessToken
                     `shouldBe` toUtc "2021-06-21 15:30:00 PDT"
 
-    describe "expirationFrom" $ do
-        it "returns a time three weeks after the given time" $ do
+    describe "expirationFrom" do
+        it "returns a time three weeks after the given time" do
             Timecard.AccessToken.expirationFrom (toUtc "2021-06-21 15:30:00 PDT")
                 `shouldBe` toUtc "2021-07-12 15:30:00 PDT"

@@ -11,9 +11,9 @@ import Text.Read (read)
 
 spec :: Spec
 spec = do
-    describe "nextRequestTime" $ do
-        describe "Monday" $ do
-            it "returns a request time for Monday if the current time is before the deadline" $ do
+    describe "nextRequestTime" do
+        describe "Monday" do
+            it "returns a request time for Monday if the current time is before the deadline" do
                 Timecard.EntryRequest.nextRequestTime
                     False
                     pdt
@@ -22,7 +22,7 @@ spec = do
                     (toUtc "2021-06-14 15:29:00 PDT")
                     `shouldBe` Just (toUtc "2021-06-14 15:30:00 PDT")
 
-            it "returns a request time for Tuesday if the current time is after the deadline" $ do
+            it "returns a request time for Tuesday if the current time is after the deadline" do
                 Timecard.EntryRequest.nextRequestTime
                     False
                     pdt
@@ -31,7 +31,7 @@ spec = do
                     (toUtc "2021-06-14 15:30:00 PDT")
                     `shouldBe` Just (toUtc "2021-06-15 15:30:00 PDT")
 
-            it "returns a request time for Tuesday if a timecard entry already exists for Monday" $ do
+            it "returns a request time for Tuesday if a timecard entry already exists for Monday" do
                 Timecard.EntryRequest.nextRequestTime
                     False
                     pdt
@@ -40,8 +40,8 @@ spec = do
                     (toUtc "2021-06-14 15:29:00 PDT")
                     `shouldBe` Just (toUtc "2021-06-15 15:30:00 PDT")
 
-        describe "Tuesday" $ do
-            it "returns a request time for Tuesday if the current time is before the deadline" $ do
+        describe "Tuesday" do
+            it "returns a request time for Tuesday if the current time is before the deadline" do
                 Timecard.EntryRequest.nextRequestTime
                     False
                     pdt
@@ -50,7 +50,7 @@ spec = do
                     (toUtc "2021-06-15 15:29:00 PDT")
                     `shouldBe` Just (toUtc "2021-06-15 15:30:00 PDT")
 
-            it "returns a request time for Wednesday if the current time is after the deadline" $ do
+            it "returns a request time for Wednesday if the current time is after the deadline" do
                 Timecard.EntryRequest.nextRequestTime
                     False
                     pdt
@@ -59,7 +59,7 @@ spec = do
                     (toUtc "2021-06-15 15:30:00 PDT")
                     `shouldBe` Just (toUtc "2021-06-16 15:30:00 PDT")
 
-            it "returns a request time for Wednesday if a timecard entry already exists for Tuesday" $ do
+            it "returns a request time for Wednesday if a timecard entry already exists for Tuesday" do
                 Timecard.EntryRequest.nextRequestTime
                     False
                     pdt
@@ -68,8 +68,8 @@ spec = do
                     (toUtc "2021-06-15 15:29:00 PDT")
                     `shouldBe` Just (toUtc "2021-06-16 15:30:00 PDT")
 
-        describe "Wednesday" $ do
-            it "returns a request time for Wednesday if the current time is before the deadline" $ do
+        describe "Wednesday" do
+            it "returns a request time for Wednesday if the current time is before the deadline" do
                 Timecard.EntryRequest.nextRequestTime
                     False
                     pdt
@@ -78,7 +78,7 @@ spec = do
                     (toUtc "2021-06-16 15:29:00 PDT")
                     `shouldBe` Just (toUtc "2021-06-16 15:30:00 PDT")
 
-            it "returns a request time for Thursday if the current time is after the deadline" $ do
+            it "returns a request time for Thursday if the current time is after the deadline" do
                 Timecard.EntryRequest.nextRequestTime
                     False
                     pdt
@@ -87,7 +87,7 @@ spec = do
                     (toUtc "2021-06-16 15:30:00 PDT")
                     `shouldBe` Just (toUtc "2021-06-17 15:30:00 PDT")
 
-            it "returns a request time for Thursday if a timecard entry already exists for Wednesday" $ do
+            it "returns a request time for Thursday if a timecard entry already exists for Wednesday" do
                 Timecard.EntryRequest.nextRequestTime
                     False
                     pdt
@@ -96,8 +96,8 @@ spec = do
                     (toUtc "2021-06-16 15:29:00 PDT")
                     `shouldBe` Just (toUtc "2021-06-17 15:30:00 PDT")
 
-        describe "Thursday" $ do
-            it "returns a request time for Thursday if the current time is before the deadline" $ do
+        describe "Thursday" do
+            it "returns a request time for Thursday if the current time is before the deadline" do
                 Timecard.EntryRequest.nextRequestTime
                     False
                     pdt
@@ -106,7 +106,7 @@ spec = do
                     (toUtc "2021-06-17 15:29:00 PDT")
                     `shouldBe` Just (toUtc "2021-06-17 15:30:00 PDT")
 
-            it "returns a request time for Friday if the current time is after the deadline" $ do
+            it "returns a request time for Friday if the current time is after the deadline" do
                 Timecard.EntryRequest.nextRequestTime
                     False
                     pdt
@@ -115,7 +115,7 @@ spec = do
                     (toUtc "2021-06-17 15:30:00 PDT")
                     `shouldBe` Just (toUtc "2021-06-18 15:30:00 PDT")
 
-            it "returns a request time for Friday if a timecard entry already exists for Thursday" $ do
+            it "returns a request time for Friday if a timecard entry already exists for Thursday" do
                 Timecard.EntryRequest.nextRequestTime
                     False
                     pdt
@@ -124,8 +124,8 @@ spec = do
                     (toUtc "2021-06-17 15:29:00 PDT")
                     `shouldBe` Just (toUtc "2021-06-18 15:30:00 PDT")
 
-        describe "Friday" $ do
-            it "returns a request time for Friday if the current time is before the deadline" $ do
+        describe "Friday" do
+            it "returns a request time for Friday if the current time is before the deadline" do
                 Timecard.EntryRequest.nextRequestTime
                     False
                     pdt
@@ -134,7 +134,7 @@ spec = do
                     (toUtc "2021-06-18 15:29:00 PDT")
                     `shouldBe` Just (toUtc "2021-06-18 15:30:00 PDT")
 
-            it "returns a request time for Monday if the current time is after the deadline" $ do
+            it "returns a request time for Monday if the current time is after the deadline" do
                 Timecard.EntryRequest.nextRequestTime
                     False
                     pdt
@@ -143,7 +143,7 @@ spec = do
                     (toUtc "2021-06-18 15:30:00 PDT")
                     `shouldBe` Just (toUtc "2021-06-21 15:30:00 PDT")
 
-            it "returns a request time for Monday if a timecard entry already exists for Friday" $ do
+            it "returns a request time for Monday if a timecard entry already exists for Friday" do
                 Timecard.EntryRequest.nextRequestTime
                     False
                     pdt
@@ -152,8 +152,8 @@ spec = do
                     (toUtc "2021-06-18 15:29:00 PDT")
                     `shouldBe` Just (toUtc "2021-06-21 15:30:00 PDT")
 
-        describe "Saturday" $ do
-            it "returns a request time for Monday if the current time is before the deadline" $ do
+        describe "Saturday" do
+            it "returns a request time for Monday if the current time is before the deadline" do
                 Timecard.EntryRequest.nextRequestTime
                     False
                     pdt
@@ -162,7 +162,7 @@ spec = do
                     (toUtc "2021-06-19 15:29:00 PDT")
                     `shouldBe` Just (toUtc "2021-06-21 15:30:00 PDT")
 
-            it "returns a request time for Monday if the current time is after the deadline" $ do
+            it "returns a request time for Monday if the current time is after the deadline" do
                 Timecard.EntryRequest.nextRequestTime
                     False
                     pdt
@@ -171,7 +171,7 @@ spec = do
                     (toUtc "2021-06-19 15:30:00 PDT")
                     `shouldBe` Just (toUtc "2021-06-21 15:30:00 PDT")
 
-            it "returns a request time for Monday if a timecard entry already exists for Saturday" $ do
+            it "returns a request time for Monday if a timecard entry already exists for Saturday" do
                 Timecard.EntryRequest.nextRequestTime
                     False
                     pdt
@@ -180,8 +180,8 @@ spec = do
                     (toUtc "2021-06-19 15:29:00 PDT")
                     `shouldBe` Just (toUtc "2021-06-21 15:30:00 PDT")
 
-        describe "Sunday" $ do
-            it "returns a request time for Monday if the current time is before the deadline" $ do
+        describe "Sunday" do
+            it "returns a request time for Monday if the current time is before the deadline" do
                 Timecard.EntryRequest.nextRequestTime
                     False
                     pdt
@@ -190,7 +190,7 @@ spec = do
                     (toUtc "2021-06-20 15:29:00 PDT")
                     `shouldBe` Just (toUtc "2021-06-21 15:30:00 PDT")
 
-            it "returns a request time for Monday if the current time is after the deadline" $ do
+            it "returns a request time for Monday if the current time is after the deadline" do
                 Timecard.EntryRequest.nextRequestTime
                     False
                     pdt
@@ -199,7 +199,7 @@ spec = do
                     (toUtc "2021-06-20 15:30:00 PDT")
                     `shouldBe` Just (toUtc "2021-06-21 15:30:00 PDT")
 
-            it "returns a request time for Monday if a timecard entry already exists for Sunday" $ do
+            it "returns a request time for Monday if a timecard entry already exists for Sunday" do
                 Timecard.EntryRequest.nextRequestTime
                     False
                     pdt
@@ -208,8 +208,8 @@ spec = do
                     (toUtc "2021-06-20 15:29:00 PDT")
                     `shouldBe` Just (toUtc "2021-06-21 15:30:00 PDT")
 
-        describe "past timecard entry dates" $ do
-            it "disregards old timecard entries when the current time is before the deadline" $ do
+        describe "past timecard entry dates" do
+            it "disregards old timecard entries when the current time is before the deadline" do
                 Timecard.EntryRequest.nextRequestTime
                     False
                     pdt
@@ -218,7 +218,7 @@ spec = do
                     (toUtc "2021-06-14 15:29:00 PDT")
                     `shouldBe` Just (toUtc "2021-06-14 15:30:00 PDT")
 
-            it "disregards old timecard entries when the current time is after the deadline" $ do
+            it "disregards old timecard entries when the current time is after the deadline" do
                 Timecard.EntryRequest.nextRequestTime
                     False
                     pdt
@@ -227,8 +227,8 @@ spec = do
                     (toUtc "2021-06-14 15:30:00 PDT")
                     `shouldBe` Just (toUtc "2021-06-15 15:30:00 PDT")
 
-        describe "future timecard entry dates" $ do
-            it "returns the first workday for which there is no timecard entry" $ do
+        describe "future timecard entry dates" do
+            it "returns the first workday for which there is no timecard entry" do
                 Timecard.EntryRequest.nextRequestTime
                     False
                     pdt
@@ -240,7 +240,7 @@ spec = do
                     (toUtc "2021-06-14 15:29:00 PDT")
                     `shouldBe` Just (toUtc "2021-06-16 15:30:00 PDT")
 
-            it "returns Monday if future timecard entries exist through Friday" $ do
+            it "returns Monday if future timecard entries exist through Friday" do
                 Timecard.EntryRequest.nextRequestTime
                     False
                     pdt
@@ -254,8 +254,8 @@ spec = do
                     (toUtc "2021-06-14 15:29:00 PDT")
                     `shouldBe` Just (toUtc "2021-06-21 15:30:00 PDT")
 
-        describe "different timezone" $ do
-            it "returns the proper request time for the specified timezone" $ do
+        describe "different timezone" do
+            it "returns the proper request time for the specified timezone" do
                 Timecard.EntryRequest.nextRequestTime
                     False
                     est
@@ -264,8 +264,8 @@ spec = do
                     (toUtc "2021-06-14 15:29:00 EST")
                     `shouldBe` Just (toUtc "2021-06-14 15:30:00 EST")
 
-        describe "alternate request time of day" $ do
-            it "returns a request time that corresponds to the given request time of day" $ do
+        describe "alternate request time of day" do
+            it "returns a request time that corresponds to the given request time of day" do
                 Timecard.EntryRequest.nextRequestTime
                     False
                     pdt
@@ -274,8 +274,8 @@ spec = do
                     (toUtc "2021-06-14 05:39:00 PDT")
                     `shouldBe` Just (toUtc "2021-06-14 05:40:20 PDT")
 
-        describe "pre-existing request" $ do
-            it "returns nothing if a timecard entry request has already been scheduled" $ do
+        describe "pre-existing request" do
+            it "returns nothing if a timecard entry request has already been scheduled" do
                 Timecard.EntryRequest.nextRequestTime
                     True
                     pdt
@@ -284,7 +284,7 @@ spec = do
                     (toUtc "2021-06-14 15:29:00 PDT")
                     `shouldBe` Nothing
 
-    describe "scheduleNextRequest" $ do
+    describe "scheduleNextRequest" do
         beforeAll (testConfig >>= mockContext RootApplication) do
             itIO "uses the worker's preferred daily reminder time" do
                 ron <-
@@ -428,8 +428,8 @@ spec = do
                 (get #id <$> sendMessageAction1)
                     `shouldBe` Just (get #id sendMessageAction)
 
-    describe "requestBody" $ do
-        it "returns the body of the request" $ do
+    describe "requestBody" do
+        it "returns the body of the request" do
             let person = newRecord @Person |> set #goesBy "Big Bird"
             let timecardEntry = newRecord @TimecardEntry |> set #jobName "Sesame St."
             Timecard.EntryRequest.requestBody person timecardEntry

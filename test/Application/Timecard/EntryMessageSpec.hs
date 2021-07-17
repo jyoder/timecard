@@ -11,7 +11,7 @@ import Tests.Support
 
 spec :: Spec
 spec = do
-    describe "createAll" $ do
+    describe "createAll" do
         beforeAll (testConfig >>= mockContext RootApplication) do
             itIO "inserts a timecard entry message for each Twilio message" do
                 ron <-
@@ -78,7 +78,7 @@ spec = do
 
                 (not . any isNew) timecardEntryMessages `shouldBe` True
 
-    describe "replaceAll" $ do
+    describe "replaceAll" do
         beforeAll (testConfig >>= mockContext RootApplication) do
             itIO "replaces existing timecard entry messages with new ones" do
                 ron <-
@@ -157,7 +157,7 @@ spec = do
                 Set.fromList (get #id <$> newTimecardEntryMessages)
                     `shouldBe` Set.fromList (get #id <$> timecardEntryMessages)
 
-    describe "fetchByTimecardEntry" $ do
+    describe "fetchByTimecardEntry" do
         beforeAll (testConfig >>= mockContext RootApplication) do
             itIO "returns timecard entry messages associated with the given timecard entry" do
                 ron <-

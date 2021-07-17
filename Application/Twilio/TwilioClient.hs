@@ -52,7 +52,7 @@ sendPhoneMessage
     fromPhoneNumber
     toPhoneNumber
     messageBody = do
-        httpResponse <- runReq defaultHttpConfig $ do
+        httpResponse <- runReq defaultHttpConfig do
             post
                 accountId
                 authToken

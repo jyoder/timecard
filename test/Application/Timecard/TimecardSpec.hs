@@ -9,7 +9,7 @@ import Tests.Support
 
 spec :: Spec
 spec = do
-    describe "validate" $ do
+    describe "validate" do
         beforeAll (testConfig >>= mockContext RootApplication) do
             itIO "validates that weekOf is the start of the week" do
                 ron <-

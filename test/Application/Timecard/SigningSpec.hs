@@ -9,7 +9,7 @@ import Tests.Support
 
 spec :: Spec
 spec = do
-    describe "create" $ do
+    describe "create" do
         beforeAll (testConfig >>= mockContext RootApplication) do
             itIO "inserts the signing" do
                 ron <-

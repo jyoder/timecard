@@ -8,8 +8,8 @@ import Tests.Support
 
 spec :: Spec
 spec = do
-    describe "buildTimecards" $ do
-        it "returns a single timecard when rows are part of the same timecard" $ do
+    describe "buildTimecards" do
+        it "returns a single timecard when rows are part of the same timecard" do
             let rows =
                     [ Timecard.Query.Row
                         { timecardId = "10000000-0000-0000-0000-000000000000"
@@ -73,7 +73,7 @@ spec = do
                                 }
                            ]
 
-        it "returns multiple timecards when rows are part of different timecards" $ do
+        it "returns multiple timecards when rows are part of different timecards" do
             let rows =
                     [ Timecard.Query.Row
                         { timecardId = "10000000-0000-0000-0000-000000000000"
@@ -145,10 +145,10 @@ spec = do
                                 }
                            ]
 
-        it "returns no timecards when there are no rows" $ do
+        it "returns no timecards when there are no rows" do
             Timecard.View.buildTimecards [] `shouldBe` []
 
-        it "returns an in-progress status when some workdays are not accounted for" $ do
+        it "returns an in-progress status when some workdays are not accounted for" do
             let rows =
                     [ Timecard.Query.Row
                         { timecardId = "10000000-0000-0000-0000-000000000000"
@@ -188,7 +188,7 @@ spec = do
                                 }
                            ]
 
-        it "returns an in-progress status even when there are multiple rows for the same day" $ do
+        it "returns an in-progress status even when there are multiple rows for the same day" do
             let rows =
                     [ Timecard.Query.Row
                         { timecardId = "10000000-0000-0000-0000-000000000000"
@@ -251,7 +251,7 @@ spec = do
                                     ]
                                 }
                            ]
-        it "returns ready for review when all workdays are accounted for" $ do
+        it "returns ready for review when all workdays are accounted for" do
             let rows =
                     [ Timecard.Query.Row
                         { timecardId = "10000000-0000-0000-0000-000000000000"
@@ -343,7 +343,7 @@ spec = do
             let statuses = get #status <$> Timecard.View.buildTimecards rows
             statuses `shouldBe` [Timecard.View.TimecardReadyForReview]
 
-        it "returns under review when there is an access token for the timecard" $ do
+        it "returns under review when there is an access token for the timecard" do
             let rows =
                     [ Timecard.Query.Row
                         { timecardId = "10000000-0000-0000-0000-000000000000"
@@ -389,7 +389,7 @@ spec = do
                                 }
                            ]
 
-        it "returns signed when there is a signing for the timecard" $ do
+        it "returns signed when there is a signing for the timecard" do
             let rows =
                     [ Timecard.Query.Row
                         { timecardId = "10000000-0000-0000-0000-000000000000"

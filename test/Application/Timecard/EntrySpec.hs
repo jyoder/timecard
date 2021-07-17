@@ -9,7 +9,7 @@ import Tests.Support
 
 spec :: Spec
 spec = do
-    describe "create" $ do
+    describe "create" do
         beforeAll (testConfig >>= mockContext RootApplication) do
             itIO "sets the timecard id to the corresponding existing timecard" do
                 ron <-
@@ -148,7 +148,7 @@ spec = do
                 get #twilioMessageId <$> twilioMessages
                     `shouldBe` [get #id twilioMessage]
 
-    describe "update" $ do
+    describe "update" do
         beforeAll (testConfig >>= mockContext RootApplication) do
             itIO "sets the timecard id to the corresponding existing timecard" do
                 ron <-

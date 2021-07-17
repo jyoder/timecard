@@ -9,7 +9,7 @@ import Tests.Support
 
 spec :: Spec
 spec = do
-    describe "fetchByPerson" $ do
+    describe "fetchByPerson" do
         beforeAll (testConfig >>= mockContext RootApplication) do
             itIO "selects only timecard entries associated with the specified person" do
                 ron <-
@@ -306,7 +306,7 @@ spec = do
                                     }
                                ]
 
-    describe "fetchById" $ do
+    describe "fetchById" do
         beforeAll (testConfig >>= mockContext RootApplication) do
             itIO "selects the timecard with the given id" do
                 ron <-
