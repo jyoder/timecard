@@ -28,7 +28,7 @@ spec = do
                     Left _ -> pure ()
                     Right _ -> expectationFailure "should disallow empty body"
 
-    describe "fetchReady" do
+    describe "fetchReadyToRun" do
         beforeAll (testConfig >>= mockContext RootApplication) do
             itIO "returns a send message action if the run time is in the past and it has not been started" do
                 actionRunState <-
@@ -61,7 +61,7 @@ spec = do
                         |> createRecord
 
                 sendMessageActions <-
-                    SendMessageAction.fetchReady $
+                    SendMessageAction.fetchReadyToRun $
                         toUtc "2021-06-23 15:00:00 PDT"
 
                 get #id <$> sendMessageActions `shouldBe` [get #id sendMessageAction]
@@ -97,7 +97,7 @@ spec = do
                         |> createRecord
 
                 sendMessageActions <-
-                    SendMessageAction.fetchReady $
+                    SendMessageAction.fetchReadyToRun $
                         toUtc "2021-06-23 14:59:59 PDT"
 
                 get #id <$> sendMessageActions `shouldBe` []
@@ -133,7 +133,7 @@ spec = do
                         |> createRecord
 
                 sendMessageActions <-
-                    SendMessageAction.fetchReady $
+                    SendMessageAction.fetchReadyToRun $
                         toUtc "2021-06-23 15:00:00 PDT"
 
                 get #id <$> sendMessageActions `shouldBe` []
@@ -169,7 +169,7 @@ spec = do
                         |> createRecord
 
                 sendMessageActions <-
-                    SendMessageAction.fetchReady $
+                    SendMessageAction.fetchReadyToRun $
                         toUtc "2021-06-23 15:00:00 PDT"
 
                 get #id <$> sendMessageActions `shouldBe` []
@@ -205,14 +205,14 @@ spec = do
                         |> createRecord
 
                 sendMessageActions <-
-                    SendMessageAction.fetchReady $
+                    SendMessageAction.fetchReadyToRun $
                         toUtc "2021-06-23 15:00:00 PDT"
 
                 get #id <$> sendMessageActions `shouldBe` []
 
             itIO "tracks appropriate tables" do
                 withTableReadTracker do
-                    SendMessageAction.fetchReady $ toUtc "2021-06-23 15:00:00 PDT"
+                    SendMessageAction.fetchReadyToRun $ toUtc "2021-06-23 15:00:00 PDT"
                     trackedTables <- readIORef ?touchedTables
                     elems trackedTables
                         `shouldBe` [ "action_run_states"

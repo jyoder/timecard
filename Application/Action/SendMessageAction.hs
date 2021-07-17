@@ -1,7 +1,7 @@
 module Application.Action.SendMessageAction (
     T (..),
     validate,
-    fetchReady,
+    fetchReadyToRun,
     fetchNotStartedOrSuspendedByPhoneNumber,
     fetchFutureCreatedBeforeByPhoneNumber,
     schedule,
@@ -52,18 +52,18 @@ validate sendMessageAction =
     sendMessageAction
         |> validateField #body nonEmpty
 
-fetchReady ::
+fetchReadyToRun ::
     (?modelContext :: ModelContext) =>
     UTCTime ->
     IO [T]
-fetchReady now = do
+fetchReadyToRun now = do
     trackTableRead "send_message_actions"
     trackTableRead "action_run_times"
     trackTableRead "action_run_states"
-    sqlQuery fetchReadyQuery (Only now)
+    sqlQuery fetchReadyToRunQuery (Only now)
 
-fetchReadyQuery :: Query
-fetchReadyQuery =
+fetchReadyToRunQuery :: Query
+fetchReadyToRunQuery =
     [i|
 select
     send_message_actions.id,

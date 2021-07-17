@@ -16,7 +16,7 @@ instance Job ProcessEventsJob where
             now <- getCurrentTime
             updateTimestamp id now
 
-            sendMessageActions <- SendMessageAction.fetchReady now
+            sendMessageActions <- SendMessageAction.fetchReadyToRun now
             mapM_ runSendMessageAction sendMessageActions
 
             threadDelay runInterval
