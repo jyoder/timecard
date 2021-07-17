@@ -12,8 +12,8 @@ import IHP.ControllerPrelude
 import IHP.Log as Log
 import IHP.ModelSupport
 
-processState :: (?modelContext :: ModelContext) => UTCTime -> Id PhoneNumber -> IO ()
-processState now phoneNumberId = do
+processState :: (?modelContext :: ModelContext) => Id PhoneNumber -> IO ()
+processState phoneNumberId = do
     twilioMessages <-
         query @TwilioMessage
             |> filterWhere (#fromId, phoneNumberId)
@@ -25,7 +25,6 @@ processState now phoneNumberId = do
         twilioMessage : messages ->
             suspendSendMessageActionsAfter
                 phoneNumberId
-                now
                 (get #createdAt twilioMessage)
         [] -> pure ()
 
@@ -33,12 +32,10 @@ suspendSendMessageActionsAfter ::
     (?modelContext :: ModelContext) =>
     Id PhoneNumber ->
     UTCTime ->
-    UTCTime ->
     IO ()
-suspendSendMessageActionsAfter phoneNumberId now time = do
+suspendSendMessageActionsAfter phoneNumberId time = do
     sendMessageActions <-
-        SendMessageAction.fetchFutureCreatedBeforeByPhoneNumber
-            now
+        SendMessageAction.fetchNotStartedCreatedBeforeByPhoneNumber
             time
             phoneNumberId
 

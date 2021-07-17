@@ -61,8 +61,7 @@ instance Controller TwilioCallbacksController where
                     createRecord twilioMessage
                     pure ()
 
-        now <- getCurrentTime
-        Brain.Process.processState now $ get #id fromPhoneNumber
+        Brain.Process.processState $ get #id fromPhoneNumber
 
         renderPlain ""
 

@@ -3,7 +3,7 @@ module Application.Action.SendMessageAction (
     validate,
     fetchReadyToRun,
     fetchNotStartedOrSuspendedByPhoneNumber,
-    fetchFutureCreatedBeforeByPhoneNumber,
+    fetchNotStartedCreatedBeforeByPhoneNumber,
     schedule,
     perform,
 ) where
@@ -132,20 +132,19 @@ order by
     action_run_times.runs_at asc;
 |]
 
-fetchFutureCreatedBeforeByPhoneNumber ::
+fetchNotStartedCreatedBeforeByPhoneNumber ::
     (?modelContext :: ModelContext) =>
-    UTCTime ->
     UTCTime ->
     Id PhoneNumber ->
     IO [T]
-fetchFutureCreatedBeforeByPhoneNumber now createdBefore fromPhoneNumberId = do
+fetchNotStartedCreatedBeforeByPhoneNumber time fromPhoneNumberId = do
     trackTableRead "send_message_actions"
     trackTableRead "action_run_times"
     trackTableRead "action_run_states"
-    sqlQuery fetchFutureCreatedBeforeByPhoneNumberQuery (fromPhoneNumberId, now, createdBefore)
+    sqlQuery fetchNotStartedCreatedBeforeByPhoneNumberQuery (fromPhoneNumberId, time)
 
-fetchFutureCreatedBeforeByPhoneNumberQuery :: Query
-fetchFutureCreatedBeforeByPhoneNumberQuery =
+fetchNotStartedCreatedBeforeByPhoneNumberQuery :: Query
+fetchNotStartedCreatedBeforeByPhoneNumberQuery =
     [i|
 select
     send_message_actions.id,
@@ -170,7 +169,6 @@ where
     and send_message_actions.action_run_state_id = action_run_states.id
     and action_run_times.action_run_state_id = action_run_states.id
     and action_run_states.state = 'not_started'
-    and action_run_times.runs_at > ?
     and send_message_actions.created_at <= ?
 order by
     action_run_times.runs_at asc;

@@ -329,3 +329,116 @@ spec = do
                         (get #id toPhoneNumber)
 
                 get #id <$> sendMessageActions `shouldBe` []
+
+    describe "fetchNotStartedCreatedBeforeByPhoneNumber" do
+        beforeAll (testConfig >>= mockContext RootApplication) do
+            itIO "returns a send message action if it is not started and created before the given time" do
+                actionRunState <-
+                    newRecord @ActionRunState
+                        |> set #state ActionRunState.notStarted
+                        |> createRecord
+
+                actionRunTime <-
+                    newRecord @ActionRunTime
+                        |> set #actionRunStateId (get #id actionRunState)
+                        |> createRecord
+
+                fromPhoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+14444444444"
+                        |> createRecord
+
+                toPhoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+15555555555"
+                        |> createRecord
+
+                sendMessageAction <-
+                    newRecord @SendMessageAction
+                        |> set #createdAt (toUtc "2021-06-23 15:00:00 PDT")
+                        |> set #actionRunStateId (get #id actionRunState)
+                        |> set #fromId (get #id fromPhoneNumber)
+                        |> set #toId (get #id toPhoneNumber)
+                        |> set #body "Hello!"
+                        |> createRecord
+
+                sendMessageActions <-
+                    SendMessageAction.fetchNotStartedCreatedBeforeByPhoneNumber
+                        (toUtc "2021-06-23 15:00:01 PDT")
+                        (get #id toPhoneNumber)
+
+                get #id <$> sendMessageActions `shouldBe` [get #id sendMessageAction]
+
+            itIO "does not return a send message action if it is not started and created after the given time" do
+                actionRunState <-
+                    newRecord @ActionRunState
+                        |> set #state ActionRunState.notStarted
+                        |> createRecord
+
+                actionRunTime <-
+                    newRecord @ActionRunTime
+                        |> set #actionRunStateId (get #id actionRunState)
+                        |> createRecord
+
+                fromPhoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+14444444444"
+                        |> createRecord
+
+                toPhoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+15555555555"
+                        |> createRecord
+
+                sendMessageAction <-
+                    newRecord @SendMessageAction
+                        |> set #createdAt (toUtc "2021-06-23 15:00:01 PDT")
+                        |> set #actionRunStateId (get #id actionRunState)
+                        |> set #fromId (get #id fromPhoneNumber)
+                        |> set #toId (get #id toPhoneNumber)
+                        |> set #body "Hello!"
+                        |> createRecord
+
+                sendMessageActions <-
+                    SendMessageAction.fetchNotStartedCreatedBeforeByPhoneNumber
+                        (toUtc "2021-06-23 15:00:00 PDT")
+                        (get #id toPhoneNumber)
+
+                get #id <$> sendMessageActions `shouldBe` []
+
+            itIO "returns a send message action if it is running and created before the given time" do
+                actionRunState <-
+                    newRecord @ActionRunState
+                        |> set #state ActionRunState.running
+                        |> createRecord
+
+                actionRunTime <-
+                    newRecord @ActionRunTime
+                        |> set #actionRunStateId (get #id actionRunState)
+                        |> createRecord
+
+                fromPhoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+14444444444"
+                        |> createRecord
+
+                toPhoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+15555555555"
+                        |> createRecord
+
+                sendMessageAction <-
+                    newRecord @SendMessageAction
+                        |> set #createdAt (toUtc "2021-06-23 15:00:00 PDT")
+                        |> set #actionRunStateId (get #id actionRunState)
+                        |> set #fromId (get #id fromPhoneNumber)
+                        |> set #toId (get #id toPhoneNumber)
+                        |> set #body "Hello!"
+                        |> createRecord
+
+                sendMessageActions <-
+                    SendMessageAction.fetchNotStartedCreatedBeforeByPhoneNumber
+                        (toUtc "2021-06-23 15:00:01 PDT")
+                        (get #id toPhoneNumber)
+
+                get #id <$> sendMessageActions `shouldBe` []
