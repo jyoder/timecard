@@ -1,4 +1,4 @@
-
+-- pgFormatter-ignore
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -23,15 +23,11 @@ ALTER TABLE public.access_tokens ENABLE TRIGGER ALL;
 
 ALTER TABLE public.action_run_states DISABLE TRIGGER ALL;
 
-INSERT INTO public.action_run_states (id, created_at, updated_at, state) VALUES ('b2f58b89-e04e-4508-a8fa-7749f9c1416e', '2021-06-24 23:34:35.316513-07', '2021-06-24 23:35:10.264679-07', 'canceled');
-
 
 ALTER TABLE public.action_run_states ENABLE TRIGGER ALL;
 
 
 ALTER TABLE public.action_run_times DISABLE TRIGGER ALL;
-
-INSERT INTO public.action_run_times (id, created_at, updated_at, runs_at, action_run_state_id) VALUES ('1e586619-7ce7-4cd2-8659-8d3800769cb5', '2021-06-24 23:34:35.316513-07', '2021-06-24 23:34:35.316513-07', '2021-06-25 19:00:00-07', 'b2f58b89-e04e-4508-a8fa-7749f9c1416e');
 
 
 ALTER TABLE public.action_run_times ENABLE TRIGGER ALL;
@@ -82,8 +78,6 @@ ALTER TABLE public.process_events_jobs ENABLE TRIGGER ALL;
 
 ALTER TABLE public.send_message_actions DISABLE TRIGGER ALL;
 
-INSERT INTO public.send_message_actions (id, created_at, updated_at, body, from_id, to_id, action_run_state_id) VALUES ('633a0a1c-d448-49d2-bc2c-6e740faf1164', '2021-06-24 23:34:35.316513-07', '2021-06-24 23:34:35.316513-07', 'Hey John - I''ve got you at Wendy''s today. Let me know what hours you worked and what you did when you have a chance. Thanks!', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'c1375981-0102-4132-8799-54f4fe3e0fbd', 'b2f58b89-e04e-4508-a8fa-7749f9c1416e');
-
 
 ALTER TABLE public.send_message_actions ENABLE TRIGGER ALL;
 
@@ -97,7 +91,6 @@ ALTER TABLE public.signings ENABLE TRIGGER ALL;
 
 ALTER TABLE public.timecards DISABLE TRIGGER ALL;
 
-INSERT INTO public.timecards (id, created_at, updated_at, week_of, person_id) VALUES ('844bc6aa-14ba-4971-bfc4-7be08877813d', '2021-06-24 23:34:35.307617-07', '2021-06-24 23:34:35.307617-07', '2021-06-21', 'c8a20c60-1c95-4a9e-bb6a-57ca2670115d');
 
 
 ALTER TABLE public.timecards ENABLE TRIGGER ALL;
@@ -112,7 +105,6 @@ ALTER TABLE public.timecard_access_tokens ENABLE TRIGGER ALL;
 
 ALTER TABLE public.timecard_entries DISABLE TRIGGER ALL;
 
-INSERT INTO public.timecard_entries (id, created_at, updated_at, date, job_name, hours_worked, work_done, invoice_translation, timecard_id) VALUES ('85206169-9ea5-42ca-b24c-13682cc23711', '2021-06-24 23:34:35.307617-07', '2021-06-24 23:34:35.307617-07', '2021-06-24', 'Wendy''s', 8, 'Sure, I worked at Wendy''s for 8 hours.', 'John Y.  I worked at Wendy''s for 8 hours.', '844bc6aa-14ba-4971-bfc4-7be08877813d');
 
 
 ALTER TABLE public.timecard_entries ENABLE TRIGGER ALL;
@@ -120,8 +112,6 @@ ALTER TABLE public.timecard_entries ENABLE TRIGGER ALL;
 
 ALTER TABLE public.twilio_messages DISABLE TRIGGER ALL;
 
-INSERT INTO public.twilio_messages (id, created_at, updated_at, api_version, message_sid, account_sid, messaging_service_sid, to_id, from_id, status, body, num_media) VALUES ('17633d62-ceeb-4bfe-9af8-b0194f31d84d', '2021-06-24 23:33:03.194874-07', '2021-06-24 23:33:04.547602-07', '2010-04-01', 'SM6be62c1a0dad4cef998a5c2cb3930dde', 'AC828cf7fa609e74ef78861e56ad166f42', NULL, 'c1375981-0102-4132-8799-54f4fe3e0fbd', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'delivered', 'Hi John, can you send over your time info for the day?', 0);
-INSERT INTO public.twilio_messages (id, created_at, updated_at, api_version, message_sid, account_sid, messaging_service_sid, to_id, from_id, status, body, num_media) VALUES ('b23406eb-366e-4a5b-8cb6-84756fee5464', '2021-06-24 23:33:47.999719-07', '2021-06-24 23:33:47.999719-07', '2010-04-01', 'SM0052f88d972a7f6480bd9e8e6f28cf4e', 'AC828cf7fa609e74ef78861e56ad166f42', NULL, 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'c1375981-0102-4132-8799-54f4fe3e0fbd', 'received', 'Sure, I worked at Wendy''s for 8 hours.', 0);
 
 
 ALTER TABLE public.twilio_messages ENABLE TRIGGER ALL;
@@ -129,7 +119,6 @@ ALTER TABLE public.twilio_messages ENABLE TRIGGER ALL;
 
 ALTER TABLE public.timecard_entry_messages DISABLE TRIGGER ALL;
 
-INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('8057f5a5-28c5-40ad-ab66-d4bcaef215e7', '2021-06-24 23:34:35.307617-07', '2021-06-24 23:34:35.307617-07', '85206169-9ea5-42ca-b24c-13682cc23711', 'b23406eb-366e-4a5b-8cb6-84756fee5464');
 
 
 ALTER TABLE public.timecard_entry_messages ENABLE TRIGGER ALL;
