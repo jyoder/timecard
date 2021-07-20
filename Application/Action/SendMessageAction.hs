@@ -110,9 +110,7 @@ perform :: (?modelContext :: ModelContext, ?context :: FrameworkConfig) => T -> 
 perform sendMessageAction = do
     TwilioClient.Response {..} <-
         TwilioClient.sendPhoneMessage
-            TwilioClient.accountId
-            TwilioClient.authToken
-            TwilioClient.statusCallbackUrl
+            TwilioClient.config
             (get #fromNumber sendMessageAction)
             (get #toNumber sendMessageAction)
             (get #body sendMessageAction)
@@ -127,8 +125,7 @@ perform sendMessageAction = do
         |> set #body body
         |> set #numMedia numMedia
         |> createRecord
-
-    pure ()
+        >> pure ()
 
 trackTableReads :: (?modelContext :: ModelContext) => IO ()
 trackTableReads = do

@@ -5,6 +5,7 @@ module Application.Service.Validation (
     validateAndCreateIO,
     validateAndUpdateIO,
     ensureValidIO,
+    ValidationException (..),
 ) where
 
 import qualified Control.Exception as Exception
@@ -14,7 +15,10 @@ import IHP.ModelSupport
 import qualified IHP.ModelSupport as ModelSupport
 import IHP.Prelude hiding (toException)
 
-newtype ValidationException = ValidationException {description :: Text} deriving (Show)
+newtype ValidationException = ValidationException
+    { description :: Text
+    }
+    deriving (Show, Eq)
 
 instance Exception ValidationException where
     displayException ValidationException {description} =

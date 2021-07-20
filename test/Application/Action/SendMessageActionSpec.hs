@@ -2,6 +2,7 @@ module Application.Action.SendMessageActionSpec where
 
 import qualified Application.Action.ActionRunState as ActionRunState
 import qualified Application.Action.SendMessageAction as SendMessageAction
+import Application.Service.Validation (ValidationException (..))
 import Data.Set (elems)
 import Generated.Types
 import IHP.ControllerPrelude
@@ -471,3 +472,94 @@ spec = do
                                    , "action_run_times"
                                    , "send_message_actions"
                                    ]
+
+    describe "schedule" do
+        beforeAll (testConfig >>= mockContext RootApplication) do
+            itIO "saves a send message action based on the given parameters" do
+                fromPhoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+14444444444"
+                        |> createRecord
+
+                toPhoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+15555555555"
+                        |> createRecord
+
+                sendMessageAction <-
+                    SendMessageAction.schedule
+                        (get #id fromPhoneNumber)
+                        (get #id toPhoneNumber)
+                        "Hello World!"
+                        (toUtc "2021-06-23 15:00:00 PDT")
+
+                actionRunState <-
+                    fetch $ get #actionRunStateId sendMessageAction
+
+                actionRunTime <-
+                    query @ActionRunTime
+                        |> filterWhere (#actionRunStateId, get #id actionRunState)
+                        |> fetchOne
+
+                get #state actionRunState `shouldBe` ActionRunState.notStarted
+                get #runsAt actionRunTime `shouldBe` toUtc "2021-06-23 15:00:00 PDT"
+                get #body sendMessageAction `shouldBe` "Hello World!"
+                get #fromId sendMessageAction `shouldBe` get #id fromPhoneNumber
+                get #toId sendMessageAction `shouldBe` get #id toPhoneNumber
+
+            itIO "throws an exception if the send message action does not validate successfully" do
+                fromPhoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+14444444444"
+                        |> createRecord
+
+                toPhoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+15555555555"
+                        |> createRecord
+
+                SendMessageAction.schedule
+                    (get #id fromPhoneNumber)
+                    (get #id toPhoneNumber)
+                    ""
+                    (toUtc "2021-06-23 15:00:00 PDT")
+                    `shouldThrow` (== ValidationException "body=This field cannot be empty")
+
+    describe "perform" do
+        beforeAll (testConfig >>= mockContext RootApplication) do
+            itIO "barf" do
+                actionRunState <-
+                    newRecord @ActionRunState
+                        |> set #state ActionRunState.running
+                        |> createRecord
+
+                actionRunTime <-
+                    newRecord @ActionRunTime
+                        |> set #actionRunStateId (get #id actionRunState)
+                        |> createRecord
+
+                fromPhoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+14444444444"
+                        |> createRecord
+
+                toPhoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+15555555555"
+                        |> createRecord
+
+                sendMessageAction <-
+                    newRecord @SendMessageAction
+                        |> set #createdAt (toUtc "2021-06-23 15:00:00 PDT")
+                        |> set #actionRunStateId (get #id actionRunState)
+                        |> set #fromId (get #id fromPhoneNumber)
+                        |> set #toId (get #id toPhoneNumber)
+                        |> set #body "Hello!"
+                        |> createRecord
+
+                sendMessageActions <-
+                    SendMessageAction.fetchNotStartedCreatedBeforeByPhoneNumber
+                        (toUtc "2021-06-23 15:00:01 PDT")
+                        (get #id toPhoneNumber)
+
+                get #id <$> sendMessageActions `shouldBe` []

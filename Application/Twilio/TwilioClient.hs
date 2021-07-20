@@ -1,12 +1,8 @@
 module Application.Twilio.TwilioClient (
     sendPhoneMessage,
     callbackSignature,
-    accountId,
-    authToken,
-    statusCallbackUrl,
-    AccountId (..),
-    AuthToken (..),
-    StatusCallbackUrl (..),
+    config,
+    Config (..),
     Response (..),
 ) where
 
@@ -22,10 +18,15 @@ import Data.Text.Encoding (encodeUtf8)
 import IHP.ControllerPrelude
 import IHP.Prelude
 import Network.HTTP.Req
+import System.Random (randomIO)
 
-newtype AccountId = AccountId Text
-newtype AuthToken = AuthToken Text
-newtype StatusCallbackUrl = StatusCallbackUrl Text
+data Config
+    = EnabledConfig
+        { accountId :: !Text
+        , authToken :: !Text
+        , statusCallbackUrl :: !Text
+        }
+    | DisabledConfig
 
 data Response = Response
     { apiVersion :: Text
@@ -38,17 +39,13 @@ data Response = Response
     deriving (Show)
 
 sendPhoneMessage ::
-    AccountId ->
-    AuthToken ->
-    StatusCallbackUrl ->
+    Config ->
     Text ->
     Text ->
     Text ->
     IO Response
 sendPhoneMessage
-    (AccountId accountId)
-    (AuthToken authToken)
-    (StatusCallbackUrl statusCallbackUrl)
+    EnabledConfig {..}
     fromPhoneNumber
     toPhoneNumber
     messageBody = do
@@ -67,6 +64,21 @@ sendPhoneMessage
                 <> "To" =: toPhoneNumber
                 <> "Body" =: messageBody
                 <> "StatusCallback" =: statusCallbackUrl
+sendPhoneMessage
+    DisabledConfig
+    fromPhoneNumber
+    toPhoneNumber
+    messageBody = do
+        messageSid <- randomIO :: IO Int
+        pure
+            Response
+                { apiVersion = "fakeApiVersion"
+                , messageSid = "fakeSid-" <> show (abs messageSid)
+                , accountSid = "fakeAccountSid"
+                , status = "delivered"
+                , body = messageBody
+                , numMedia = 0
+                }
 
 parseResponse :: BsResponse -> Maybe Response
 parseResponse httpResponse =
@@ -94,30 +106,6 @@ callbackSignature authToken url postParams =
     concatedParams = map (\(param, value) -> param <> fromMaybe "" value) sortedParams
     sortedParams = sortBy (\(a, _) (b, _) -> a `compare` b) postParams
 
-accountId :: (?context :: context, ConfigProvider context) => AccountId
-accountId =
-    ?context
-        |> getFrameworkConfig
-        |> get #appConfig
-        |> TMap.lookup @AccountId
-        |> fromMaybe (error "Could not find Twilio.AccountId in config")
-
-authToken :: (?context :: context, ConfigProvider context) => AuthToken
-authToken =
-    ?context
-        |> getFrameworkConfig
-        |> get #appConfig
-        |> TMap.lookup @AuthToken
-        |> fromMaybe (error "Could not find Twilio.AuthToken in config")
-
-statusCallbackUrl :: (?context :: context, ConfigProvider context) => StatusCallbackUrl
-statusCallbackUrl =
-    ?context
-        |> getFrameworkConfig
-        |> get #appConfig
-        |> TMap.lookup @StatusCallbackUrl
-        |> fromMaybe (error "Could not find Twilio.StatusCallbackUrl in config")
-
 post :: MonadHttp m => HttpBody body => Text -> Text -> Url 'Https -> body -> m BsResponse
 post accountId authToken url body = req POST url body bsResponse auth
   where
@@ -126,3 +114,13 @@ post accountId authToken url body = req POST url body bsResponse auth
 twilioEndpoint :: Text -> Url 'Https
 twilioEndpoint accountId =
     https "api.twilio.com" /: "2010-04-01" /: "Accounts" /: accountId /: "Messages.json"
+
+config :: (?context :: context, ConfigProvider context) => Config
+config =
+    ?context
+        |> getFrameworkConfig
+        |> get #appConfig
+        |> TMap.lookup @Config
+        |> \case
+            Just config -> config
+            Nothing -> error "Missing configuration Twilio.Config"

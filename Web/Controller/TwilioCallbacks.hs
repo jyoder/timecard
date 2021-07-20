@@ -70,7 +70,7 @@ validateCallbackSignature = do
     case (getHeader "Host", getHeader "X-Twilio-Signature") of
         (Just host, Just receivedSignature) -> do
             let requestUrl = "https://" <> host <> getRequestPath
-            let authToken = (\(TwilioClient.AuthToken token) -> encodeUtf8 token) TwilioClient.authToken
+            let authToken = encodeUtf8 (get #authToken TwilioClient.config)
             let computedSignature = TwilioClient.callbackSignature authToken requestUrl allParams
             if receivedSignature == computedSignature
                 then pure ()

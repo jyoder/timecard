@@ -35,9 +35,7 @@ send ::
 send fromPhoneNumber toPhoneNumber body = do
     TwilioClient.Response {..} <-
         TwilioClient.sendPhoneMessage
-            TwilioClient.accountId
-            TwilioClient.authToken
-            TwilioClient.statusCallbackUrl
+            TwilioClient.config
             (get #number fromPhoneNumber)
             (get #number toPhoneNumber)
             body
