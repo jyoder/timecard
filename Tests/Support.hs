@@ -5,6 +5,7 @@ module Tests.Support (
     toUtc,
 ) where
 
+import qualified Application.Twilio.TwilioClient as TwilioClient
 import IHP.ApplicationContext (ApplicationContext (..))
 import IHP.ControllerPrelude
 import IHP.Environment
@@ -28,6 +29,7 @@ testConfig :: IO ConfigBuilder
 testConfig = pure do
     option Development
     option (AppHostname "localhost")
+    option TwilioClient.DisabledConfig
 
 itIO ::
     Example (MockContext application -> IO ()) =>

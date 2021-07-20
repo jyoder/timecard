@@ -106,7 +106,7 @@ schedule fromId toId body runsAt = do
             |> set #body body
             |> validateAndCreate validate
 
-perform :: (?modelContext :: ModelContext, ?context :: FrameworkConfig) => T -> IO ()
+perform :: (?modelContext :: ModelContext, ?context :: FrameworkConfig) => T -> IO TwilioMessage
 perform sendMessageAction = do
     TwilioClient.Response {..} <-
         TwilioClient.sendPhoneMessage
@@ -125,7 +125,6 @@ perform sendMessageAction = do
         |> set #body body
         |> set #numMedia numMedia
         |> createRecord
-        >> pure ()
 
 trackTableReads :: (?modelContext :: ModelContext) => IO ()
 trackTableReads = do

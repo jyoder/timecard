@@ -5,6 +5,7 @@ import qualified Application.Action.SendMessageAction as SendMessageAction
 import Application.Service.Validation (ValidationException (..))
 import Data.Set (elems)
 import Generated.Types
+import IHP.Controller.RequestContext
 import IHP.ControllerPrelude
 import IHP.Test.Mocking
 import Test.Hspec
@@ -527,7 +528,7 @@ spec = do
 
     describe "perform" do
         beforeAll (testConfig >>= mockContext RootApplication) do
-            itIO "barf" do
+            itIO "sends a message via twilio and saves the result in the database" do
                 actionRunState <-
                     newRecord @ActionRunState
                         |> set #state ActionRunState.running
@@ -550,16 +551,32 @@ spec = do
 
                 sendMessageAction <-
                     newRecord @SendMessageAction
-                        |> set #createdAt (toUtc "2021-06-23 15:00:00 PDT")
                         |> set #actionRunStateId (get #id actionRunState)
                         |> set #fromId (get #id fromPhoneNumber)
                         |> set #toId (get #id toPhoneNumber)
                         |> set #body "Hello!"
                         |> createRecord
 
-                sendMessageActions <-
-                    SendMessageAction.fetchNotStartedCreatedBeforeByPhoneNumber
-                        (toUtc "2021-06-23 15:00:01 PDT")
-                        (get #id toPhoneNumber)
+                let sendMessageAction' =
+                        SendMessageAction.T
+                            { id = get #id sendMessageAction
+                            , actionRunStateId = get #id actionRunState
+                            , state = get #state actionRunState
+                            , runsAt = get #runsAt actionRunTime
+                            , body = get #body sendMessageAction
+                            , fromId = get #id fromPhoneNumber
+                            , fromNumber = get #number fromPhoneNumber
+                            , toId = get #id toPhoneNumber
+                            , toNumber = get #number toPhoneNumber
+                            }
 
-                get #id <$> sendMessageActions `shouldBe` []
+                let ?context = get #frameworkConfig ?context
+                 in do
+                        twilioMessage <- SendMessageAction.perform sendMessageAction'
+                        get #apiVersion twilioMessage `shouldBe` "fakeApiVersion"
+                        get #accountSid twilioMessage `shouldBe` "fakeAccountSid"
+                        get #fromId twilioMessage `shouldBe` get #id fromPhoneNumber
+                        get #toId twilioMessage `shouldBe` get #id toPhoneNumber
+                        get #status twilioMessage `shouldBe` "delivered"
+                        get #body twilioMessage `shouldBe` "Hello!"
+                        get #numMedia twilioMessage `shouldBe` 0
