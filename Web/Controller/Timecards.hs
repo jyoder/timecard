@@ -71,6 +71,18 @@ instance Controller TimecardsController where
                     timecardId
         selectedPerson <- fetch (get #personId timecard)
 
+        maybeTimecardSigning <-
+            query @TimecardSigning
+                |> filterWhere (#timecardId, get #id timecard)
+                |> fetchOneOrNothing
+
+        signing <- case maybeTimecardSigning of
+            Just timecardSigning ->
+                query @Signing
+                    |> filterWhere (#id, get #signingId timecardSigning)
+                    |> fetchOneOrNothing
+            Nothing -> pure Nothing
+
         html <- renderHtml ShowPdfView {..}
         pdf <- Pdf.render html
 

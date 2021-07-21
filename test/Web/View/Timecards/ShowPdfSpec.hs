@@ -112,3 +112,21 @@ spec = do
                 `shouldBe` ShowPdf.TotalHoursRow
                     { totalHours = "14.8"
                     }
+
+    describe "buildSignatureBlock" do
+        it "returns a signed block when a signing is present" do
+            let signing =
+                    newRecord @Signing
+                        |> set #name "Ronald McDonald"
+                        |> set #signedAt (toUtc "2021-06-23 15:00:00 PDT")
+                        |> set #ipAddress "127.0.0.1"
+
+            ShowPdf.buildSignatureBlock (Just signing)
+                `shouldBe` ShowPdf.SignedBlock
+                    { name = "Ronald McDonald"
+                    , signedAt = "2021-06-23 22:00:00 UTC"
+                    , ipAddress = "127.0.0.1"
+                    }
+
+        it "returns a not signed block when no signing is present" do
+            ShowPdf.buildSignatureBlock Nothing `shouldBe` ShowPdf.NotSignedBlock

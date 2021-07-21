@@ -1,14 +1,21 @@
 module Web.View.Timecards.ShowPdf where
 
 import qualified Application.Timecard.View as V
-import Web.View.Prelude
+import Web.View.Prelude hiding (Page)
 import Web.View.Service.Time (formatDay)
 import qualified Prelude as P
 
 data ShowPdfView = ShowPdfView
     { selectedPerson :: !Person
     , timecard :: !V.Timecard
+    , signing :: !(Maybe Signing)
     }
+
+data Page = Page
+    { timecardTable :: !TimecardTable
+    , signatureBlock :: !SignatureBlock
+    }
+    deriving (Eq, Show)
 
 data TimecardTable = TimecardTable
     { weekOf :: !Text
@@ -33,11 +40,26 @@ newtype TotalHoursRow = TotalHoursRow
     }
     deriving (Eq, Show)
 
+data SignatureBlock
+    = SignedBlock
+        { name :: !Text
+        , signedAt :: !Text
+        , ipAddress :: !Text
+        }
+    | NotSignedBlock
+    deriving (Eq, Show)
+
 instance View ShowPdfView where
     beforeRender view = setLayout P.id
 
-    html ShowPdfView {..} =
-        renderPage $ buildTimecardTable selectedPerson timecard
+    html view = renderPage $ buildPage view
+
+buildPage :: ShowPdfView -> Page
+buildPage ShowPdfView {..} =
+    Page
+        { timecardTable = buildTimecardTable selectedPerson timecard
+        , signatureBlock = buildSignatureBlock signing
+        }
 
 buildTimecardTable :: Person -> V.Timecard -> TimecardTable
 buildTimecardTable selectedPerson timecard =
@@ -65,12 +87,25 @@ buildTotalHoursRow timecardEntries =
         { totalHours = show $ sum $ get #hoursWorked <$> timecardEntries
         }
 
-renderPage :: TimecardTable -> Html
-renderPage timecardTable =
+buildSignatureBlock :: Maybe Signing -> SignatureBlock
+buildSignatureBlock (Just signing) =
+    SignedBlock
+        { name = get #name signing
+        , signedAt = show $ get #signedAt signing
+        , ipAddress = get #ipAddress signing
+        }
+buildSignatureBlock Nothing =
+    NotSignedBlock
+
+renderPage :: Page -> Html
+renderPage Page {..} =
     [hsx|
         <div class="content container-fluid">
             <div class="col-12">
                 {renderTimecardTable timecardTable}
+            </div>
+            <div class="col-12">
+                {renderSignatureCard signatureBlock}
             </div>
         </div>
 
@@ -131,6 +166,33 @@ renderTotalHoursRow TotalHoursRow {..} =
             <td></td>
             <td>{totalHours}</td>
         </tr>
+    |]
+
+renderSignatureCard :: SignatureBlock -> Html
+renderSignatureCard signatureBlock =
+    [hsx|
+        <div class="card mb-5">
+            <h5 class="card-header">
+                Electronic Signature
+            </h5>
+            <div class="card-body">
+                {renderSignatureBlock signatureBlock}
+            </div>  
+        </div>
+    |]
+
+renderSignatureBlock :: SignatureBlock -> Html
+renderSignatureBlock SignedBlock {..} =
+    [hsx|
+        <ul class="list-group">
+            <li class="list-group-item"><strong>Signed by:&nbsp</strong>{name}</li>
+            <li class="list-group-item"><strong>Signed at:&nbsp</strong>{signedAt}</li>
+            <li class="list-group-item"><strong>IP address:&nbsp</strong>{ipAddress}</li>
+        </ul>
+    |]
+renderSignatureBlock NotSignedBlock =
+    [hsx|
+        <p>Timecard not yet signed.</p>
     |]
 
 styles :: Html
