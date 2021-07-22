@@ -151,6 +151,15 @@ data TimecardEntryForm = TimecardEntryForm
     , jobName :: !Text
     , jobNameInvalidClass :: !Text
     , jobNameError :: !(Maybe Text)
+    , clockedInAt :: !Text
+    , clockedInAtInvalidClass :: !Text
+    , clockedInAtError :: !(Maybe Text)
+    , clockedOutAt :: !Text
+    , clockedOutAtInvalidClass :: !Text
+    , clockedOutAtError :: !(Maybe Text)
+    , lunchDuration :: !Text
+    , lunchDurationInvalidClass :: !Text
+    , lunchDurationError :: !(Maybe Text)
     , hoursWorked :: !Text
     , hoursWorkedInvalidClass :: !Text
     , hoursWorkedError :: !(Maybe Text)
@@ -413,6 +422,15 @@ buildTimecardEntryForm
             , jobName = get #jobName timecardEntry
             , jobNameInvalidClass = if hasErrorFor "jobName" then invalidClass else ""
             , jobNameError = errorFor "jobName"
+            , clockedInAt = maybe "" show (get #clockedInAt timecardEntry)
+            , clockedInAtInvalidClass = if hasErrorFor "clockedInAt" then invalidClass else ""
+            , clockedInAtError = errorFor "clockedInAt"
+            , clockedOutAt = maybe "" show (get #clockedOutAt timecardEntry)
+            , clockedOutAtInvalidClass = if hasErrorFor "clockedOutAt" then invalidClass else ""
+            , clockedOutAtError = errorFor "clockedOutAt"
+            , lunchDuration = maybe "" show (get #lunchDuration timecardEntry)
+            , lunchDurationInvalidClass = if hasErrorFor "lunchDuration" then invalidClass else ""
+            , lunchDurationError = errorFor "lunchDuration"
             , hoursWorked = show $ get #hoursWorked timecardEntry
             , hoursWorkedInvalidClass = if hasErrorFor "hoursWorked" then invalidClass else ""
             , hoursWorkedError = errorFor "hoursWorked"
@@ -763,6 +781,56 @@ renderTimecardEntryForm TimecardEntryForm {..} =
                     value={jobName}>
 
                 {renderFieldError jobNameError}
+            </div>
+
+            <div class="form-row">
+                <div class="col form-group" id="form-group-timecardEntry_clockedInAt">
+                    <label class="" for="timecardEntry_clockedInAt">
+                        Clock In
+                    </label>
+
+                    <input 
+                        type="text"
+                        name="clockedInAt"
+                        placeholder=""
+                        id="timecardEntry_clockedInAt"
+                        class={"form-control flatpickr-time-input " <> clockedInAtInvalidClass}
+                        value={clockedInAt}>
+
+                    {renderFieldError clockedInAtError}
+                </div>
+
+                <div class="col form-group" id="form-group-timecardEntry_clockedOutAt">
+                    <label class="" for="timecardEntry_clockedOutAt">
+                        Clock Out
+                    </label>
+
+                    <input 
+                        type="text"
+                        name="clockedOutAt"
+                        placeholder=""
+                        id="timecardEntry_clockedOutAt"
+                        class={"form-control flatpickr-time-input " <> clockedOutAtInvalidClass}
+                        value={clockedOutAt}>
+
+                    {renderFieldError clockedOutAtError}
+                </div>
+
+                <div class="col form-group" id="form-group-timecardEntry_lunchDuration">
+                    <label class="" for="timecardEntry_lunchDuration">
+                        Lunch (mins)
+                    </label>
+
+                    <input 
+                        type="text"
+                        name="lunchDuration"
+                        placeholder=""
+                        id="timecardEntry_lunchDuration"
+                        class={"form-control " <> lunchDurationInvalidClass}
+                        value={lunchDuration}>
+
+                    {renderFieldError lunchDurationError}
+                </div>
             </div>
             
             <div class="form-group" id="form-group-timecardEntry_hoursWorked">

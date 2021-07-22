@@ -33,6 +33,9 @@ data Row = Row
     , timecardEntryId :: !(Id Types.TimecardEntry)
     , timecardEntryDate :: !Day
     , timecardEntryJobName :: !Text
+    , timecardEntryClockedInAt :: !(Maybe TimeOfDay)
+    , timecardEntryClockedOutAt :: !(Maybe TimeOfDay)
+    , timecardEntryLunchDuration :: !(Maybe Int)
     , timecardEntryHoursWorked :: !Double
     , timecardEntryWorkDone :: !Text
     , timecardEntryInvoiceTranslation :: !Text
@@ -43,6 +46,9 @@ instance FromRow Row where
     fromRow =
         Row
             <$> field
+            <*> field
+            <*> field
+            <*> field
             <*> field
             <*> field
             <*> field
@@ -90,6 +96,9 @@ query whereCondition entriesSort =
             timecard_entries.id timecard_entry_id,
             timecard_entries.date timecard_entry_date,
             timecard_entries.job_name timecard_entry_job_name,
+            timecard_entries.clocked_in_at timecard_entry_clocked_in_at,
+            timecard_entries.clocked_out_at timecard_entry_clocked_out_at,
+            timecard_entries.lunch_duration timecard_entry_lunch_duration,
             timecard_entries.hours_worked timecard_entry_hours_worked,
             timecard_entries.work_done timecard_entry_work_done,
             timecard_entries.invoice_translation timecard_entry_invoice_translation

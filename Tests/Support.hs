@@ -3,6 +3,7 @@ module Tests.Support (
     itIO,
     toDay,
     toUtc,
+    toTimeOfDay,
 ) where
 
 import qualified Application.Twilio.TwilioClient as TwilioClient
@@ -58,3 +59,6 @@ toUtc time = zonedTimeToUTC (read time :: ZonedTime)
 
 toDay :: String -> Day
 toDay = read
+
+toTimeOfDay :: String -> TimeOfDay
+toTimeOfDay = read

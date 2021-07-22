@@ -36,6 +36,9 @@ data TimecardEntry = TimecardEntry
     { id :: !(Id Types.TimecardEntry)
     , date :: !Day
     , jobName :: !Text
+    , clockedInAt :: !(Maybe TimeOfDay)
+    , clockedOutAt :: !(Maybe TimeOfDay)
+    , lunchDuration :: !(Maybe Int)
     , hoursWorked :: !Double
     , workDone :: !Text
     , invoiceTranslation :: !Text
@@ -103,6 +106,9 @@ buildTimecardEntry row =
         { id = get #timecardEntryId row
         , date = get #timecardEntryDate row
         , jobName = get #timecardEntryJobName row
+        , clockedInAt = get #timecardEntryClockedInAt row
+        , clockedOutAt = get #timecardEntryClockedOutAt row
+        , lunchDuration = get #timecardEntryLunchDuration row
         , hoursWorked = get #timecardEntryHoursWorked row
         , workDone = get #timecardEntryWorkDone row
         , invoiceTranslation = get #timecardEntryInvoiceTranslation row
