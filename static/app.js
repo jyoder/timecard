@@ -24,6 +24,17 @@ function initDatePicker() {
     });
 }
 
+function initTimePicker() {
+    flatpickr(".flatpickr-time-input", {
+        allowInput: true,
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i:S",
+        altInput: true,
+        altFormat: "h:i K"
+    });
+}
+
 function initCustomTime() {
     document.querySelectorAll('.weekday').forEach(function (elem) {
         var date = new Date(elem.dateTime);
@@ -38,6 +49,7 @@ function initApp() {
     // Reformat time elements based on locale whenever page changes occur
     initTime();
     initCustomTime();
+    initTimePicker();
 }
 
 $(document).on('ready turbolinks:load', function () {
