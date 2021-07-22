@@ -66,6 +66,11 @@ validate timecardEntry =
     timecardEntry
         |> validateField #jobName nonEmpty
         |> validateField
+            #lunchDuration
+            ( validateAny [isInList [Nothing, Just 0], isGreaterThan (Just 0)]
+                |> withCustomErrorMessage "This field must be greater than or equal to 0"
+            )
+        |> validateField
             #hoursWorked
             ( validateAny [isInList [0.0], isGreaterThan 0.0]
                 |> withCustomErrorMessage "This field must be greater than or equal to 0.0"

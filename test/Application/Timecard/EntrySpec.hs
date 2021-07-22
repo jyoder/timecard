@@ -370,6 +370,7 @@ spec = do
                             |> set #timecardId (get #id timecard)
                             |> set #date (toDay "2021-05-10")
                             |> set #jobName ""
+                            |> set #lunchDuration (Just (-1))
                             |> set #hoursWorked (-1.0)
                             |> set #workDone ""
                             |> set #invoiceTranslation ""
@@ -380,5 +381,6 @@ spec = do
                                , ("invoiceTranslation", "This field cannot be empty")
                                , ("workDone", "This field cannot be empty")
                                , ("hoursWorked", "This field must be greater than or equal to 0.0")
+                               , ("lunchDuration", "This field must be greater than or equal to 0")
                                , ("jobName", "This field cannot be empty")
                                ]
