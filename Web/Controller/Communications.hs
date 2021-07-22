@@ -314,6 +314,7 @@ buildNewTimecardEntry ::
 buildNewTimecardEntry date timecardEntry =
     timecardEntry
         |> set #date date
+        |> set #lunchDuration defaultLunchDuration
         |> set #hoursWorked defaultHoursWorked
 
 buildTimecardEntry ::
@@ -323,7 +324,19 @@ buildTimecardEntry ::
     TimecardEntry
 buildTimecardEntry timecardEntry =
     timecardEntry
-        |> fill @["date", "jobName", "hoursWorked", "workDone", "invoiceTranslation"]
+        |> fill
+            @[ "date"
+             , "jobName"
+             , "clockedInAt"
+             , "clockedOutAt"
+             , "lunchDuration"
+             , "hoursWorked"
+             , "workDone"
+             , "invoiceTranslation"
+             ]
+
+defaultLunchDuration :: Maybe Int
+defaultLunchDuration = Just 30
 
 defaultHoursWorked :: Double
 defaultHoursWorked = 8.0
