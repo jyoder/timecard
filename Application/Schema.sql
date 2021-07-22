@@ -61,7 +61,10 @@ CREATE TABLE timecard_entries (
     hours_worked DOUBLE PRECISION NOT NULL,
     work_done TEXT NOT NULL,
     invoice_translation TEXT NOT NULL,
-    timecard_id UUID NOT NULL
+    timecard_id UUID NOT NULL,
+    clocked_in_at TIME DEFAULT NULL,
+    clocked_out_at TIME DEFAULT NULL,
+    lunch_duration INT DEFAULT NULL
 );
 CREATE TABLE process_events_jobs (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
@@ -94,7 +97,7 @@ CREATE TABLE action_run_states (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     state TEXT DEFAULT 'not_started' NOT NULL,
-    CHECK ((state = 'not_started') OR (state = 'suspended') OR (state = 'running') OR (state = 'canceled') OR (state = 'finished') OR (state = 'failed'))
+    CHECK ((((((state = 'not_started') OR (state = 'suspended')) OR (state = 'running')) OR (state = 'canceled')) OR (state = 'finished')) OR (state = 'failed'))
 );
 CREATE TABLE timecards (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
@@ -218,7 +221,6 @@ CREATE TRIGGER set_updated_at BEFORE UPDATE ON timecard_access_tokens FOR EACH R
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON signings FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON timecard_signings FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON worker_preferences FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
-
 ALTER TABLE action_run_times ADD CONSTRAINT action_run_times_ref_action_run_state_id FOREIGN KEY (action_run_state_id) REFERENCES action_run_states (id) ON DELETE NO ACTION;
 ALTER TABLE phone_contacts ADD CONSTRAINT phone_contacts_ref_person_id FOREIGN KEY (person_id) REFERENCES people (id) ON DELETE NO ACTION;
 ALTER TABLE phone_contacts ADD CONSTRAINT phone_contacts_ref_phone_number_id FOREIGN KEY (phone_number_id) REFERENCES phone_numbers (id) ON DELETE NO ACTION;
