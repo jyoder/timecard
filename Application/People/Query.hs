@@ -60,7 +60,9 @@ query =
         where
             people.goes_by <> '#{botGoesBy}'
         group by
-            people.id;
+            people.id
+        order by
+            people.last_name;
     |]
 
 botGoesBy :: Text

@@ -59,6 +59,63 @@ spec = do
                                     }
                                ]
 
+            itIO "orders people by last name alphabetically" do
+                meyer <-
+                    newRecord @Person
+                        |> set #firstName "Oscar"
+                        |> set #lastName "Meyer"
+                        |> set #goesBy "Weiner"
+                        |> createRecord
+
+                meyerPhoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+17777777777"
+                        |> createRecord
+
+                newRecord @PhoneContact
+                    |> set #personId (get #id meyer)
+                    |> set #phoneNumberId (get #id meyerPhoneNumber)
+                    |> createRecord
+
+                duck <-
+                    newRecord @Person
+                        |> set #firstName "Donald"
+                        |> set #lastName "Duck"
+                        |> set #goesBy "Don"
+                        |> createRecord
+
+                duckPhoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+15555555555"
+                        |> createRecord
+
+                newRecord @PhoneContact
+                    |> set #personId (get #id duck)
+                    |> set #phoneNumberId (get #id duckPhoneNumber)
+                    |> createRecord
+
+                appleton <-
+                    newRecord @Person
+                        |> set #firstName "Zoro"
+                        |> set #lastName "Appleton"
+                        |> set #goesBy "Z-boy"
+                        |> createRecord
+
+                appletonPhoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+16666666666"
+                        |> createRecord
+
+                newRecord @PhoneContact
+                    |> set #personId (get #id appleton)
+                    |> set #phoneNumberId (get #id appletonPhoneNumber)
+                    |> createRecord
+
+                people <- People.Query.fetchExcludingBot
+
+                get #lastName <$> people
+                    `shouldBe` ["Appleton", "Duck", "Meyer"]
+
             itIO "includes the state of any send message action that has not been started" do
                 donald <-
                     newRecord @Person
