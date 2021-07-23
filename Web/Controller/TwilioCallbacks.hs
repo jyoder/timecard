@@ -24,7 +24,7 @@ instance Controller TwilioCallbacksController where
                     |> filterWhere (#messageSid, messageSid)
                     |> fetchOne
 
-            if get #status twilioMessage /= TwilioMessage.delivered
+            if messageStatus == TwilioMessage.delivered
                 then
                     twilioMessage
                         |> set #status messageStatus
