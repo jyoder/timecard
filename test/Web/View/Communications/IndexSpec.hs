@@ -2,6 +2,7 @@ module Web.View.Communications.IndexSpec where
 
 import qualified Application.Action.ActionRunState as ActionRunState
 import qualified Application.Action.SendMessageAction as SendMessageAction
+import qualified Application.People.View as People.View
 import qualified Application.Timecard.View as Timecard.View
 import qualified Application.Twilio.Query as Twilio.Query
 import Generated.Types
@@ -19,16 +20,22 @@ spec = do
     describe "buildPage" do
         it "returns the index page" do
             let barbara =
-                    newRecord @Person
-                        |> set #id "10000000-0000-0000-0000-000000000000"
-                        |> set #firstName "Barbara"
-                        |> set #lastName "Bush"
+                    People.View.Person
+                        { id = "10000000-0000-0000-0000-000000000000"
+                        , firstName = "Barbara"
+                        , lastName = "Bush"
+                        , goesBy = "Barb"
+                        , state = People.View.PersonIdle
+                        }
 
             let jackie =
-                    newRecord @Person
-                        |> set #id "20000000-0000-0000-0000-000000000000"
-                        |> set #firstName "Jackie"
-                        |> set #lastName "Kennedy"
+                    People.View.Person
+                        { id = "20000000-0000-0000-0000-000000000000"
+                        , firstName = "Jackie"
+                        , lastName = "Kennedy"
+                        , goesBy = "Jackie"
+                        , state = People.View.PersonIdle
+                        }
 
             let people = [barbara, jackie]
 
@@ -48,6 +55,8 @@ spec = do
                                 , ariaCurrent = "false"
                                 , firstName = "Barbara"
                                 , lastName = "Bush"
+                                , stateLabel = "Idle"
+                                , stateClasses = "badge badge-pill badge-light"
                                 }
                             , PersonItem
                                 { selectionAction =
@@ -58,6 +67,8 @@ spec = do
                                 , ariaCurrent = "false"
                                 , firstName = "Jackie"
                                 , lastName = "Kennedy"
+                                , stateLabel = "Idle"
+                                , stateClasses = "badge badge-pill badge-light"
                                 }
                             ]
                     , messagesColumn = Index.MessagesColumnNotVisible
@@ -67,10 +78,19 @@ spec = do
     describe "buildMessagesColumn" do
         it "returns a visible messages column when a person is selected" do
             let person =
-                    newRecord @Person
-                        |> set #id "10000000-0000-0000-0000-000000000000"
+                    People.View.Person
+                        { id = "10000000-0000-0000-0000-000000000000"
+                        , firstName = "Barbara"
+                        , lastName = "Bush"
+                        , goesBy = "Barb"
+                        , state = People.View.PersonIdle
+                        }
 
             let people = [person]
+
+            let selectedPerson =
+                    newRecord @Person
+                        |> set #id "10000000-0000-0000-0000-000000000000"
 
             let phoneNumber =
                     newRecord @PhoneNumber
@@ -134,7 +154,7 @@ spec = do
 
             let personSelection =
                     Index.PersonSelected
-                        { selectedPerson = person
+                        { selectedPerson = selectedPerson
                         , messages = [twilioMessage1, twilioMessage2]
                         , toPhoneNumber = phoneNumber
                         , scheduledMessages = [scheduledMessage]
@@ -203,9 +223,13 @@ spec = do
 
         it "returns a non-visible messages column when no person is selected" do
             let person =
-                    newRecord @Person
-                        |> set #id "10000000-0000-0000-0000-000000000000"
-
+                    People.View.Person
+                        { id = "10000000-0000-0000-0000-000000000000"
+                        , firstName = "Barbara"
+                        , lastName = "Bush"
+                        , goesBy = "Barb"
+                        , state = People.View.PersonIdle
+                        }
             let people = [person]
 
             let personSelection = Index.NoPersonSelected
@@ -669,10 +693,19 @@ spec = do
     describe "buildTimecardColumn" do
         it "returns a timecard column with timecard blocks when we are in message sending mode" do
             let person =
-                    newRecord @Person
-                        |> set #id "10000000-0000-0000-0000-000000000000"
+                    People.View.Person
+                        { id = "10000000-0000-0000-0000-000000000000"
+                        , firstName = "Barbara"
+                        , lastName = "Bush"
+                        , goesBy = "Barb"
+                        , state = People.View.PersonIdle
+                        }
 
             let people = [person]
+
+            let selectedPerson =
+                    newRecord @Person
+                        |> set #id "10000000-0000-0000-0000-000000000000"
 
             let timecardEntry =
                     Timecard.View.TimecardEntry
@@ -698,7 +731,7 @@ spec = do
 
             let personSelection =
                     Index.PersonSelected
-                        { selectedPerson = person
+                        { selectedPerson = selectedPerson
                         , messages = []
                         , toPhoneNumber = newRecord @PhoneNumber
                         , scheduledMessages = []
@@ -737,10 +770,19 @@ spec = do
 
         it "returns a timecard column with a timecard entry form when we are linking messages" do
             let person =
-                    newRecord @Person
-                        |> set #id "10000000-0000-0000-0000-000000000000"
+                    People.View.Person
+                        { id = "10000000-0000-0000-0000-000000000000"
+                        , firstName = "Barbara"
+                        , lastName = "Bush"
+                        , goesBy = "Barb"
+                        , state = People.View.PersonIdle
+                        }
 
             let people = [person]
+
+            let selectedPerson =
+                    newRecord @Person
+                        |> set #id "10000000-0000-0000-0000-000000000000"
 
             let timecardEntry =
                     newRecord @TimecardEntry
@@ -763,7 +805,7 @@ spec = do
 
             let personSelection =
                     Index.PersonSelected
-                        { selectedPerson = person
+                        { selectedPerson = selectedPerson
                         , messages = []
                         , toPhoneNumber = newRecord @PhoneNumber
                         , scheduledMessages = []

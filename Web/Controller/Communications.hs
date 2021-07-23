@@ -6,6 +6,8 @@ import qualified Application.Action.ActionRunState as ActionRunState
 import qualified Application.Action.SendMessageAction as SendMessageAction
 import qualified Application.Base.People as People
 import qualified Application.Base.PhoneNumber as PhoneNumber
+import qualified Application.People.Query as People.Query
+import qualified Application.People.View as People.View
 import qualified Application.Timecard.AccessToken as Timecard.AccessToken
 import qualified Application.Timecard.Entry as Timecard.Entry
 import qualified Application.Timecard.EntryMessage as Timecard.EntryMessage
@@ -24,15 +26,18 @@ instance Controller CommunicationsController where
     beforeAction = ensureIsUser
 
     action CommunicationsAction = autoRefresh do
-        botId <- People.fetchBotId
-        people <- People.fetchExcludingId botId
+        people <-
+            People.View.buildPeople
+                <$> People.Query.fetchExcludingBot
         let personSelection = NoPersonSelected
 
         render IndexView {..}
     --
     action CommunicationsPersonSelectionAction {..} = autoRefresh do
         botId <- People.fetchBotId
-        people <- People.fetchExcludingId botId
+        people <-
+            People.View.buildPeople
+                <$> People.Query.fetchExcludingBot
         selectedPerson <- fetch selectedPersonId
 
         messages <- Twilio.Query.fetchByPeople botId selectedPersonId
@@ -56,7 +61,9 @@ instance Controller CommunicationsController where
     --
     action CommunicationsNewTimecardEntryAction {..} = autoRefresh do
         botId <- People.fetchBotId
-        people <- People.fetchExcludingId botId
+        people <-
+            People.View.buildPeople
+                <$> People.Query.fetchExcludingBot
         selectedPerson <- fetch selectedPersonId
 
         messages <- Twilio.Query.fetchByPeople botId selectedPersonId
@@ -88,7 +95,9 @@ instance Controller CommunicationsController where
     --
     action CommunicationsEditTimecardEntryAction {..} = autoRefresh do
         botId <- People.fetchBotId
-        people <- People.fetchExcludingId botId
+        people <-
+            People.View.buildPeople
+                <$> People.Query.fetchExcludingBot
         selectedPerson <- fetch selectedPersonId
 
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
@@ -114,7 +123,9 @@ instance Controller CommunicationsController where
     --
     action CommunicationsEditModifiedTimecardEntryAction {..} = autoRefresh do
         botId <- People.fetchBotId
-        people <- People.fetchExcludingId botId
+        people <-
+            People.View.buildPeople
+                <$> People.Query.fetchExcludingBot
         selectedPerson <- fetch selectedPersonId
 
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
@@ -153,7 +164,9 @@ instance Controller CommunicationsController where
             |> Timecard.Entry.create selectedPersonId selectedMessageIds
                 >>= either
                     ( \timecardEntry -> do
-                        people <- People.fetchExcludingId botId
+                        people <-
+                            People.View.buildPeople
+                                <$> People.Query.fetchExcludingBot
                         messages <- Twilio.Query.fetchByPeople botId selectedPersonId
                         let selectedMessages = findSelectedMessages messages selectedMessageIds
                         scheduledMessages <-
@@ -192,7 +205,9 @@ instance Controller CommunicationsController where
                 >>= either
                     ( \timecardEntry -> do
                         botId <- People.fetchBotId
-                        people <- People.fetchExcludingId botId
+                        people <-
+                            People.View.buildPeople
+                                <$> People.Query.fetchExcludingBot
                         selectedPerson <- fetch selectedPersonId
 
                         messages <- Twilio.Query.fetchByPeople botId selectedPersonId
@@ -236,7 +251,9 @@ instance Controller CommunicationsController where
         let selectedPersonId = get #id toPerson
 
         botId <- People.fetchBotId
-        people <- People.fetchExcludingId botId
+        people <-
+            People.View.buildPeople
+                <$> People.Query.fetchExcludingBot
         selectedPerson <- fetch selectedPersonId
 
         messages <- Twilio.Query.fetchByPeople botId selectedPersonId

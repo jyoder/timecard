@@ -2,6 +2,8 @@ module Web.View.Communications.Index where
 
 import qualified Application.Action.ActionRunState as ActionRunState
 import qualified Application.Action.SendMessageAction as SendMessageAction
+import qualified Application.Base.People as People
+import qualified Application.People.View as V
 import qualified Application.Timecard.View as V
 import qualified Application.Twilio.Query as Twilio.Query
 import Web.View.Navigation.People
@@ -12,7 +14,7 @@ import Web.View.Service.Time (formatDay)
 import Web.View.Timecards.Status
 
 data IndexView = IndexView
-    { people :: ![Person]
+    { people :: ![V.Person]
     , personSelection :: !PersonSelection
     }
 
