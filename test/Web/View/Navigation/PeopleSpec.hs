@@ -1,5 +1,7 @@
 module Web.View.Navigation.PeopleSpec where
 
+import qualified Application.People.Query as People.Query
+import qualified Application.People.View as People.View
 import Generated.Types
 import IHP.ControllerPrelude
 import Test.Hspec
@@ -20,22 +22,32 @@ spec = do
     describe "buildPeopleNavigation" do
         it "returns a people navigation with the selected person shown as active" do
             let barbara =
-                    newRecord @Person
-                        |> set #id "10000000-0000-0000-0000-000000000000"
-                        |> set #firstName "Barbara"
-                        |> set #lastName "Bush"
+                    People.View.Person
+                        { id = "10000000-0000-0000-0000-000000000000"
+                        , firstName = "Barbara"
+                        , lastName = "Bush"
+                        , goesBy = "Barb"
+                        , state = People.View.PersonIdle
+                        }
 
             let jackie =
-                    newRecord @Person
-                        |> set #id "20000000-0000-0000-0000-000000000000"
-                        |> set #firstName "Jackie"
-                        |> set #lastName "Kennedy"
+                    People.View.Person
+                        { id = "20000000-0000-0000-0000-000000000000"
+                        , firstName = "Jackie"
+                        , lastName = "Kennedy"
+                        , goesBy = "Jackie"
+                        , state = People.View.PersonIdle
+                        }
 
             let people = [barbara, jackie]
 
+            let selectedPerson =
+                    newRecord @Person
+                        |> set #id "10000000-0000-0000-0000-000000000000"
+
             buildPeopleNavigation
                 DummyControllerAction
-                (Just barbara)
+                (Just selectedPerson)
                 people
                 `shouldBe` PeopleNavigation
                     { personItems =
@@ -48,6 +60,8 @@ spec = do
                             , ariaCurrent = "true"
                             , firstName = "Barbara"
                             , lastName = "Bush"
+                            , stateLabel = "Idle"
+                            , stateClasses = "badge badge-pill badge-light"
                             }
                         , PersonItem
                             { selectionAction =
@@ -58,22 +72,30 @@ spec = do
                             , ariaCurrent = "false"
                             , firstName = "Jackie"
                             , lastName = "Kennedy"
+                            , stateLabel = "Idle"
+                            , stateClasses = "badge badge-pill badge-light"
                             }
                         ]
                     }
 
         it "returns a people column with no one shown as active when no one is selected" do
             let barbara =
-                    newRecord @Person
-                        |> set #id "10000000-0000-0000-0000-000000000000"
-                        |> set #firstName "Barbara"
-                        |> set #lastName "Bush"
+                    People.View.Person
+                        { id = "10000000-0000-0000-0000-000000000000"
+                        , firstName = "Barbara"
+                        , lastName = "Bush"
+                        , goesBy = "Barb"
+                        , state = People.View.PersonIdle
+                        }
 
             let jackie =
-                    newRecord @Person
-                        |> set #id "20000000-0000-0000-0000-000000000000"
-                        |> set #firstName "Jackie"
-                        |> set #lastName "Kennedy"
+                    People.View.Person
+                        { id = "20000000-0000-0000-0000-000000000000"
+                        , firstName = "Jackie"
+                        , lastName = "Kennedy"
+                        , goesBy = "Jackie"
+                        , state = People.View.PersonIdle
+                        }
 
             let people = [barbara, jackie]
 
@@ -92,6 +114,8 @@ spec = do
                             , ariaCurrent = "false"
                             , firstName = "Barbara"
                             , lastName = "Bush"
+                            , stateLabel = "Idle"
+                            , stateClasses = "badge badge-pill badge-light"
                             }
                         , PersonItem
                             { selectionAction =
@@ -102,6 +126,8 @@ spec = do
                             , ariaCurrent = "false"
                             , firstName = "Jackie"
                             , lastName = "Kennedy"
+                            , stateLabel = "Idle"
+                            , stateClasses = "badge badge-pill badge-light"
                             }
                         ]
                     }
@@ -109,10 +135,13 @@ spec = do
     describe "buildPersonItem" do
         it "returns an inactive person item when not selected" do
             let person =
-                    newRecord @Person
-                        |> set #id "10000000-0000-0000-0000-000000000000"
-                        |> set #firstName "Barbara"
-                        |> set #lastName "Bush"
+                    People.View.Person
+                        { id = "10000000-0000-0000-0000-000000000000"
+                        , firstName = "Barbara"
+                        , lastName = "Bush"
+                        , goesBy = "Barb"
+                        , state = People.View.PersonIdle
+                        }
 
             buildPersonItem
                 DummyControllerAction
@@ -124,23 +153,54 @@ spec = do
                     , ariaCurrent = "false"
                     , firstName = "Barbara"
                     , lastName = "Bush"
+                    , stateLabel = "Idle"
+                    , stateClasses = "badge badge-pill badge-light"
                     }
 
         it "returns an active person item when selected" do
             let person =
-                    newRecord @Person
-                        |> set #id "10000000-0000-0000-0000-000000000000"
-                        |> set #firstName "Barbara"
-                        |> set #lastName "Bush"
+                    People.View.Person
+                        { id = "10000000-0000-0000-0000-000000000000"
+                        , firstName = "Barbara"
+                        , lastName = "Bush"
+                        , goesBy = "Barb"
+                        , state = People.View.PersonIdle
+                        }
 
             buildPersonItem
                 DummyControllerAction
                 True
                 person
                 `shouldBe` PersonItem
-                    { selectionAction = DummyControllerAction "10000000-0000-0000-0000-000000000000"
+                    { selectionAction =
+                        DummyControllerAction
+                            "10000000-0000-0000-0000-000000000000"
                     , activeClass = "active"
                     , ariaCurrent = "true"
                     , firstName = "Barbara"
                     , lastName = "Bush"
+                    , stateLabel = "Idle"
+                    , stateClasses = "badge badge-pill badge-light"
                     }
+
+    describe "personStateLabel" do
+        it "returns an idle label when the state is idle" do
+            personStateLabel People.View.PersonIdle `shouldBe` "Idle"
+
+        it "returns an auto-pilot label when the state is auto-pilot" do
+            personStateLabel People.View.PersonAutoPilot `shouldBe` "Auto Pilot"
+
+        it "returns a needs-attention label when the state is needs-attention" do
+            personStateLabel People.View.PersonNeedsAttention `shouldBe` "Needs Attention"
+
+    describe "personStateClasses" do
+        it "returns a light pill badge when the state is idle" do
+            personStateClasses People.View.PersonIdle `shouldBe` "badge badge-pill badge-light"
+
+        it "returns a light pill badge when the state is auto-pilot" do
+            personStateClasses People.View.PersonAutoPilot
+                `shouldBe` "badge badge-pill badge-light"
+
+        it "returns a warning pill badge when the state is needs-attention" do
+            personStateClasses People.View.PersonNeedsAttention
+                `shouldBe` "badge badge-pill badge-warning"

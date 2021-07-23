@@ -1,5 +1,14 @@
-module Web.View.Navigation.People where
+module Web.View.Navigation.People (
+    PeopleNavigation (..),
+    PersonItem (..),
+    buildPeopleNavigation,
+    buildPersonItem,
+    personStateLabel,
+    personStateClasses,
+    renderPeopleNavigation,
+) where
 
+import qualified Application.People.View as V
 import Generated.Types
 import IHP.ControllerPrelude (Controller)
 import IHP.Prelude
@@ -17,6 +26,8 @@ data PersonItem a = PersonItem
     , ariaCurrent :: !Text
     , firstName :: !Text
     , lastName :: !Text
+    , stateLabel :: !Text
+    , stateClasses :: !Text
     }
     deriving (Eq, Show)
 
@@ -24,7 +35,7 @@ buildPeopleNavigation ::
     (HasPath a) =>
     (Id Person -> a) ->
     Maybe Person ->
-    [Person] ->
+    [V.Person] ->
     PeopleNavigation a
 buildPeopleNavigation action selectedPerson people =
     PeopleNavigation
@@ -41,7 +52,7 @@ buildPersonItem ::
     (HasPath a) =>
     (Id Person -> a) ->
     Bool ->
-    Person ->
+    V.Person ->
     PersonItem a
 buildPersonItem action isSelected person =
     PersonItem
@@ -50,7 +61,19 @@ buildPersonItem action isSelected person =
         , ariaCurrent = if isSelected then "true" else "false"
         , firstName = get #firstName person
         , lastName = get #lastName person
+        , stateLabel = personStateLabel $ get #state person
+        , stateClasses = personStateClasses $ get #state person
         }
+
+personStateLabel :: V.PersonState -> Text
+personStateLabel V.PersonIdle = "Idle"
+personStateLabel V.PersonAutoPilot = "Auto Pilot"
+personStateLabel V.PersonNeedsAttention = "Needs Attention"
+
+personStateClasses :: V.PersonState -> Text
+personStateClasses V.PersonIdle = "badge badge-pill badge-light"
+personStateClasses V.PersonAutoPilot = "badge badge-pill badge-light"
+personStateClasses V.PersonNeedsAttention = "badge badge-pill badge-warning"
 
 renderPeopleNavigation :: (HasPath a) => PeopleNavigation a -> Html
 renderPeopleNavigation PeopleNavigation {..} =
@@ -70,6 +93,13 @@ renderItem PersonItem {..} =
             class={"list-group-item " <> activeClass}
             aria-current={ariaCurrent}
         >
-            {firstName} {lastName}
+            <div class="d-flex justify-content-between align-items-center">
+                <span>
+                    {firstName} {lastName}
+                </span>
+                <span class={stateClasses}>
+                    {stateLabel}
+                </span>
+            </div>
         </a>
     |]
