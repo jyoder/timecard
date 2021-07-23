@@ -1,5 +1,6 @@
 module Web.View.Timecards.Index where
 
+import qualified Application.People.View as V
 import qualified Application.Timecard.View as V
 import Web.View.Navigation.People
 import Web.View.Navigation.Section (Section (Timecards), renderSectionNavigation)
@@ -9,7 +10,7 @@ import Web.View.Service.Time (formatDay)
 import Web.View.Timecards.Status
 
 data IndexView = IndexView
-    { people :: ![Person]
+    { people :: ![V.Person]
     , personSelection :: !PersonSelection
     }
 

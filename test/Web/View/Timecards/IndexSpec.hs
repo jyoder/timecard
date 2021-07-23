@@ -1,5 +1,6 @@
 module Web.View.Timecards.IndexSpec where
 
+import qualified Application.People.View as People.View
 import qualified Application.Timecard.View as Timecard.View
 import Generated.Types
 import IHP.ModelSupport
@@ -16,10 +17,13 @@ spec = do
     describe "buildPage" do
         it "returns a timecard page based on the given parameters" do
             let person =
-                    newRecord @Person
-                        |> set #id "10000000-0000-0000-0000-000000000000"
-                        |> set #firstName "John"
-                        |> set #lastName "Cleese"
+                    People.View.Person
+                        { id = "10000000-0000-0000-0000-000000000000"
+                        , firstName = "John"
+                        , lastName = "Cleese"
+                        , goesBy = "John"
+                        , state = People.View.PersonIdle
+                        }
 
             let people = [person]
 
@@ -64,6 +68,8 @@ spec = do
                                     , ariaCurrent = "false"
                                     , firstName = "John"
                                     , lastName = "Cleese"
+                                    , stateLabel = "Idle"
+                                    , stateClasses = "badge badge-pill badge-light"
                                     }
                                 ]
                             }
@@ -73,10 +79,13 @@ spec = do
     describe "buildTimecardColumn" do
         it "returns a non-visible timecard column when no person has been selected" do
             let person =
-                    newRecord @Person
-                        |> set #id "10000000-0000-0000-0000-000000000000"
-                        |> set #firstName "John"
-                        |> set #lastName "Cleese"
+                    People.View.Person
+                        { id = "10000000-0000-0000-0000-000000000000"
+                        , firstName = "John"
+                        , lastName = "Cleese"
+                        , goesBy = "John"
+                        , state = People.View.PersonIdle
+                        }
 
             let people = [person]
 
@@ -111,12 +120,21 @@ spec = do
 
         it "returns a visible timecard column when a person has been selected" do
             let person =
+                    People.View.Person
+                        { id = "10000000-0000-0000-0000-000000000000"
+                        , firstName = "John"
+                        , lastName = "Cleese"
+                        , goesBy = "John"
+                        , state = People.View.PersonIdle
+                        }
+
+            let people = [person]
+
+            let selectedPerson =
                     newRecord @Person
                         |> set #id "10000000-0000-0000-0000-000000000000"
                         |> set #firstName "John"
                         |> set #lastName "Cleese"
-
-            let people = [person]
 
             let timecardEntry =
                     Timecard.View.TimecardEntry
@@ -134,7 +152,7 @@ spec = do
             let timecard =
                     Timecard.View.Timecard
                         { id = "30000000-0000-0000-0000-000000000000"
-                        , personId = "40000000-0000-0000-0000-000000000000"
+                        , personId = "10000000-0000-0000-0000-000000000000"
                         , weekOf = toDay "2021-06-21"
                         , status = Timecard.View.TimecardInProgress
                         , entries = [timecardEntry]
@@ -144,7 +162,7 @@ spec = do
 
             let personSelection =
                     Index.PersonSelected
-                        { selectedPerson = person
+                        { selectedPerson = selectedPerson
                         , timecards = [timecard]
                         , personActivity = personActivity
                         }

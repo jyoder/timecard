@@ -1,6 +1,8 @@
 module Web.Controller.Timecards where
 
 import qualified Application.Base.People as People
+import qualified Application.People.Query as People.Query
+import qualified Application.People.View as People.View
 import qualified Application.Service.Pdf as Pdf
 import Application.Service.Time (parseDay)
 import qualified Application.Timecard.Entry as Timecard.Entry
@@ -19,15 +21,17 @@ instance Controller TimecardsController where
     beforeAction = ensureIsUser
 
     action TimecardsAction = do
-        botId <- People.fetchBotId
-        people <- People.fetchExcludingId botId
+        people <-
+            People.View.buildPeople
+                <$> People.Query.fetchExcludingBot
         let personSelection = NoPersonSelected
 
         render IndexView {..}
     --
     action TimecardPersonSelectionAction {..} = do
-        botId <- People.fetchBotId
-        people <- People.fetchExcludingId botId
+        people <-
+            People.View.buildPeople
+                <$> People.Query.fetchExcludingBot
         selectedPerson <- fetch selectedPersonId
 
         timecards <-
@@ -42,8 +46,9 @@ instance Controller TimecardsController where
         render IndexView {..}
     --
     action TimecardEditTimecardEntryAction {..} = do
-        botId <- People.fetchBotId
-        people <- People.fetchExcludingId botId
+        people <-
+            People.View.buildPeople
+                <$> People.Query.fetchExcludingBot
 
         selectedTimecardEntry <- fetch timecardEntryId
         selectedTimecard <- fetch (get #timecardId selectedTimecardEntry)
@@ -62,8 +67,9 @@ instance Controller TimecardsController where
         render IndexView {..}
     --
     action TimecardDownloadTimecardAction {..} = do
-        botId <- People.fetchBotId
-        people <- People.fetchExcludingId botId
+        people <-
+            People.View.buildPeople
+                <$> People.Query.fetchExcludingBot
         timecard <-
             fromJust . Timecard.View.buildTimecard
                 <$> Timecard.Query.fetchById
@@ -101,8 +107,9 @@ instance Controller TimecardsController where
             |> validateField #invoiceTranslation nonEmpty
             |> ifValid \case
                 Left selectedTimecardEntry -> do
-                    botId <- People.fetchBotId
-                    people <- People.fetchExcludingId botId
+                    people <-
+                        People.View.buildPeople
+                            <$> People.Query.fetchExcludingBot
                     selectedPerson <- fetch selectedPersonId
 
                     timecards <-
