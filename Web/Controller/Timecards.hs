@@ -1,6 +1,6 @@
 module Web.Controller.Timecards where
 
-import qualified Application.Base.People as People
+import qualified Application.People.Person as Person
 import qualified Application.People.Query as People.Query
 import qualified Application.People.View as People.View
 import qualified Application.Service.Pdf as Pdf
@@ -13,7 +13,7 @@ import Network.HTTP.Types (status200)
 import Network.HTTP.Types.Header (hContentType)
 import Network.Wai (responseLBS)
 import Text.Read (read)
-import Web.Controller.Prelude
+import Web.Controller.Prelude 
 import Web.View.Timecards.Index
 import Web.View.Timecards.ShowPdf
 

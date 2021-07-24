@@ -3,6 +3,7 @@ module Application.People.Query (
     Row (..),
 ) where
 
+import Application.People.Person (botGoesBy)
 import Data.ByteString.UTF8 (toString)
 import "string-interpolate" Data.String.Interpolate (i)
 import Database.PostgreSQL.Simple (Query)
@@ -64,6 +65,3 @@ query =
         order by
             people.last_name;
     |]
-
-botGoesBy :: Text
-botGoesBy = "Tim the Bot"

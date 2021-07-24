@@ -4,8 +4,8 @@ module Web.Controller.Communications where
 
 import qualified Application.Action.ActionRunState as ActionRunState
 import qualified Application.Action.SendMessageAction as SendMessageAction
-import qualified Application.Base.People as People
 import qualified Application.Base.PhoneNumber as PhoneNumber
+import qualified Application.People.Person as Person
 import qualified Application.People.Query as People.Query
 import qualified Application.People.View as People.View
 import qualified Application.Timecard.AccessToken as Timecard.AccessToken
@@ -34,7 +34,7 @@ instance Controller CommunicationsController where
         render IndexView {..}
     --
     action CommunicationsPersonSelectionAction {..} = autoRefresh do
-        botId <- People.fetchBotId
+        botId <- Person.fetchBotId
         people <-
             People.View.buildPeople
                 <$> People.Query.fetchExcludingBot
@@ -60,7 +60,7 @@ instance Controller CommunicationsController where
         render IndexView {..}
     --
     action CommunicationsNewTimecardEntryAction {..} = autoRefresh do
-        botId <- People.fetchBotId
+        botId <- Person.fetchBotId
         people <-
             People.View.buildPeople
                 <$> People.Query.fetchExcludingBot
@@ -94,7 +94,7 @@ instance Controller CommunicationsController where
         toLocalDay = localDay . utcToLocalTime companyTimeZone
     --
     action CommunicationsEditTimecardEntryAction {..} = autoRefresh do
-        botId <- People.fetchBotId
+        botId <- Person.fetchBotId
         people <-
             People.View.buildPeople
                 <$> People.Query.fetchExcludingBot
@@ -122,7 +122,7 @@ instance Controller CommunicationsController where
             else render IndexView {..}
     --
     action CommunicationsEditModifiedTimecardEntryAction {..} = autoRefresh do
-        botId <- People.fetchBotId
+        botId <- Person.fetchBotId
         people <-
             People.View.buildPeople
                 <$> People.Query.fetchExcludingBot
@@ -155,7 +155,7 @@ instance Controller CommunicationsController where
         let selectedPersonId = param @(Id Person) "selectedPersonId"
         let selectedMessageIds = param @[Id TwilioMessage] "selectedMessageIds"
 
-        botId <- People.fetchBotId
+        botId <- Person.fetchBotId
         selectedPerson <- fetch selectedPersonId
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
 
@@ -204,7 +204,7 @@ instance Controller CommunicationsController where
             |> Timecard.Entry.update selectedMessageIds
                 >>= either
                     ( \timecardEntry -> do
-                        botId <- People.fetchBotId
+                        botId <- Person.fetchBotId
                         people <-
                             People.View.buildPeople
                                 <$> People.Query.fetchExcludingBot
@@ -233,9 +233,9 @@ instance Controller CommunicationsController where
         let toPhoneNumberId = Id (param "toId")
         toPhoneNumber <- fetchOne toPhoneNumberId
 
-        botId <- People.fetchBotId
+        botId <- Person.fetchBotId
         fromPhoneNumber <- PhoneNumber.fetchByPerson botId
-        toPerson <- People.fetchByPhoneNumber toPhoneNumberId
+        toPerson <- Person.fetchByPhoneNumber toPhoneNumberId
 
         let body = strip $ param "body"
         if body == ""
@@ -247,10 +247,10 @@ instance Controller CommunicationsController where
     action CommunicationsEditScheduledMessageAction {..} = do
         sendMessageAction <- fetch sendMessageActionId
         actionRunState <- fetch (get #actionRunStateId sendMessageAction)
-        toPerson <- People.fetchByPhoneNumber (get #toId sendMessageAction)
+        toPerson <- Person.fetchByPhoneNumber (get #toId sendMessageAction)
         let selectedPersonId = get #id toPerson
 
-        botId <- People.fetchBotId
+        botId <- Person.fetchBotId
         people <-
             People.View.buildPeople
                 <$> People.Query.fetchExcludingBot
@@ -278,7 +278,7 @@ instance Controller CommunicationsController where
     action CommunicationsUpdateScheduledMessageAction {..} = do
         sendMessageAction <- fetch sendMessageActionId
         actionRunState <- fetch (get #actionRunStateId sendMessageAction)
-        toPerson <- People.fetchByPhoneNumber (get #toId sendMessageAction)
+        toPerson <- Person.fetchByPhoneNumber (get #toId sendMessageAction)
 
         case paramOrNothing @Text "body" of
             Just body ->

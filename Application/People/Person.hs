@@ -1,9 +1,8 @@
-module Application.Base.People (
-    validate,
-    fetchExcludingId,
+module Application.People.Person (
     fetchBotId,
-    fetchBot,
+    botGoesBy,
     fetchByPhoneNumber,
+    validate,
 ) where
 
 import Generated.Types
@@ -13,16 +12,14 @@ import IHP.Prelude
 import IHP.QueryBuilder
 import IHP.ValidationSupport.ValidateField
 
-fetchExcludingId :: (?modelContext :: ModelContext) => Id Person -> IO [Person]
-fetchExcludingId idToExclude = do
-    people <- query @Person |> orderByAsc #lastName |> fetch
-    filter (\person -> get #id person /= idToExclude) people |> pure
-
 fetchBotId :: (?modelContext :: ModelContext) => IO (Id Person)
 fetchBotId = get #id <$> fetchBot
 
 fetchBot :: (?modelContext :: ModelContext) => IO Person
-fetchBot = query @Person |> filterWhere (#goesBy, botName) |> fetchOne
+fetchBot = query @Person |> filterWhere (#goesBy, botGoesBy) |> fetchOne
+
+botGoesBy :: Text
+botGoesBy = "Tim the Bot"
 
 fetchByPhoneNumber ::
     (?modelContext :: ModelContext) =>
@@ -34,9 +31,6 @@ fetchByPhoneNumber phoneNumberId = do
             |> filterWhere (#phoneNumberId, phoneNumberId)
             |> fetchOne
     fetchOne (get #personId phoneContact)
-
-botName :: Text
-botName = "Tim the Bot"
 
 validate :: Person -> Person
 validate person =
