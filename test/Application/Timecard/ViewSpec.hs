@@ -400,6 +400,133 @@ spec = do
             let statuses = get #status <$> Timecard.View.buildTimecards rows
             statuses `shouldBe` [Timecard.View.TimecardReadyForReview]
 
+        it "returns ready for review even when there is a timecard entry on the weekend" do
+            let rows =
+                    [ Timecard.Query.Row
+                        { timecardId = "10000000-0000-0000-0000-000000000000"
+                        , timecardPersonId = "20000000-0000-0000-0000-000000000000"
+                        , timecardWeekOf = toDay "2021-06-21"
+                        , accessTokenId = Nothing
+                        , accessTokenValue = Nothing
+                        , accessTokenExpiresAt = Nothing
+                        , accessTokenIsRevoked = Nothing
+                        , signingId = Nothing
+                        , signingSignedAt = Nothing
+                        , timecardEntryId = "30000000-0000-0000-0000-000000000000"
+                        , timecardEntryDate = toDay "2021-06-21"
+                        , timecardEntryJobName = "jobName-1"
+                        , timecardEntryClockedInAt = Nothing
+                        , timecardEntryClockedOutAt = Nothing
+                        , timecardEntryLunchDuration = Nothing
+                        , timecardEntryHoursWorked = 8.0
+                        , timecardEntryWorkDone = "workDone-1"
+                        , timecardEntryInvoiceTranslation = "invoiceTranslation-1"
+                        }
+                    , Timecard.Query.Row
+                        { timecardId = "10000000-0000-0000-0000-000000000000"
+                        , timecardPersonId = "20000000-0000-0000-0000-000000000000"
+                        , timecardWeekOf = toDay "2021-06-21"
+                        , accessTokenId = Nothing
+                        , accessTokenValue = Nothing
+                        , accessTokenExpiresAt = Nothing
+                        , accessTokenIsRevoked = Nothing
+                        , signingId = Nothing
+                        , signingSignedAt = Nothing
+                        , timecardEntryId = "60000000-0000-0000-0000-000000000000"
+                        , timecardEntryDate = toDay "2021-06-22"
+                        , timecardEntryJobName = "jobName-2"
+                        , timecardEntryClockedInAt = Nothing
+                        , timecardEntryClockedOutAt = Nothing
+                        , timecardEntryLunchDuration = Nothing
+                        , timecardEntryHoursWorked = 7.0
+                        , timecardEntryWorkDone = "workDone-2"
+                        , timecardEntryInvoiceTranslation = "invoiceTranslation-2"
+                        }
+                    , Timecard.Query.Row
+                        { timecardId = "10000000-0000-0000-0000-000000000000"
+                        , timecardPersonId = "20000000-0000-0000-0000-000000000000"
+                        , timecardWeekOf = toDay "2021-06-21"
+                        , accessTokenId = Nothing
+                        , accessTokenValue = Nothing
+                        , accessTokenExpiresAt = Nothing
+                        , accessTokenIsRevoked = Nothing
+                        , signingId = Nothing
+                        , signingSignedAt = Nothing
+                        , timecardEntryId = "90000000-0000-0000-0000-000000000000"
+                        , timecardEntryDate = toDay "2021-06-23"
+                        , timecardEntryJobName = "jobName-2"
+                        , timecardEntryClockedInAt = Nothing
+                        , timecardEntryClockedOutAt = Nothing
+                        , timecardEntryLunchDuration = Nothing
+                        , timecardEntryHoursWorked = 7.0
+                        , timecardEntryWorkDone = "workDone-2"
+                        , timecardEntryInvoiceTranslation = "invoiceTranslation-2"
+                        }
+                    , Timecard.Query.Row
+                        { timecardId = "10000000-0000-0000-0000-000000000000"
+                        , timecardPersonId = "20000000-0000-0000-0000-000000000000"
+                        , timecardWeekOf = toDay "2021-06-21"
+                        , accessTokenId = Nothing
+                        , accessTokenValue = Nothing
+                        , accessTokenExpiresAt = Nothing
+                        , accessTokenIsRevoked = Nothing
+                        , signingId = Nothing
+                        , signingSignedAt = Nothing
+                        , timecardEntryId = "12000000-0000-0000-0000-000000000000"
+                        , timecardEntryDate = toDay "2021-06-24"
+                        , timecardEntryJobName = "jobName-2"
+                        , timecardEntryClockedInAt = Nothing
+                        , timecardEntryClockedOutAt = Nothing
+                        , timecardEntryLunchDuration = Nothing
+                        , timecardEntryHoursWorked = 7.0
+                        , timecardEntryWorkDone = "workDone-2"
+                        , timecardEntryInvoiceTranslation = "invoiceTranslation-2"
+                        }
+                    , Timecard.Query.Row
+                        { timecardId = "10000000-0000-0000-0000-000000000000"
+                        , timecardPersonId = "20000000-0000-0000-0000-000000000000"
+                        , timecardWeekOf = toDay "2021-06-21"
+                        , accessTokenId = Nothing
+                        , accessTokenValue = Nothing
+                        , accessTokenExpiresAt = Nothing
+                        , accessTokenIsRevoked = Nothing
+                        , signingId = Nothing
+                        , signingSignedAt = Nothing
+                        , timecardEntryId = "15000000-0000-0000-0000-000000000000"
+                        , timecardEntryDate = toDay "2021-06-25"
+                        , timecardEntryJobName = "jobName-2"
+                        , timecardEntryClockedInAt = Nothing
+                        , timecardEntryClockedOutAt = Nothing
+                        , timecardEntryLunchDuration = Nothing
+                        , timecardEntryHoursWorked = 7.0
+                        , timecardEntryWorkDone = "workDone-2"
+                        , timecardEntryInvoiceTranslation = "invoiceTranslation-2"
+                        }
+                    , Timecard.Query.Row
+                        { timecardId = "10000000-0000-0000-0000-000000000000"
+                        , timecardPersonId = "20000000-0000-0000-0000-000000000000"
+                        , timecardWeekOf = toDay "2021-06-21"
+                        , accessTokenId = Nothing
+                        , accessTokenValue = Nothing
+                        , accessTokenExpiresAt = Nothing
+                        , accessTokenIsRevoked = Nothing
+                        , signingId = Nothing
+                        , signingSignedAt = Nothing
+                        , timecardEntryId = "16000000-0000-0000-0000-000000000000"
+                        , timecardEntryDate = toDay "2021-06-26"
+                        , timecardEntryJobName = "jobName-2"
+                        , timecardEntryClockedInAt = Nothing
+                        , timecardEntryClockedOutAt = Nothing
+                        , timecardEntryLunchDuration = Nothing
+                        , timecardEntryHoursWorked = 7.0
+                        , timecardEntryWorkDone = "workDone-2"
+                        , timecardEntryInvoiceTranslation = "invoiceTranslation-2"
+                        }
+                    ]
+
+            let statuses = get #status <$> Timecard.View.buildTimecards rows
+            statuses `shouldBe` [Timecard.View.TimecardReadyForReview]
+
         it "returns under review when there is an access token for the timecard" do
             let rows =
                     [ Timecard.Query.Row

@@ -118,7 +118,7 @@ isTimecardComplete :: NonEmpty Row -> Bool
 isTimecardComplete rows =
     startsWithMonday uniqueSortedDays
         && daysAreConsecutive uniqueSortedDays
-        && length uniqueSortedDays == daysInWorkWeek
+        && length uniqueSortedDays >= daysInWorkWeek
   where
     uniqueSortedDays = days |> NE.sort |> NE.nub
     days = get #timecardEntryDate <$> rows
