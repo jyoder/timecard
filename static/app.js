@@ -31,7 +31,10 @@ function initTimePicker() {
         noCalendar: true,
         dateFormat: "H:i:S",
         altInput: true,
-        altFormat: "h:i K"
+        altFormat: "h:i K",
+        onClose(dates, currentdatestring, picker) {
+            picker.setDate(picker.altInput.value, true, picker.config.altFormat)
+        }
     });
 }
 
