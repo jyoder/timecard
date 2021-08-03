@@ -4,4 +4,4 @@ import Web.Controller.Prelude
 import Web.View.Static.Welcome
 
 instance Controller StaticController where
-    action WelcomeAction = redirectTo CommunicationsAction
+    action WelcomeAction = redirectTo TimecardsAction
