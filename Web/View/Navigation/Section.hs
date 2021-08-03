@@ -4,8 +4,8 @@ import IHP.RouterSupport (HasPath)
 import Web.View.Prelude
 
 data Section
-    = Communications
-    | Timecards
+    = Timecards
+    | Communications
     deriving (Eq)
 
 renderSectionNavigation :: Section -> Maybe Person -> Html
@@ -16,8 +16,8 @@ renderSectionNavigation currentSection selectedPerson =
                 <span class="navbar-brand mb-0 h1" href="#">Constructable</span>
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav mb-0">
-                        {renderItem communicationsAction Communications "Communications" currentSection}
                         {renderItem timecardsAction Timecards "Timecards" currentSection}
+                        {renderItem communicationsAction Communications "Communications" currentSection}
                     </ul>
                 </div>
                 <a 
@@ -29,12 +29,12 @@ renderSectionNavigation currentSection selectedPerson =
         </nav>
     |]
   where
-    communicationsAction = case selectedPerson of
-        Just selectedPerson -> CommunicationsPersonSelectionAction (get #id selectedPerson)
-        Nothing -> CommunicationsAction
     timecardsAction = case selectedPerson of
         Just selectedPerson -> TimecardPersonSelectionAction (get #id selectedPerson)
         Nothing -> TimecardsAction
+    communicationsAction = case selectedPerson of
+        Just selectedPerson -> CommunicationsPersonSelectionAction (get #id selectedPerson)
+        Nothing -> CommunicationsAction
 
 renderItem :: (HasPath action) => action -> Section -> Text -> Section -> Html
 renderItem action newSection label currentSection =
