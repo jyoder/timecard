@@ -29,7 +29,29 @@ instance Controller CommunicationsController where
         people <-
             People.View.buildPeople
                 <$> People.Query.fetchExcludingBot
-        let personSelection = NoPersonSelected
+
+        personSelection <- case people of
+            firstPerson : _ -> do
+                botId <- Person.fetchBotId
+                let selectedPersonId = get #id firstPerson
+                selectedPerson <- fetch selectedPersonId
+
+                messages <- Twilio.Query.fetchByPeople botId selectedPersonId
+                toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
+                scheduledMessages <-
+                    SendMessageAction.fetchNotStartedOrSuspendedByPhoneNumber
+                        (get #id toPhoneNumber)
+                timecards <-
+                    Timecard.View.buildTimecards
+                        <$> Timecard.Query.fetchByPerson
+                            Timecard.Query.EntriesDateDescending
+                            selectedPersonId
+
+                let newMessage = newRecord @TwilioMessage
+                let editingScheduledMessage = False
+                let personActivity = SendingMessage {..}
+                pure PersonSelected {..}
+            [] -> pure NoPersonSelected
 
         render IndexView {..}
     --

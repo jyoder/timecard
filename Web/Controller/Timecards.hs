@@ -13,7 +13,7 @@ import Network.HTTP.Types (status200)
 import Network.HTTP.Types.Header (hContentType)
 import Network.Wai (responseLBS)
 import Text.Read (read)
-import Web.Controller.Prelude 
+import Web.Controller.Prelude
 import Web.View.Timecards.Index
 import Web.View.Timecards.ShowPdf
 
@@ -24,7 +24,22 @@ instance Controller TimecardsController where
         people <-
             People.View.buildPeople
                 <$> People.Query.fetchExcludingBot
-        let personSelection = NoPersonSelected
+
+        personSelection <- case people of
+            firstPerson : _ -> do
+                let selectedPersonId = get #id firstPerson
+                selectedPerson <- fetch selectedPersonId
+
+                timecards <-
+                    Timecard.View.buildTimecards
+                        <$> Timecard.Query.fetchByPerson
+                            Timecard.Query.EntriesDateDescending
+                            selectedPersonId
+
+                let personActivity = Viewing
+                let personSelection = PersonSelected {..}
+                pure PersonSelected {..}
+            [] -> pure NoPersonSelected
 
         render IndexView {..}
     --
