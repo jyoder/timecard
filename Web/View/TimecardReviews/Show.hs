@@ -4,7 +4,7 @@ import qualified Application.Timecard.View as V
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import Web.View.Prelude
-import Web.View.Service.Time (formatDay)
+import Web.View.Service.Time (formatDay, formatTimeOfDay)
 
 newtype ShowView = ShowView
     { reviewStatus :: ReviewStatus
@@ -114,7 +114,10 @@ renderTimecardEntry timecardEntry =
 
             <div class="card-body">
                 <h5 class="card-title">{hoursWorked} hours - {jobName}</h5>
-                <p class="card-text">{workDone}</p>
+                <div class="card-text">
+                    {renderClockInfo timecardEntry}
+                    <p>{workDone}</p>
+                </div>
             </div>
         </div>
     |]
@@ -141,6 +144,17 @@ renderTotalHours timecard =
     totalHours = sum hours
     hours = get #hoursWorked <$> entries
     entries = get #entries timecard
+
+renderClockInfo :: V.TimecardEntry -> Html
+renderClockInfo V.TimecardEntry {..} =
+    case (clockedInAt, clockedOutAt, lunchDuration) of
+        (Just clockedInAt, Just clockedOutAt, Just lunchDuration) ->
+            [hsx|
+                <p>
+                    {formatTimeOfDay clockedInAt}-{formatTimeOfDay clockedOutAt} ({show lunchDuration} min lunch)
+                </p>
+            |]
+        _ -> [hsx||]
 
 renderSignatureBlock :: AccessToken -> Signing -> Html
 renderSignatureBlock accessToken signing =
