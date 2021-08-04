@@ -46,6 +46,7 @@ spec = do
                         |> set #id "10000000-0000-0000-0000-000000000000"
 
             buildPeopleNavigation
+                BadgesHidden
                 DummyControllerAction
                 (Just selectedPerson)
                 people
@@ -60,8 +61,7 @@ spec = do
                             , ariaCurrent = "true"
                             , firstName = "Barbara"
                             , lastName = "Bush"
-                            , stateLabel = "Idle"
-                            , stateClasses = "badge badge-pill badge-light"
+                            , stateBadge = HiddenBadge
                             }
                         , PersonItem
                             { selectionAction =
@@ -72,8 +72,7 @@ spec = do
                             , ariaCurrent = "false"
                             , firstName = "Jackie"
                             , lastName = "Kennedy"
-                            , stateLabel = "Idle"
-                            , stateClasses = "badge badge-pill badge-light"
+                            , stateBadge = HiddenBadge
                             }
                         ]
                     }
@@ -100,6 +99,7 @@ spec = do
             let people = [barbara, jackie]
 
             buildPeopleNavigation
+                BadgesHidden
                 DummyControllerAction
                 Nothing
                 people
@@ -114,8 +114,7 @@ spec = do
                             , ariaCurrent = "false"
                             , firstName = "Barbara"
                             , lastName = "Bush"
-                            , stateLabel = "Idle"
-                            , stateClasses = "badge badge-pill badge-light"
+                            , stateBadge = HiddenBadge
                             }
                         , PersonItem
                             { selectionAction =
@@ -126,8 +125,68 @@ spec = do
                             , ariaCurrent = "false"
                             , firstName = "Jackie"
                             , lastName = "Kennedy"
-                            , stateLabel = "Idle"
-                            , stateClasses = "badge badge-pill badge-light"
+                            , stateBadge = HiddenBadge
+                            }
+                        ]
+                    }
+
+        it "returns a people column with visible badges when badges are made visible" do
+            let barbara =
+                    People.View.Person
+                        { id = "10000000-0000-0000-0000-000000000000"
+                        , firstName = "Barbara"
+                        , lastName = "Bush"
+                        , goesBy = "Barb"
+                        , state = People.View.PersonIdle
+                        }
+
+            let jackie =
+                    People.View.Person
+                        { id = "20000000-0000-0000-0000-000000000000"
+                        , firstName = "Jackie"
+                        , lastName = "Kennedy"
+                        , goesBy = "Jackie"
+                        , state = People.View.PersonIdle
+                        }
+
+            let people = [barbara, jackie]
+
+            buildPeopleNavigation
+                BadgesVisible
+                DummyControllerAction
+                Nothing
+                people
+                `shouldBe` PeopleNavigation
+                    { personItems =
+                        [ PersonItem
+                            { selectionAction =
+                                DummyControllerAction
+                                    { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                                    }
+                            , activeClass = ""
+                            , ariaCurrent = "false"
+                            , firstName = "Barbara"
+                            , lastName = "Bush"
+                            , stateBadge =
+                                VisibleBadge
+                                    { label = "Idle"
+                                    , classes = "badge badge-pill badge-light"
+                                    }
+                            }
+                        , PersonItem
+                            { selectionAction =
+                                DummyControllerAction
+                                    { selectedPersonId = "20000000-0000-0000-0000-000000000000"
+                                    }
+                            , activeClass = ""
+                            , ariaCurrent = "false"
+                            , firstName = "Jackie"
+                            , lastName = "Kennedy"
+                            , stateBadge =
+                                VisibleBadge
+                                    { label = "Idle"
+                                    , classes = "badge badge-pill badge-light"
+                                    }
                             }
                         ]
                     }
@@ -144,6 +203,7 @@ spec = do
                         }
 
             buildPersonItem
+                BadgesHidden
                 DummyControllerAction
                 False
                 person
@@ -153,8 +213,7 @@ spec = do
                     , ariaCurrent = "false"
                     , firstName = "Barbara"
                     , lastName = "Bush"
-                    , stateLabel = "Idle"
-                    , stateClasses = "badge badge-pill badge-light"
+                    , stateBadge = HiddenBadge
                     }
 
         it "returns an active person item when selected" do
@@ -168,6 +227,7 @@ spec = do
                         }
 
             buildPersonItem
+                BadgesHidden
                 DummyControllerAction
                 True
                 person
@@ -179,8 +239,62 @@ spec = do
                     , ariaCurrent = "true"
                     , firstName = "Barbara"
                     , lastName = "Bush"
-                    , stateLabel = "Idle"
-                    , stateClasses = "badge badge-pill badge-light"
+                    , stateBadge = HiddenBadge
+                    }
+
+        it "returns a person with a badges when badges are visible" do
+            let person =
+                    People.View.Person
+                        { id = "10000000-0000-0000-0000-000000000000"
+                        , firstName = "Barbara"
+                        , lastName = "Bush"
+                        , goesBy = "Barb"
+                        , state = People.View.PersonIdle
+                        }
+
+            buildPersonItem
+                BadgesVisible
+                DummyControllerAction
+                False
+                person
+                `shouldBe` PersonItem
+                    { selectionAction = DummyControllerAction "10000000-0000-0000-0000-000000000000"
+                    , activeClass = ""
+                    , ariaCurrent = "false"
+                    , firstName = "Barbara"
+                    , lastName = "Bush"
+                    , stateBadge =
+                        VisibleBadge
+                            { label = "Idle"
+                            , classes = "badge badge-pill badge-light"
+                            }
+                    }
+
+    describe "buildStateBadge" do
+        it "returns a hidden badge when badges are hidden" do
+            let person =
+                    People.View.Person
+                        { id = "10000000-0000-0000-0000-000000000000"
+                        , firstName = "Barbara"
+                        , lastName = "Bush"
+                        , goesBy = "Barb"
+                        , state = People.View.PersonIdle
+                        }
+            buildStateBadge BadgesHidden person `shouldBe` HiddenBadge
+
+        it "returns a visible badge when badges are visible" do
+            let person =
+                    People.View.Person
+                        { id = "10000000-0000-0000-0000-000000000000"
+                        , firstName = "Barbara"
+                        , lastName = "Bush"
+                        , goesBy = "Barb"
+                        , state = People.View.PersonIdle
+                        }
+            buildStateBadge BadgesVisible person
+                `shouldBe` VisibleBadge
+                    { label = "Idle"
+                    , classes = "badge badge-pill badge-light"
                     }
 
     describe "personStateLabel" do

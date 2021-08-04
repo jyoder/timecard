@@ -202,6 +202,7 @@ buildPage view =
         { selectedPerson = selectedPerson
         , peopleNavigation =
             buildPeopleNavigation
+                BadgesVisible
                 CommunicationsPersonSelectionAction
                 selectedPerson
                 (get #people view)

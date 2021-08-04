@@ -91,6 +91,7 @@ buildPage view =
         { selectedPerson = selectedPerson
         , peopleNavigation =
             buildPeopleNavigation
+                BadgesHidden
                 TimecardPersonSelectionAction
                 selectedPerson
                 (get #people view)

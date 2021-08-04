@@ -1,8 +1,11 @@
 module Web.View.Navigation.People (
+    BadgeVisibility (..),
     PeopleNavigation (..),
     PersonItem (..),
+    StateBadge (..),
     buildPeopleNavigation,
     buildPersonItem,
+    buildStateBadge,
     personStateLabel,
     personStateClasses,
     renderPeopleNavigation,
@@ -15,6 +18,8 @@ import IHP.Prelude
 import IHP.RouterSupport (HasPath (..))
 import Web.View.Prelude
 
+data BadgeVisibility = BadgesVisible | BadgesHidden
+
 newtype PeopleNavigation a = PeopleNavigation
     { personItems :: [PersonItem a]
     }
@@ -26,44 +31,61 @@ data PersonItem a = PersonItem
     , ariaCurrent :: !Text
     , firstName :: !Text
     , lastName :: !Text
-    , stateLabel :: !Text
-    , stateClasses :: !Text
+    , stateBadge :: !StateBadge
     }
+    deriving (Eq, Show)
+
+data StateBadge
+    = VisibleBadge
+        { label :: !Text
+        , classes :: !Text
+        }
+    | HiddenBadge
     deriving (Eq, Show)
 
 buildPeopleNavigation ::
     (HasPath a) =>
+    BadgeVisibility ->
     (Id Person -> a) ->
     Maybe Person ->
     [V.Person] ->
     PeopleNavigation a
-buildPeopleNavigation action selectedPerson people =
+buildPeopleNavigation badgeVisiblity action selectedPerson people =
     PeopleNavigation
         { personItems = buildPersonItem' <$> people
         }
   where
     buildPersonItem' = case selectedPerson of
-        Nothing -> buildPersonItem action False
+        Nothing -> buildPersonItem badgeVisiblity action False
         Just selectedPerson ->
             let isSelected person = get #id person == get #id selectedPerson
-             in (\person -> buildPersonItem action (isSelected person) person)
+             in (\person -> buildPersonItem badgeVisiblity action (isSelected person) person)
 
 buildPersonItem ::
     (HasPath a) =>
+    BadgeVisibility ->
     (Id Person -> a) ->
     Bool ->
     V.Person ->
     PersonItem a
-buildPersonItem action isSelected person =
+buildPersonItem badgeVisibility action isSelected person =
     PersonItem
         { selectionAction = action $ get #id person
         , activeClass = if isSelected then "active" else ""
         , ariaCurrent = if isSelected then "true" else "false"
         , firstName = get #firstName person
         , lastName = get #lastName person
-        , stateLabel = personStateLabel $ get #state person
-        , stateClasses = personStateClasses $ get #state person
+        , stateBadge = buildStateBadge badgeVisibility person
         }
+
+buildStateBadge :: BadgeVisibility -> V.Person -> StateBadge
+buildStateBadge BadgesVisible person =
+    VisibleBadge
+        { label = personStateLabel $ get #state person
+        , classes = personStateClasses $ get #state person
+        }
+buildStateBadge BadgesHidden _ =
+    HiddenBadge
 
 personStateLabel :: V.PersonState -> Text
 personStateLabel V.PersonIdle = "Idle"
@@ -97,9 +119,17 @@ renderItem PersonItem {..} =
                 <span>
                     {firstName} {lastName}
                 </span>
-                <span class={stateClasses}>
-                    {stateLabel}
-                </span>
+
+                {renderStateBadge stateBadge}
             </div>
         </a>
     |]
+
+renderStateBadge :: StateBadge -> Html
+renderStateBadge VisibleBadge {..} =
+    [hsx|
+        <span class={classes}>
+            {label}
+        </span>
+    |]
+renderStateBadge HiddenBadge = [hsx||]

@@ -68,8 +68,7 @@ spec = do
                                     , ariaCurrent = "false"
                                     , firstName = "John"
                                     , lastName = "Cleese"
-                                    , stateLabel = "Idle"
-                                    , stateClasses = "badge badge-pill badge-light"
+                                    , stateBadge = HiddenBadge
                                     }
                                 ]
                             }

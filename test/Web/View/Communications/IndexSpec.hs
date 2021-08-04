@@ -55,8 +55,11 @@ spec = do
                                 , ariaCurrent = "false"
                                 , firstName = "Barbara"
                                 , lastName = "Bush"
-                                , stateLabel = "Idle"
-                                , stateClasses = "badge badge-pill badge-light"
+                                , stateBadge =
+                                    VisibleBadge
+                                        { label = "Idle"
+                                        , classes = "badge badge-pill badge-light"
+                                        }
                                 }
                             , PersonItem
                                 { selectionAction =
@@ -67,8 +70,11 @@ spec = do
                                 , ariaCurrent = "false"
                                 , firstName = "Jackie"
                                 , lastName = "Kennedy"
-                                , stateLabel = "Idle"
-                                , stateClasses = "badge badge-pill badge-light"
+                                , stateBadge =
+                                    VisibleBadge
+                                        { label = "Idle"
+                                        , classes = "badge badge-pill badge-light"
+                                        }
                                 }
                             ]
                     , messagesColumn = Index.MessagesColumnNotVisible
