@@ -50,6 +50,9 @@ spec = do
                             { dayOfWeek' = "Wednesday"
                             , date = "06/23/2021"
                             , jobName = "job name"
+                            , clockedInAt = "--"
+                            , clockedOutAt = "--"
+                            , lunchDuration = "--"
                             , hoursWorked = "5.5"
                             , workDone = "work done"
                             }
@@ -62,6 +65,38 @@ spec = do
 
     describe "buildJobRow" do
         it "returns a job row based on the given parameters" do
+            let person =
+                    newRecord @Person
+                        |> set #id "10000000-0000-0000-0000-000000000000"
+                        |> set #firstName "John"
+                        |> set #lastName "Cleese"
+
+            let timecardEntry =
+                    Timecard.View.TimecardEntry
+                        { id = "20000000-0000-0000-0000-000000000000"
+                        , date = toDay "2021-06-23"
+                        , jobName = "job name"
+                        , clockedInAt = Just $ toTimeOfDay "07:30:00"
+                        , clockedOutAt = Just $ toTimeOfDay "16:00:00"
+                        , lunchDuration = Just 30
+                        , hoursWorked = 8.0
+                        , workDone = "work done"
+                        , invoiceTranslation = "invoice translation"
+                        }
+
+            ShowPdf.buildJobRow person timecardEntry
+                `shouldBe` ShowPdf.JobRow
+                    { dayOfWeek' = "Wednesday"
+                    , date = "06/23/2021"
+                    , jobName = "job name"
+                    , clockedInAt = "7:30 AM"
+                    , clockedOutAt = "4:00 PM"
+                    , lunchDuration = "30"
+                    , hoursWorked = "8.0"
+                    , workDone = "work done"
+                    }
+
+        it "uses dashes to represent blank fields" do
             let person =
                     newRecord @Person
                         |> set #id "10000000-0000-0000-0000-000000000000"
@@ -86,6 +121,9 @@ spec = do
                     { dayOfWeek' = "Wednesday"
                     , date = "06/23/2021"
                     , jobName = "job name"
+                    , clockedInAt = "--"
+                    , clockedOutAt = "--"
+                    , lunchDuration = "--"
                     , hoursWorked = "5.5"
                     , workDone = "work done"
                     }

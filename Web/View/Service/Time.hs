@@ -1,6 +1,10 @@
-module Web.View.Service.Time where
+module Web.View.Service.Time (
+    formatDay,
+    formatTimeOfDay,
+    weekday,
+) where
 
-import Data.Text (pack)
+import Data.Text (pack, strip)
 import Data.Time.Calendar.WeekDate (toWeekDate)
 import Data.Time.Format.ISO8601 (iso8601Show)
 import IHP.View.TimeAgo as TO
@@ -10,6 +14,10 @@ import Web.View.Prelude
 
 formatDay :: Day -> Text
 formatDay = pack . formatTime defaultTimeLocale "%m/%d/%Y"
+
+formatTimeOfDay :: TimeOfDay -> Text
+formatTimeOfDay timeOfDay =
+    strip $ pack $ formatTime defaultTimeLocale "%l:%M %p" timeOfDay
 
 weekday :: UTCTime -> Html
 weekday = timeElement "weekday"

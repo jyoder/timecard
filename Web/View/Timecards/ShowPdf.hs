@@ -2,7 +2,7 @@ module Web.View.Timecards.ShowPdf where
 
 import qualified Application.Timecard.View as V
 import Web.View.Prelude hiding (Page)
-import Web.View.Service.Time (formatDay)
+import Web.View.Service.Time (formatDay, formatTimeOfDay)
 import qualified Prelude as P
 
 data ShowPdfView = ShowPdfView
@@ -30,6 +30,9 @@ data JobRow = JobRow
     { dayOfWeek' :: !Text
     , date :: !Text
     , jobName :: !Text
+    , clockedInAt :: !Text
+    , clockedOutAt :: !Text
+    , lunchDuration :: !Text
     , hoursWorked :: !Text
     , workDone :: !Text
     }
@@ -77,6 +80,9 @@ buildJobRow selectedPerson timecardEntry =
         { dayOfWeek' = show $ dayOfWeek $ get #date timecardEntry
         , date = formatDay $ get #date timecardEntry
         , jobName = get #jobName timecardEntry
+        , clockedInAt = maybe "--" formatTimeOfDay (get #clockedInAt timecardEntry)
+        , clockedOutAt = maybe "--" formatTimeOfDay (get #clockedOutAt timecardEntry)
+        , lunchDuration = maybe "--" show (get #lunchDuration timecardEntry)
         , hoursWorked = show $ get #hoursWorked timecardEntry
         , workDone = get #workDone timecardEntry
         }
@@ -131,6 +137,9 @@ renderTimecardTable TimecardTable {..} =
                             <th scope="col">Day</th>
                             <th scope="col">Date</th>
                             <th scope="col">Job</th>
+                            <th scope="col">Clock In</th>
+                            <th scope="col">Clock Out</th>
+                            <th scope="col">Lunch (mins)</th>
                             <th scope="col">Work Done</th>
                             <th scope="col">Hours</th>
                         </tr>
@@ -151,6 +160,9 @@ renderJobRow JobRow {..} =
             <th scope="row">{dayOfWeek'}</th>
             <td>{date}</td>
             <td>{jobName}</td>
+            <td class="clock-in">{clockedInAt}</td>
+            <td class="clock-out">{clockedOutAt}</td>
+            <td>{lunchDuration}</td>
             <td class="work-done">{workDone}</td>
             <td>{hoursWorked}</td>
         </tr>
@@ -161,6 +173,9 @@ renderTotalHoursRow TotalHoursRow {..} =
     [hsx|
         <tr class="table-secondary">
             <th scope="row">Total Hours</th>
+            <td></td>
+            <td></td>
+            <td></td>
             <td></td>
             <td></td>
             <td></td>
@@ -199,6 +214,22 @@ styles :: Html
 styles =
     [hsx|
         <style>
+            th {
+                font-size: smaller;
+            }
+
+            td {
+                font-size: x-small;
+            }
+
+            .clock-in {
+                width: 100px;
+            }
+
+            .clock-out {
+                width: 100px;
+            }
+
             .work-done {
                 width: 300px;
             }

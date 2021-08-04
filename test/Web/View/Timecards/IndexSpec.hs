@@ -183,6 +183,9 @@ spec = do
                                     { dayOfWeek' = "Wednesday"
                                     , date = "06/23/2021"
                                     , jobName = "job name"
+                                    , clockedInAt = "--"
+                                    , clockedOutAt = "--"
+                                    , lunchDuration = "--"
                                     , hoursWorked = "5.5"
                                     , workDone = "work done"
                                     , invoiceTranslationCell =
@@ -210,6 +213,77 @@ spec = do
 
     describe "buildTimecardTable" do
         it "returns a timecard table based on the given parameters" do
+            let person =
+                    newRecord @Person
+                        |> set #id "10000000-0000-0000-0000-000000000000"
+                        |> set #firstName "John"
+                        |> set #lastName "Cleese"
+
+            let people = [person]
+
+            let timecardEntry =
+                    Timecard.View.TimecardEntry
+                        { id = "20000000-0000-0000-0000-000000000000"
+                        , date = toDay "2021-06-23"
+                        , jobName = "job name"
+                        , clockedInAt = Just $ toTimeOfDay "07:30:00"
+                        , clockedOutAt = Just $ toTimeOfDay "16:00:00"
+                        , lunchDuration = Just 30
+                        , hoursWorked = 8.0
+                        , workDone = "work done"
+                        , invoiceTranslation = "invoice translation"
+                        }
+
+            let timecard =
+                    Timecard.View.Timecard
+                        { id = "30000000-0000-0000-0000-000000000000"
+                        , personId = "40000000-0000-0000-0000-000000000000"
+                        , weekOf = toDay "2021-06-21"
+                        , status = Timecard.View.TimecardInProgress
+                        , entries = [timecardEntry]
+                        }
+
+            let personActivity = Index.Viewing
+
+            Index.buildTimecardTable person personActivity timecard
+                `shouldBe` Index.TimecardTable
+                    { weekOf = "06/21/2021"
+                    , status =
+                        Status.TimecardStatus
+                            { statusClasses = "badge badge-pill badge-secondary"
+                            , statusLabel = "In Progress"
+                            }
+                    , firstName = "John"
+                    , lastName = "Cleese"
+                    , jobRows =
+                        [ Index.JobRow
+                            { dayOfWeek' = "Wednesday"
+                            , date = "06/23/2021"
+                            , jobName = "job name"
+                            , clockedInAt = "7:30 AM"
+                            , clockedOutAt = "4:00 PM"
+                            , lunchDuration = "30"
+                            , hoursWorked = "8.0"
+                            , workDone = "work done"
+                            , invoiceTranslationCell =
+                                Index.ShowInvoiceTranslation
+                                    { invoiceTranslation = "invoice translation"
+                                    , editAction =
+                                        TimecardEditTimecardEntryAction
+                                            { timecardEntryId = "20000000-0000-0000-0000-000000000000"
+                                            }
+                                    }
+                            }
+                        ]
+                    , totalHoursRow = Index.TotalHoursRow {totalHours = "8.0"}
+                    , downloadAction =
+                        TimecardDownloadTimecardAction
+                            { timecardId = "30000000-0000-0000-0000-000000000000"
+                            }
+                    , downloadFileName = "2021-06-21-Cleese-John.pdf"
+                    }
+
+        it "uses dashes to represent blank fields" do
             let person =
                     newRecord @Person
                         |> set #id "10000000-0000-0000-0000-000000000000"
@@ -253,6 +327,9 @@ spec = do
                             { dayOfWeek' = "Wednesday"
                             , date = "06/23/2021"
                             , jobName = "job name"
+                            , clockedInAt = "--"
+                            , clockedOutAt = "--"
+                            , lunchDuration = "--"
                             , hoursWorked = "5.5"
                             , workDone = "work done"
                             , invoiceTranslationCell =
@@ -303,6 +380,9 @@ spec = do
                     { dayOfWeek' = "Wednesday"
                     , date = "06/23/2021"
                     , jobName = "job name"
+                    , clockedInAt = "--"
+                    , clockedOutAt = "--"
+                    , lunchDuration = "--"
                     , hoursWorked = "5.5"
                     , workDone = "work done"
                     , invoiceTranslationCell =

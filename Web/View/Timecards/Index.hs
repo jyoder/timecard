@@ -6,7 +6,7 @@ import Web.View.Navigation.People
 import Web.View.Navigation.Section (Section (Timecards), renderSectionNavigation)
 import Web.View.Prelude hiding (Page)
 import Web.View.Service.Style (removeScrollbars)
-import Web.View.Service.Time (formatDay)
+import Web.View.Service.Time (formatDay, formatTimeOfDay)
 import Web.View.Timecards.Status
 
 data IndexView = IndexView
@@ -58,6 +58,9 @@ data JobRow = JobRow
     { dayOfWeek' :: !Text
     , date :: !Text
     , jobName :: !Text
+    , clockedInAt :: !Text
+    , clockedOutAt :: !Text
+    , lunchDuration :: !Text
     , hoursWorked :: !Text
     , workDone :: !Text
     , invoiceTranslationCell :: !InvoiceTranslationCell
@@ -143,6 +146,9 @@ buildJobRow selectedPerson personActivity timecardEntry =
         { dayOfWeek' = show $ dayOfWeek $ get #date timecardEntry
         , date = formatDay $ get #date timecardEntry
         , jobName = get #jobName timecardEntry
+        , clockedInAt = maybe "--" formatTimeOfDay (get #clockedInAt timecardEntry)
+        , clockedOutAt = maybe "--" formatTimeOfDay (get #clockedOutAt timecardEntry)
+        , lunchDuration = maybe "--" show (get #lunchDuration timecardEntry)
         , hoursWorked = show $ get #hoursWorked timecardEntry
         , workDone = get #workDone timecardEntry
         , invoiceTranslationCell =
@@ -235,6 +241,9 @@ renderTimecardTable TimecardTable {..} =
                             <th scope="col">Day</th>
                             <th scope="col">Date</th>
                             <th scope="col">Job</th>
+                            <th scope="col">Clock In</th>
+                            <th scope="col">Clock Out</th>
+                            <th scope="col">Lunch (mins)</th>
                             <th scope="col">Work Done</th>
                             <th scope="col">Invoice Translation</th>
                             <th scope="col">Hours</th>
@@ -265,6 +274,9 @@ renderJobRow JobRow {..} =
             <th scope="row">{dayOfWeek'}</th>
             <td>{date}</td>
             <td>{jobName}</td>
+            <td>{clockedInAt}</td>
+            <td>{clockedOutAt}</td>
+            <td>{lunchDuration}</td>
             <td class="work-done">{workDone}</td>
             {renderInvoiceTranslationCell invoiceTranslationCell}
             <td>{hoursWorked}</td>
@@ -332,7 +344,7 @@ renderTotalHoursRow :: TotalHoursRow -> Html
 renderTotalHoursRow TotalHoursRow {..} =
     [hsx|
         <tr class="table-active">
-            <th scope="row" colspan="5">Total Hours</th>
+            <th scope="row" colspan="8">Total Hours</th>
             <td>{totalHours}</td>
         </tr>
     |]
