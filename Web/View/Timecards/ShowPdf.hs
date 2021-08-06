@@ -159,7 +159,7 @@ renderJobRow JobRow {..} =
         <tr>
             <th scope="row">{dayOfWeek'}</th>
             <td>{date}</td>
-            <td>{jobName}</td>
+            <td class="job">{jobName}</td>
             <td class="clock-in">{clockedInAt}</td>
             <td class="clock-out">{clockedOutAt}</td>
             <td>{lunchDuration}</td>
@@ -220,6 +220,10 @@ styles =
 
             td {
                 font-size: x-small;
+            }
+
+            .job {
+                width: 100px;
             }
 
             .clock-in {
