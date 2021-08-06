@@ -60,8 +60,11 @@ query =
                 )
         where
             people.goes_by <> '#{botGoesBy}'
+            and people.first_name <> 'Matt'
+            and people.last_name <> 'Killam'
         group by
             people.id
         order by
-            people.last_name;
+            people.last_name,
+            people.first_name;
     |]

@@ -12,6 +12,44 @@ spec :: Spec
 spec = do
     describe "fetchExcludingBot" do
         beforeAll (testConfig >>= mockContext RootApplication) do
+            itIO "excludes Matt Killam (TODO: this behavior temporary until we have a way to deactivate people)" do
+                bot <-
+                    newRecord @Person
+                        |> set #firstName "Tim"
+                        |> set #lastName "Eckard"
+                        |> set #goesBy "Tim the Bot"
+                        |> createRecord
+
+                botPhoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+14444444444"
+                        |> createRecord
+
+                newRecord @PhoneContact
+                    |> set #personId (get #id bot)
+                    |> set #phoneNumberId (get #id botPhoneNumber)
+                    |> createRecord
+
+                matt <-
+                    newRecord @Person
+                        |> set #firstName "Matt"
+                        |> set #lastName "Killam"
+                        |> set #goesBy "Matt"
+                        |> createRecord
+
+                mattPhoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+15555555555"
+                        |> createRecord
+
+                newRecord @PhoneContact
+                    |> set #personId (get #id matt)
+                    |> set #phoneNumberId (get #id mattPhoneNumber)
+                    |> createRecord
+
+                people <- People.Query.fetchExcludingBot
+                people `shouldBe` []
+
             itIO "selects everyone but the bot" do
                 bot <-
                     newRecord @Person
