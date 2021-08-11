@@ -1,7 +1,7 @@
 function scrollToEnd() {
     let elements = $('.scroll-to-end');
     for (let i = 0; i < elements.length; i++) {
-        elements[i].scrollTop = Number.MAX_SAFE_INTEGER;
+        elements[i].scrollTop = 1000000000;
     }
 }
 

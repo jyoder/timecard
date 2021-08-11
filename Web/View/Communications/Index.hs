@@ -10,7 +10,7 @@ import Web.View.Navigation.People
 import Web.View.Navigation.Section (Section (Communications), renderSectionNavigation)
 import Web.View.Prelude hiding (Page)
 import Web.View.Service.Style (removeScrollbars)
-import Web.View.Service.Time (formatDay)
+import Web.View.Service.Time (formatDateTime, formatDay)
 import Web.View.Timecards.Status
 
 data IndexView = IndexView
@@ -217,16 +217,19 @@ renderPage Page {..} =
                     {renderSectionNavigation Communications selectedPerson}
                     {renderPeopleNavigation peopleNavigation}
                     {renderColumnNavigation People}
+                    <div class="browser-nav bg-light"></div>
                 </div>
                 <div id="messages" class="d-flex flex-column">
                     {renderSectionNavigation Communications selectedPerson}
                     {renderMessagesColumn messagesColumn}
                     {renderColumnNavigation Messages}
+                    <div class="browser-nav bg-light"></div>
                 </div>
                 <div id="timecards" class="d-flex flex-column">
                     {renderSectionNavigation Communications selectedPerson}
                     {renderTimecardsColumn timecardColumn}
                     {renderColumnNavigation Timecards}
+                    <div class="browser-nav bg-light"></div>
                 </div>
             </div>
         </div>
@@ -284,7 +287,7 @@ buildMessageItem ::
 buildMessageItem selectedPerson personActivity selectedMessageIds message =
     MessageItem
         { fromName = get #fromFirstName message <> " " <> get #fromLastName message
-        , sentAt = show $ get #createdAt message
+        , sentAt = formatDateTime $ get #createdAt message
         , body = get #body message
         , statusClass = messageStatusClass'
         , status = messageStatus
@@ -351,7 +354,7 @@ buildScheduledMessageItem
 buildSuspendedScheduledMessageItem :: SendMessageAction.T -> ScheduledMessageItem
 buildSuspendedScheduledMessageItem scheduledMessage =
     SuspendedScheduledMessageItem
-        { runsAt = show $ get #runsAt scheduledMessage
+        { runsAt = formatDateTime $ get #runsAt scheduledMessage
         , body = get #body scheduledMessage
         , editAction = editAction
         , updateAction = updateAction
@@ -363,7 +366,7 @@ buildSuspendedScheduledMessageItem scheduledMessage =
 buildNotStartedScheduledMessageItem :: SendMessageAction.T -> ScheduledMessageItem
 buildNotStartedScheduledMessageItem scheduledMessage =
     NotStartedScheduledMessageItem
-        { runsAt = show $ get #runsAt scheduledMessage
+        { runsAt = formatDateTime $ get #runsAt scheduledMessage
         , body = get #body scheduledMessage
         , editAction = editAction
         , updateAction = updateAction
@@ -375,7 +378,7 @@ buildNotStartedScheduledMessageItem scheduledMessage =
 buildEditScheduledMessageForm :: Id Person -> SendMessageAction.T -> ScheduledMessageItem
 buildEditScheduledMessageForm selectedPersonId scheduledMessage =
     EditScheduledMessageForm
-        { runsAt = show $ get #runsAt scheduledMessage
+        { runsAt = formatDateTime $ get #runsAt scheduledMessage
         , body = get #body scheduledMessage
         , sendMessageActionId = show $ get #id scheduledMessage
         , saveAction = saveAction
@@ -836,6 +839,7 @@ styles =
             @media only screen and (min-width: 1200px) {
                 :root {
                     --bottom-nav-height: 0rem;
+                    --browser-nav-height: 0rem;
                 }
 
                 .timecards-block {
@@ -846,17 +850,19 @@ styles =
             @media only screen and (max-width: 1200px) {
                 :root {
                     --bottom-nav-height: 3rem;
+                    --browser-nav-height: 7rem;
                 }
             }
 
             :root {
                 --top-nav-height: 7.25rem;
-                --total-nav-height: calc(var(--top-nav-height) + var(--bottom-nav-height));
+                --total-nav-height: calc(var(--top-nav-height) + var(--bottom-nav-height) + var(--browser-nav-height));
                 --message-input-height: 5.8rem;
+                --screen-height: 100vh;
             }
 
             .communications-page {
-                height: 100vh;
+                height: var(--screen-height);
                 overflow-y: hidden;
             }
 
@@ -877,14 +883,18 @@ styles =
                 line-height: 2.5rem;
             }
 
+            .browser-nav {
+                height: var(--browser-nav-height);
+            }
+
             .people-list {
-                height: calc(100vh - var(--total-nav-height));
+                height: calc(var(--screen-height) - var(--total-nav-height));
                 min-width: 18.75rem;
                 overflow-y: scroll;
             }
 
             .messages-list {
-                height: calc(100vh - calc(var(--total-nav-height) + var(--message-input-height)));
+                height: calc(var(--screen-height) - calc(var(--total-nav-height) + var(--message-input-height)));
                 overflow-y: scroll;
             }
 
@@ -893,7 +903,7 @@ styles =
             }
 
             .timecards-block {
-                height: calc(100vh - var(--total-nav-height));
+                height: calc(var(--screen-height) - var(--total-nav-height));
                 overflow-y: scroll;
             }
 
