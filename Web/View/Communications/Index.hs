@@ -896,6 +896,7 @@ styles =
             .messages-list {
                 height: calc(var(--screen-height) - calc(var(--total-nav-height) + var(--message-input-height)));
                 overflow-y: scroll;
+                overflow-x: hidden;
             }
 
             .message-input {
