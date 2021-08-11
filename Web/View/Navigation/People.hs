@@ -2,6 +2,7 @@ module Web.View.Navigation.People (
     BadgeVisibility (..),
     PeopleNavigation (..),
     PersonItem (..),
+    Anchor (..),
     StateBadge (..),
     buildPeopleNavigation,
     buildPersonItem,
@@ -18,6 +19,8 @@ import IHP.Prelude
 import IHP.RouterSupport (HasPath (..))
 import Web.View.Prelude
 
+data Anchor = Anchor Text | NoAnchor
+
 data BadgeVisibility = BadgesVisible | BadgesHidden
 
 newtype PeopleNavigation a = PeopleNavigation
@@ -27,6 +30,7 @@ newtype PeopleNavigation a = PeopleNavigation
 
 data PersonItem a = PersonItem
     { selectionAction :: !a
+    , anchor :: !Text
     , activeClass :: !Text
     , ariaCurrent :: !Text
     , firstName :: !Text
@@ -47,36 +51,42 @@ buildPeopleNavigation ::
     (HasPath a) =>
     BadgeVisibility ->
     (Id Person -> a) ->
+    Anchor ->
     Maybe Person ->
     [V.Person] ->
     PeopleNavigation a
-buildPeopleNavigation badgeVisiblity action selectedPerson people =
+buildPeopleNavigation badgeVisiblity action anchor selectedPerson people =
     PeopleNavigation
         { personItems = buildPersonItem' <$> people
         }
   where
     buildPersonItem' = case selectedPerson of
-        Nothing -> buildPersonItem badgeVisiblity action False
+        Nothing -> buildPersonItem badgeVisiblity action anchor False
         Just selectedPerson ->
             let isSelected person = get #id person == get #id selectedPerson
-             in (\person -> buildPersonItem badgeVisiblity action (isSelected person) person)
+             in (\person -> buildPersonItem badgeVisiblity action anchor (isSelected person) person)
 
 buildPersonItem ::
     (HasPath a) =>
     BadgeVisibility ->
     (Id Person -> a) ->
+    Anchor ->
     Bool ->
     V.Person ->
     PersonItem a
-buildPersonItem badgeVisibility action isSelected person =
+buildPersonItem badgeVisibility action anchor isSelected person =
     PersonItem
         { selectionAction = action $ get #id person
+        , anchor = anchorText anchor
         , activeClass = if isSelected then "active" else ""
         , ariaCurrent = if isSelected then "true" else "false"
         , firstName = get #firstName person
         , lastName = get #lastName person
         , stateBadge = buildStateBadge badgeVisibility person
         }
+  where
+    anchorText (Anchor text) = text
+    anchorText NoAnchor = ""
 
 buildStateBadge :: BadgeVisibility -> V.Person -> StateBadge
 buildStateBadge BadgesVisible person =
@@ -100,26 +110,17 @@ personStateClasses V.PersonNeedsAttention = "badge badge-pill badge-warning"
 renderPeopleNavigation :: (HasPath a) => PeopleNavigation a -> Html
 renderPeopleNavigation PeopleNavigation {..} =
     [hsx|
-        <div class="people-column col-2">
-            <div class="list-group">
-                {forEach personItems renderItem}
-            </div>
-        </div>        
+        <div class="people-list list-group list-group-flush">
+            {forEach personItems renderItem}
+        </div>      
     |]
 
 renderItem :: (HasPath a) => PersonItem a -> Html
 renderItem PersonItem {..} =
     [hsx|
-        <a
-            href={pathTo selectionAction}
-            class={"list-group-item " <> activeClass}
-            aria-current={ariaCurrent}
-        >
+        <a href={pathTo selectionAction <> "#" <> anchor} class={"list-group-item " <> activeClass} aria-current={ariaCurrent}>
             <div class="d-flex justify-content-between align-items-center">
-                <span>
-                    {firstName} {lastName}
-                </span>
-
+                <span>{firstName} {lastName}</span>
                 {renderStateBadge stateBadge}
             </div>
         </a>

@@ -51,6 +51,7 @@ spec = do
                                     CommunicationsPersonSelectionAction
                                         { selectedPersonId = "10000000-0000-0000-0000-000000000000"
                                         }
+                                , anchor = "messages"
                                 , activeClass = ""
                                 , ariaCurrent = "false"
                                 , firstName = "Barbara"
@@ -66,6 +67,7 @@ spec = do
                                     CommunicationsPersonSelectionAction
                                         { selectedPersonId = "20000000-0000-0000-0000-000000000000"
                                         }
+                                , anchor = "messages"
                                 , activeClass = ""
                                 , ariaCurrent = "false"
                                 , firstName = "Jackie"

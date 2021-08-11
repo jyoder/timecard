@@ -96,6 +96,7 @@ buildPage view =
             buildPeopleNavigation
                 BadgesHidden
                 TimecardPersonSelectionAction
+                NoAnchor
                 selectedPerson
                 (get #people view)
         , timecardColumn = buildTimecardColumn view
@@ -199,22 +200,22 @@ renderPage Page {..} =
     [hsx|
             {renderSectionNavigation Timecards selectedPerson}
 
-            <div class="row align-items start">
+            <div class="d-flex">
                 {renderPeopleNavigation peopleNavigation}
-                {renderTimecardColumn2 timecardColumn}
+                {renderTimecardColumn timecardColumn}
             </div>
 
             {styles}
         |]
 
-renderTimecardColumn2 :: TimecardColumn -> Html
-renderTimecardColumn2 timecardColumn =
+renderTimecardColumn :: TimecardColumn -> Html
+renderTimecardColumn timecardColumn =
     case timecardColumn of
         TimecardColumnNotVisible ->
             [hsx||]
         TimecardColumnVisible {..} ->
             [hsx|
-                <div class="timecard-column col-10">
+                <div class="timecard-column m-3 flex-grow-1">
                     {forEach timecardTables renderTimecardTable}
                 </div>
             |]
@@ -226,7 +227,7 @@ renderTimecardTable TimecardTable {..} =
             <div class="card-header d-flex justify-content-start mb-2">
                 <h5>Week Of {weekOf}</h5>
                 <div class="ml-2">
-                    {renderTimecardStatus2 status}
+                    {renderTimecardStatus status}
                 </div>
             </div>
             
@@ -259,8 +260,8 @@ renderTimecardTable TimecardTable {..} =
         </div>
     |]
 
-renderTimecardStatus2 :: TimecardStatus -> Html
-renderTimecardStatus2 TimecardStatus {..} =
+renderTimecardStatus :: TimecardStatus -> Html
+renderTimecardStatus TimecardStatus {..} =
     [hsx|
         <span class={statusClasses}>
             {statusLabel}
@@ -353,8 +354,13 @@ styles :: Html
 styles =
     [hsx|
         <style>
-            .people-column {
-                height: calc(100vh - 150px);
+            :root {
+                --top-nav-height: 7.25rem;
+            }
+
+            .people-list {
+                height: calc(100vh - var(--top-nav-height));
+                min-width: 18.75rem;
                 overflow-y: scroll;
             }
 

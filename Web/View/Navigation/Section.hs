@@ -11,10 +11,10 @@ data Section
 renderSectionNavigation :: Section -> Maybe Person -> Html
 renderSectionNavigation currentSection selectedPerson =
     [hsx|
-        <nav class="navbar navbar-expand navbar-light bg-light">
+        <nav class="navbar navbar-expand navbar-light bg-light m-0 mb-3">
             <div class="container-fluid">
-                <span class="navbar-brand mb-0 h1" href="#">Constructable</span>
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <span class="navbar-brand mb-0 h1 d-none d-lg-inline" href="#">Constructable</span>
+                <div class="collapse navbar-collapse">
                     <ul class="navbar-nav mb-0">
                         {renderItem timecardsAction Timecards "Timecards" currentSection}
                         {renderItem communicationsAction Communications "Communications" currentSection}

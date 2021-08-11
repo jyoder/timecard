@@ -179,22 +179,60 @@ data TimecardEntryForm = TimecardEntryForm
     }
     deriving (Eq, Show)
 
+data Column
+    = People
+    | Messages
+    | Timecards
+    deriving (Eq, Show)
+
 instance View IndexView where
     html view = renderPage $ buildPage view
 
 renderPage :: Page -> Html
 renderPage Page {..} =
     [hsx|
-            {renderSectionNavigation Communications selectedPerson}
-
-            <div class="row align-items start">
-                {renderPeopleNavigation peopleNavigation}
-                {renderMessagesColumn messagesColumn}
-                {renderTimecardColumn timecardColumn}
+        <!-- Desktop version of the page. -->
+        <div class="d-none d-xl-block">
+            <div class="communications-page d-flex flex-column">
+                {renderSectionNavigation Communications selectedPerson}
+                
+                <div class="d-flex flex-row">
+                    <div class="mr-3 d-flex flex-column">
+                        {renderPeopleNavigation peopleNavigation}
+                    </div>
+                    <div class="flex-grow-1 d-flex flex-column">
+                        {renderMessagesColumn messagesColumn}
+                    </div>
+                    <div class="ml-3 d-flex flex-column">
+                        {renderTimecardsColumn timecardColumn}
+                    </div>
+                </div>
             </div>
+        </div>
+        
+        <!-- Mobile version of the page. -->
+        <div class="d-block d-xl-none">
+            <div class="communications-page d-flex flex-column">
+                <div id="people" class="d-flex flex-column">
+                    {renderSectionNavigation Communications selectedPerson}
+                    {renderPeopleNavigation peopleNavigation}
+                    {renderColumnNavigation People}
+                </div>
+                <div id="messages" class="d-flex flex-column">
+                    {renderSectionNavigation Communications selectedPerson}
+                    {renderMessagesColumn messagesColumn}
+                    {renderColumnNavigation Messages}
+                </div>
+                <div id="timecards" class="d-flex flex-column">
+                    {renderSectionNavigation Communications selectedPerson}
+                    {renderTimecardsColumn timecardColumn}
+                    {renderColumnNavigation Timecards}
+                </div>
+            </div>
+        </div>
 
-            {styles}
-        |]
+        {styles}
+    |]
 
 buildPage :: IndexView -> Page
 buildPage view =
@@ -204,6 +242,7 @@ buildPage view =
             buildPeopleNavigation
                 BadgesVisible
                 CommunicationsPersonSelectionAction
+                (Anchor "messages")
                 selectedPerson
                 (get #people view)
         , messagesColumn = buildMessagesColumn view
@@ -473,26 +512,23 @@ renderMessagesColumn :: MessagesColumn -> Html
 renderMessagesColumn messagesColumn =
     case messagesColumn of
         MessagesColumnNotVisible ->
-            [hsx|
-                <div class="col-6"></div>
-            |]
+            [hsx||]
         MessagesColumnVisible {..} ->
             [hsx|
-                <div class="col-6">
+                <div class="messages-list scroll-to-end">
                     {renderMessageItems messageItems scheduledMessageItems}
-                    <div class="message-input">
-                        {renderSendMessageForm sendMessageForm}
-                    </div>
+                </div>
+                <div class="message-input pt-2 mb-xl-2">
+                    {renderSendMessageForm sendMessageForm}
                 </div>
             |]
 
 renderMessageItems :: [MessageItem] -> [ScheduledMessageItem] -> Html
 renderMessageItems messageItems scheduledMessageItems =
     [hsx|
-        <div class="message-history list-group-flush">
+        <div class="list-group-flush">
             {forEach messageItems renderMessageItem}
             {forEach scheduledMessageItems renderScheduledMessageItem}
-            <div class="scroll-pinned"></div>
         </div>
     |]
 
@@ -511,7 +547,6 @@ renderMessageItem MessageItem {..} =
             <div class="d-flex w-100 justify-content-between">
                 <span class={statusClass}>{status}</span>
                 <a href={linkButtonAction}
-                    data-turbolinks="false"
                     class={"btn btn-outline-primary btn-sm " <> linkButtonActiveClass}>
                     {linkButtonText}
                 </a>
@@ -588,38 +623,16 @@ renderScheduledMessageItem EditScheduledMessageForm {..} =
                 </span>
             </div>
 
-            <form method="POST" 
-                action={saveAction}
-                class="edit-form"
-                data-disable-javascript-submission="false">
-                
+            <form method="POST" action={saveAction} class="edit-form">
                 <div class="mb-3">
-                    <textarea
-                        type="text"
-                        name="body"
-                        class="form-control edit-scheduled-message-form"
-                        rows="3"
-                        value={body}>
+                    <textarea type="text" name="body" class="form-control edit-scheduled-message-form" rows="3" value={body}>
                         {body}
-                    </textarea> 
-                </div>
-                
-                <div>
-                    <input
-                        type="hidden"
-                        name="id"
-                        class="form-control"
-                        value={sendMessageActionId}>
+                    </textarea>
                 </div>
                 
                 <div class="d-flex w-100 justify-content-end">
-                    <button class="btn btn-primary btn btn-primary btn-sm">
-                        Save
-                    </button>
-                
-                    <a href={cancelAction} class="btn btn-secondary btn-sm ml-2">
-                        Cancel
-                    </a>
+                    <button class="btn btn-primary btn btn-primary btn-sm">Save</button>
+                    <a href={cancelAction} class="btn btn-secondary btn-sm ml-2">Cancel</a>
                 </div>
             </form>
         </div>
@@ -628,49 +641,30 @@ renderScheduledMessageItem EditScheduledMessageForm {..} =
 renderSendMessageForm :: SendMessageForm -> Html
 renderSendMessageForm SendMessageForm {..} =
     [hsx|
-        <div class="message-input">
-            <form 
-                method="POST"
-                action={CommunicationsSendPhoneMessageAction}
-                id="send-message-form" 
-                class="new-form"
-                data-disable-javascript-submission="false">
-                
-                <div class="form-group" id="form-group-twilioMessage_toId">
-                    <input 
-                        type="hidden"
-                        name="toId"
-                        id="twilioMessage_toId"
-                        class="form-control"
-                        value={toPhoneNumberId}>
-                </div>
+        <form method="POST" action={CommunicationsSendPhoneMessageAction} class="new-form" data-disable-javascript-submission="false">  
+            <input type="hidden" name="toId" class="form-control" value={toPhoneNumberId}>
 
-                <div class="input-group">
-                    <textarea 
-                        class="form-control"
-                        id="twilioMessage_body"
-                        name="body"
-                        rows="3">
-                    </textarea>
+            <div class="input-group">
+                <textarea class="message-body-input form-control" name="body" rows="3">
+                </textarea>
 
-                    <div class="input-group-append">
-                        <button class="btn btn-primary">Send</button>
-                    </div>
+                <div class="input-group-append">
+                    <button class="btn btn-primary">Send</button>
                 </div>
-            </form>
-        </div>
+            </div>
+        </form>
     |]
 
-renderTimecardColumn :: TimecardColumn -> Html
-renderTimecardColumn timecardColumn =
+renderTimecardsColumn :: TimecardColumn -> Html
+renderTimecardsColumn timecardColumn =
     [hsx|
-        <div class="timecard-column col-4">
-            {renderTimecardColumn' timecardColumn}
+        <div class="timecards-block">
+            {renderTimecardsColumn' timecardColumn}
         </div>
     |]
 
-renderTimecardColumn' :: TimecardColumn -> Html
-renderTimecardColumn' timecardColumn =
+renderTimecardsColumn' :: TimecardColumn -> Html
+renderTimecardsColumn' timecardColumn =
     case timecardColumn of
         TimecardList {..} ->
             forEach timecardBlocks renderTimecardBlock
@@ -733,9 +727,7 @@ renderTimecardEntryCard :: TimecardEntryCard -> Html
 renderTimecardEntryCard TimecardEntryCard {..} =
     [hsx|
         <div class="card mb-4">
-            <h5 class="card-header">
-                {dayOfWeek'} - {date}
-            </h5>
+            <h5 class="card-header">{dayOfWeek'} - {date}</h5>
 
             <div class="card-body">
                 <h5 class="card-title">{jobName}</h5>
@@ -748,161 +740,67 @@ renderTimecardEntryCard TimecardEntryCard {..} =
 renderTimecardEntryForm :: TimecardEntryForm -> Html
 renderTimecardEntryForm TimecardEntryForm {..} =
     [hsx|
-        <form
-            method="POST" 
-            action={submitAction} 
-            id="timecard-form" 
-            class="edit-form" 
-            data-disable-javascript-submission="false">
-            
-            <div class="form-group" id="form-group-timecardEntry_date">
-                <label class="" for="timecardEntry_date">
-                    Date
-                </label>
-
-                <input 
-                    type="date" 
-                    name="date" 
-                    id="timecardEntry_date" 
-                    class={"form-control " <> dateInvalidClass} 
-                    value={date}>
-
+        <form method="POST" action={submitAction} class="edit-form m-2" data-disable-javascript-submission="false"> 
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" name="date" class={"form-control " <> dateInvalidClass} value={date}>
                 {renderFieldError dateError}
             </div>
             
-            <div class="form-group" id="form-group-timecardEntry_jobName">
-                <label class="" for="timecardEntry_jobName">
-                    Job Name
-                </label>
-
-                <input 
-                    type="text"
-                    name="jobName"
-                    placeholder=""
-                    id="timecardEntry_jobName"
-                    class={"form-control " <> jobNameInvalidClass}
-                    value={jobName}>
-
+            <div class="form-group">
+                <label>Job Name</label>
+                <input type="text" name="jobName" placeholder="" class={"form-control " <> jobNameInvalidClass} value={jobName}>
                 {renderFieldError jobNameError}
             </div>
 
             <div class="form-row">
-                <div class="col form-group" id="form-group-timecardEntry_clockedInAt">
-                    <label class="" for="timecardEntry_clockedInAt">
-                        Clock In
-                    </label>
-
-                    <input 
-                        type="text"
-                        name="clockedInAt"
-                        placeholder=""
-                        id="timecardEntry_clockedInAt"
-                        class={"form-control flatpickr-time-input " <> clockedInAtInvalidClass}
-                        value={clockedInAt}>
-
+                <div class="col form-group">
+                    <label>Clock In</label>
+                    <input type="text" name="clockedInAt" placeholder="" class={"form-control flatpickr-time-input " <> clockedInAtInvalidClass} value={clockedInAt}>
                     {renderFieldError clockedInAtError}
                 </div>
 
-                <div class="col form-group" id="form-group-timecardEntry_clockedOutAt">
-                    <label class="" for="timecardEntry_clockedOutAt">
-                        Clock Out
-                    </label>
-
-                    <input 
-                        type="text"
-                        name="clockedOutAt"
-                        placeholder=""
-                        id="timecardEntry_clockedOutAt"
-                        class={"form-control flatpickr-time-input " <> clockedOutAtInvalidClass}
-                        value={clockedOutAt}>
+                <div class="col form-group">
+                    <label>Clock Out</label>
+                    <input type="text" name="clockedOutAt" placeholder="" class={"form-control flatpickr-time-input " <> clockedOutAtInvalidClass} value={clockedOutAt}>
 
                     {renderFieldError clockedOutAtError}
                 </div>
 
-                <div class="col form-group" id="form-group-timecardEntry_lunchDuration">
-                    <label class="" for="timecardEntry_lunchDuration">
-                        Lunch (mins)
-                    </label>
-
-                    <input 
-                        type="text"
-                        name="lunchDuration"
-                        placeholder=""
-                        id="timecardEntry_lunchDuration"
-                        class={"form-control " <> lunchDurationInvalidClass}
-                        value={lunchDuration}>
-
+                <div class="col form-group">
+                    <label>Lunch (mins)</label>
+                    <input type="text" name="lunchDuration" placeholder="" class={"form-control " <> lunchDurationInvalidClass} value={lunchDuration}>
                     {renderFieldError lunchDurationError}
                 </div>
             </div>
             
-            <div class="form-group" id="form-group-timecardEntry_hoursWorked">
-                <label class="" for="timecardEntry_hoursWorked">
-                    Hours Worked
-                </label>
-
-                <input 
-                    type="text"
-                    name="hoursWorked"
-                    placeholder=""
-                    id="timecardEntry_hoursWorked"
-                    class={"form-control " <> hoursWorkedInvalidClass}
-                    value={hoursWorked}>
-
+            <div class="form-group">
+                <label>Hours Worked</label>
+                <input type="text" name="hoursWorked" placeholder="" class={"form-control " <> hoursWorkedInvalidClass} value={hoursWorked}>
                 {renderFieldError hoursWorkedError}
             </div>
             
-            <div id="form-group-timecardEntry_workDone" class="form-group">
-                <label for="timecardEntry_workDone">
-                    Work Done
-                </label>
-
-                <textarea 
-                    id="timecardEntry_workDone" 
-                    name="workDone" 
-                    class={"form-control " <> workDoneInvalidClass}>
+            <div class="form-group">
+                <label>Work Done</label>
+                <textarea name="workDone" class={"work-done-input form-control " <> workDoneInvalidClass}>
                     {workDone}
                 </textarea>
-
                 {renderFieldError workDoneError}
             </div>
             
-            <div id="form-group-timecardEntry_invoiceTranslation" class="form-group">
-                <label for="timecardEntry_invoiceTranslation">
-                    Invoice Translation
-                </label>
-                
-                <textarea
-                    id="timecardEntry_invoiceTranslation"
-                    name="invoiceTranslation"
-                    class={"form-control " <> invoiceTranslationInvalidClass}>
+            <div class="form-group">
+                <label>Invoice Translation</label>
+                <textarea name="invoiceTranslation" class={"invoice-translation-input form-control " <> invoiceTranslationInvalidClass}>
                     {invoiceTranslation}
                 </textarea>
-
                 {renderFieldError invoiceTranslationError}
             </div>
             
-            <input 
-                type="hidden"
-                name="selectedMessageIds"
-                id="selectedMessageIds"
-                class="form-control"
-                value={selectedMessageIdsParam}>
-            
-            <input
-                type="hidden"
-                name="selectedPersonId"
-                id="selectedPersonId"
-                class="form-control"
-                value={selectedPersonIdParam}>
+            <input type="hidden" name="selectedMessageIds" value={selectedMessageIdsParam}>
+            <input type="hidden" name="selectedPersonId" value={selectedPersonIdParam}>
                 
-            <button class="btn btn-primary">
-                {submitLabel}
-            </button>
-            
-            <a href={cancelAction} class="btn btn-secondary ml-2" role="button">
-                Cancel
-            </a>
+            <button class="btn btn-primary">{submitLabel}</button>
+            <a href={cancelAction} class="btn btn-secondary ml-2" role="button">Cancel</a>
         </form>
     |]
 
@@ -913,98 +811,163 @@ renderFieldError (Just errorMessage) =
         <div class="invalid-feedback">{errorMessage}</div>
     |]
 
+renderColumnNavigation :: Column -> Html
+renderColumnNavigation currentColumn =
+    [hsx|
+        <ul class="bottom-nav m-0 p-0 border bg-light d-flex">
+            <li class="bottom-nav-item flex-even border-right d-flex justify-content-center">
+                <a class={"bottom-nav-link text-center " <> linkClass People} href="#people">People</a>
+            </li>
+            <li class="bottom-nav-item flex-even d-flex justify-content-center">
+                <a class={"bottom-nav-link text-center " <> linkClass Messages} href="#messages">Messages</a>
+            </li>
+            <li class="bottom-nav-item flex-even border-left d-flex justify-content-center">
+                <a class={"bottom-nav-link text-center " <> linkClass Timecards} href="#timecards">Timecards</a>
+            </li>
+        </ul>
+    |]
+  where
+    linkClass column = if column == currentColumn then "text-dark" :: Text else "text-muted"
+
 styles :: Html
 styles =
     [hsx|
-    <style>
-        .people-column {
-            height: calc(100vh - 150px);
-            overflow-y: scroll;
-        }
+        <style>
+            @media only screen and (min-width: 1200px) {
+                :root {
+                    --bottom-nav-height: 0rem;
+                }
 
-        .message-history {
-            height: calc(100vh - 270px);
-            overflow-y: scroll;
-        }
+                .timecards-block {
+                    width: 31rem;
+                }
+            }
 
-        .message-input {
-            height: 100px;
-            padding: 0px;
-            margin: 0px;
-        }
+            @media only screen and (max-width: 1200px) {
+                :root {
+                    --bottom-nav-height: 3rem;
+                }
+            }
 
-        .message-body {
-            white-space: pre-line;
-        }
+            :root {
+                --top-nav-height: 7.25rem;
+                --total-nav-height: calc(var(--top-nav-height) + var(--bottom-nav-height));
+                --message-input-height: 5.8rem;
+            }
 
-        .message-sent-at {
-            font-size: 80%;
-            color: darkgray;
-        }
+            .communications-page {
+                height: 100vh;
+                overflow-y: hidden;
+            }
 
-        .message-status {
-            font-size: 80%;
-        }
+            .top-nav {
+                height: var(--top-nav-height);
+            }
 
-        .message-status.delivered {
-            color: green;
-        }
+            .bottom-nav {
+                height: var(--bottom-nav-height);
+            }
 
-        .message-status.received {
-            color: rgb(26, 124, 236);
-        }
+            .bottom-nav-item {
+                list-style-type: none;
+            }
 
-        .message-status.failed {
-            color: red;
-        }
+            .bottom-nav-link {
+                width: 100%;
+                line-height: 2.5rem;
+            }
 
-        .message-status.sending {
-            color: darkgray;
-        }
+            .people-list {
+                height: calc(100vh - var(--total-nav-height));
+                min-width: 18.75rem;
+                overflow-y: scroll;
+            }
 
-        .message-status.scheduled {
-            color: blueviolet;
-        }
+            .messages-list {
+                height: calc(100vh - calc(var(--total-nav-height) + var(--message-input-height)));
+                overflow-y: scroll;
+            }
 
-        .scheduled-message {
-            background-color: whitesmoke;
-        }
+            .message-input {
+                height: var(--message-input-height);
+            }
 
-        .scheduled-message-suspended {
-            background-color: #fff5ee;
-        }
+            .timecards-block {
+                height: calc(100vh - var(--total-nav-height));
+                overflow-y: scroll;
+            }
 
-        .message-scheduled-for {
-            font-size: 80%;
-            color: black;
-        }
+            .edit-scheduled-message {
+                background-color: whitesmoke;
+                height: 12.5rem;
+            }
 
-        .timecard-column {
-            height: calc(100vh - 150px);
-            overflow-y: scroll;
-        }
+            .edit-scheduled-message-form {
+                font-size: .9rem;
+            }
 
-        .edit-scheduled-message {
-            background-color: whitesmoke;
-            height: 200px;
-        }
+            .message-body-input {
+                resize: none;
+            }
 
-        .edit-scheduled-message-form {
-            font-size: .9rem;
-        }
+            .message-body {
+                white-space: pre-line;
+            }
 
-        #twilioMessage_body {
-            resize: none;
-        }
+            .message-sent-at {
+                font-size: 80%;
+                color: darkgray;
+            }
 
-        #timecardEntry_workDone {
-            height: 123px;
-        }
+            .message-status {
+                font-size: 80%;
+            }
 
-        #timecardEntry_invoiceTranslation {
-            height: 123px;
-        }
-    </style>
+            .message-status.delivered {
+                color: green;
+            }
 
-    {removeScrollbars}
-|]
+            .message-status.received {
+                color: rgb(26, 124, 236);
+            }
+
+            .message-status.failed {
+                color: red;
+            }
+
+            .message-status.sending {
+                color: darkgray;
+            }
+
+            .message-status.scheduled {
+                color: blueviolet;
+            }
+
+            .scheduled-message {
+                background-color: whitesmoke;
+            }
+
+            .scheduled-message-suspended {
+                background-color: #fff5ee;
+            }
+
+            .message-scheduled-for {
+                font-size: 80%;
+                color: black;
+            }
+
+            .work-done-input {
+                min-height: 6.9rem;
+            }
+
+            .invoice-translation-input {
+                min-height: 6.9rem;
+            }
+
+            .flex-even {
+                flex: 1;
+            }
+        </style>
+
+        {removeScrollbars}
+    |]
