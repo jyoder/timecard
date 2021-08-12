@@ -878,6 +878,7 @@ styles =
 
             .communications-page {
                 height: var(--screen-height);
+                overflow: hidden;
             }
 
             .top-nav {
