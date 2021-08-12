@@ -221,7 +221,7 @@ renderPage Page {..} =
                 </div>
                 <div id="messages" class="d-flex flex-column">
                     {renderSectionNavigation Communications selectedPerson}
-                    {renderMessagesColumn messagesColumn}
+                    {renderMobileMessagesColumn messagesColumn}
                     {renderColumnNavigation Messages}
                     <div class="browser-nav bg-light"></div>
                 </div>
@@ -521,8 +521,23 @@ renderMessagesColumn messagesColumn =
                 <div class="messages-list scroll-to-end">
                     {renderMessageItems messageItems scheduledMessageItems}
                 </div>
-                <div class="message-input pt-2 mb-xl-2">
+                <div class="message-input pt-2 mb-2">
                     {renderSendMessageForm sendMessageForm}
+                </div>
+            |]
+
+renderMobileMessagesColumn :: MessagesColumn -> Html
+renderMobileMessagesColumn messagesColumn =
+    case messagesColumn of
+        MessagesColumnNotVisible ->
+            [hsx||]
+        MessagesColumnVisible {..} ->
+            [hsx|
+                <div class="message-input pb-2">
+                    {renderSendMessageForm sendMessageForm}
+                </div>
+                <div class="messages-list">
+                    {renderMessageItems (reverse messageItems) (reverse scheduledMessageItems)}
                 </div>
             |]
 
@@ -549,7 +564,7 @@ renderMessageItem MessageItem {..} =
 
             <div class="d-flex w-100 justify-content-between">
                 <span class={statusClass}>{status}</span>
-                <a href={linkButtonAction}
+                <a href={pathTo linkButtonAction <> "#timecards"}
                     class={"btn btn-outline-primary btn-sm " <> linkButtonActiveClass}>
                     {linkButtonText}
                 </a>
@@ -817,7 +832,7 @@ renderFieldError (Just errorMessage) =
 renderColumnNavigation :: Column -> Html
 renderColumnNavigation currentColumn =
     [hsx|
-        <ul class="bottom-nav m-0 p-0 border bg-light d-flex">
+        <ul class="bottom-nav m-0 p-0 border-top bg-light d-flex">
             <li class="bottom-nav-item flex-even border-right d-flex justify-content-center">
                 <a class={"bottom-nav-link text-center " <> linkClass People} href="#people">People</a>
             </li>
@@ -863,7 +878,6 @@ styles =
 
             .communications-page {
                 height: var(--screen-height);
-                overflow-y: hidden;
             }
 
             .top-nav {
@@ -896,7 +910,6 @@ styles =
             .messages-list {
                 height: calc(var(--screen-height) - calc(var(--total-nav-height) + var(--message-input-height)));
                 overflow-y: scroll;
-                overflow-x: hidden;
             }
 
             .message-input {
@@ -977,6 +990,10 @@ styles =
 
             .flex-even {
                 flex: 1;
+            }
+
+            body {
+                overflow: hidden;
             }
         </style>
 
