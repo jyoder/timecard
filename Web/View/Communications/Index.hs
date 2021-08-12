@@ -878,7 +878,6 @@ styles =
 
             .communications-page {
                 height: var(--screen-height);
-                overflow: hidden;
             }
 
             .top-nav {
@@ -910,6 +909,7 @@ styles =
 
             .messages-list {
                 height: calc(var(--screen-height) - calc(var(--total-nav-height) + var(--message-input-height)));
+                overflow-x: hidden;
                 overflow-y: scroll;
             }
 
