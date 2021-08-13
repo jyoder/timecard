@@ -937,6 +937,8 @@ styles =
 
             .message-body {
                 white-space: pre-line;
+                word-wrap: break-word;
+                word-break: break-all;
             }
 
             .message-sent-at {
