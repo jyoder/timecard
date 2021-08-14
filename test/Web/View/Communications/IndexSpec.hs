@@ -51,6 +51,7 @@ spec = do
                                     CommunicationsPersonSelectionAction
                                         { selectedPersonId = "10000000-0000-0000-0000-000000000000"
                                         }
+                                , anchor = "messages"
                                 , activeClass = ""
                                 , ariaCurrent = "false"
                                 , firstName = "Barbara"
@@ -66,6 +67,7 @@ spec = do
                                     CommunicationsPersonSelectionAction
                                         { selectedPersonId = "20000000-0000-0000-0000-000000000000"
                                         }
+                                , anchor = "messages"
                                 , activeClass = ""
                                 , ariaCurrent = "false"
                                 , firstName = "Jackie"
@@ -174,7 +176,7 @@ spec = do
                     { messageItems =
                         [ Index.MessageItem
                             { fromName = "Barbara Bush"
-                            , sentAt = "2021-06-23 22:29:00 UTC"
+                            , sentAt = "2021-06-23T22:29:00+0000"
                             , body = "What's up?"
                             , statusClass = "message-status delivered"
                             , status = "Delivered"
@@ -191,7 +193,7 @@ spec = do
                             }
                         , Index.MessageItem
                             { fromName = "Jackie Kennedy"
-                            , sentAt = "2021-06-23 22:30:00 UTC"
+                            , sentAt = "2021-06-23T22:30:00+0000"
                             , body = "Not much."
                             , statusClass = "message-status delivered"
                             , status = "Delivered"
@@ -209,7 +211,7 @@ spec = do
                         ]
                     , scheduledMessageItems =
                         [ Index.NotStartedScheduledMessageItem
-                            { runsAt = "2021-06-23 22:30:00 UTC"
+                            { runsAt = "2021-06-23T22:30:00+0000"
                             , body = "Hello World!"
                             , editAction =
                                 CommunicationsEditScheduledMessageAction
@@ -298,7 +300,7 @@ spec = do
                 [twilioMessage1, twilioMessage2]
                 `shouldBe` [ Index.MessageItem
                                 { fromName = "Barbara Bush"
-                                , sentAt = "2021-06-23 22:29:00 UTC"
+                                , sentAt = "2021-06-23T22:29:00+0000"
                                 , body = "What's up?"
                                 , statusClass = "message-status delivered"
                                 , status = "Delivered"
@@ -315,7 +317,7 @@ spec = do
                                 }
                            , Index.MessageItem
                                 { fromName = "Jackie Kennedy"
-                                , sentAt = "2021-06-23 22:30:00 UTC"
+                                , sentAt = "2021-06-23T22:30:00+0000"
                                 , body = "Not much."
                                 , statusClass = "message-status delivered"
                                 , status = "Delivered"
@@ -382,7 +384,7 @@ spec = do
                 [twilioMessage1, twilioMessage2]
                 `shouldBe` [ Index.MessageItem
                                 { fromName = "Barbara Bush"
-                                , sentAt = "2021-06-23 22:29:00 UTC"
+                                , sentAt = "2021-06-23T22:29:00+0000"
                                 , body = "What's up?"
                                 , statusClass = "message-status delivered"
                                 , status = "Delivered"
@@ -400,7 +402,7 @@ spec = do
                                 }
                            , Index.MessageItem
                                 { fromName = "Jackie Kennedy"
-                                , sentAt = "2021-06-23 22:30:00 UTC"
+                                , sentAt = "2021-06-23T22:30:00+0000"
                                 , body = "Not much."
                                 , statusClass = "message-status delivered"
                                 , status = "Delivered"
@@ -448,7 +450,7 @@ spec = do
                 twilioMessage
                 `shouldBe` Index.MessageItem
                     { fromName = "Barbara Bush"
-                    , sentAt = "2021-06-23 22:29:00 UTC"
+                    , sentAt = "2021-06-23T22:29:00+0000"
                     , body = "What's up?"
                     , statusClass = "message-status delivered"
                     , status = "Delivered"
@@ -499,7 +501,7 @@ spec = do
                 twilioMessage
                 `shouldBe` Index.MessageItem
                     { fromName = "Barbara Bush"
-                    , sentAt = "2021-06-23 22:29:00 UTC"
+                    , sentAt = "2021-06-23T22:29:00+0000"
                     , body = "What's up?"
                     , statusClass = "message-status delivered"
                     , status = "Delivered"
@@ -556,7 +558,7 @@ spec = do
                 twilioMessage
                 `shouldBe` Index.MessageItem
                     { fromName = "Barbara Bush"
-                    , sentAt = "2021-06-23 22:29:00 UTC"
+                    , sentAt = "2021-06-23T22:29:00+0000"
                     , body = "What's up?"
                     , statusClass = "message-status delivered"
                     , status = "Delivered"
@@ -610,7 +612,7 @@ spec = do
                 "50000000-0000-0000-0000-000000000000"
                 sendMessageAction
                 `shouldBe` Index.NotStartedScheduledMessageItem
-                    { runsAt = "2021-06-23 22:30:00 UTC"
+                    { runsAt = "2021-06-23T22:30:00+0000"
                     , body = "Hello World!"
                     , editAction =
                         CommunicationsEditScheduledMessageAction
@@ -641,7 +643,7 @@ spec = do
                 "50000000-0000-0000-0000-000000000000"
                 sendMessageAction
                 `shouldBe` Index.SuspendedScheduledMessageItem
-                    { runsAt = "2021-06-23 22:30:00 UTC"
+                    { runsAt = "2021-06-23T22:30:00+0000"
                     , body = "Hello World!"
                     , editAction =
                         CommunicationsEditScheduledMessageAction
@@ -672,7 +674,7 @@ spec = do
                 "50000000-0000-0000-0000-000000000000"
                 sendMessageAction
                 `shouldBe` Index.EditScheduledMessageForm
-                    { runsAt = "2021-06-23 22:30:00 UTC"
+                    { runsAt = "2021-06-23T22:30:00+0000"
                     , body = "Hello World!"
                     , sendMessageActionId = "10000000-0000-0000-0000-000000000000"
                     , saveAction =

@@ -1,6 +1,7 @@
 module Web.View.Service.Time (
     formatDay,
     formatTimeOfDay,
+    formatDateTime,
     weekday,
 ) where
 
@@ -18,6 +19,9 @@ formatDay = pack . formatTime defaultTimeLocale "%m/%d/%Y"
 formatTimeOfDay :: TimeOfDay -> Text
 formatTimeOfDay timeOfDay =
     strip $ pack $ formatTime defaultTimeLocale "%l:%M %p" timeOfDay
+
+formatDateTime :: UTCTime -> Text
+formatDateTime time = strip $ pack $ formatTime defaultTimeLocale "%FT%X%z" time
 
 weekday :: UTCTime -> Html
 weekday = timeElement "weekday"

@@ -22,7 +22,7 @@ defaultLayout inner =
     <title>Constructable</title>
 </head>
 <body>
-    <div class="content container-fluid">
+    <div class="content container-fluid p-0 m-0">
         {renderFlashMessages}
         {inner}
     </div>

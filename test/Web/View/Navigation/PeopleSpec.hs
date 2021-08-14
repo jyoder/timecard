@@ -48,6 +48,7 @@ spec = do
             buildPeopleNavigation
                 BadgesHidden
                 DummyControllerAction
+                NoAnchor
                 (Just selectedPerson)
                 people
                 `shouldBe` PeopleNavigation
@@ -57,6 +58,7 @@ spec = do
                                 DummyControllerAction
                                     { selectedPersonId = "10000000-0000-0000-0000-000000000000"
                                     }
+                            , anchor = ""
                             , activeClass = "active"
                             , ariaCurrent = "true"
                             , firstName = "Barbara"
@@ -68,6 +70,7 @@ spec = do
                                 DummyControllerAction
                                     { selectedPersonId = "20000000-0000-0000-0000-000000000000"
                                     }
+                            , anchor = ""
                             , activeClass = ""
                             , ariaCurrent = "false"
                             , firstName = "Jackie"
@@ -101,6 +104,7 @@ spec = do
             buildPeopleNavigation
                 BadgesHidden
                 DummyControllerAction
+                NoAnchor
                 Nothing
                 people
                 `shouldBe` PeopleNavigation
@@ -110,6 +114,7 @@ spec = do
                                 DummyControllerAction
                                     { selectedPersonId = "10000000-0000-0000-0000-000000000000"
                                     }
+                            , anchor = ""
                             , activeClass = ""
                             , ariaCurrent = "false"
                             , firstName = "Barbara"
@@ -121,6 +126,7 @@ spec = do
                                 DummyControllerAction
                                     { selectedPersonId = "20000000-0000-0000-0000-000000000000"
                                     }
+                            , anchor = ""
                             , activeClass = ""
                             , ariaCurrent = "false"
                             , firstName = "Jackie"
@@ -154,6 +160,7 @@ spec = do
             buildPeopleNavigation
                 BadgesVisible
                 DummyControllerAction
+                NoAnchor
                 Nothing
                 people
                 `shouldBe` PeopleNavigation
@@ -163,6 +170,7 @@ spec = do
                                 DummyControllerAction
                                     { selectedPersonId = "10000000-0000-0000-0000-000000000000"
                                     }
+                            , anchor = ""
                             , activeClass = ""
                             , ariaCurrent = "false"
                             , firstName = "Barbara"
@@ -178,6 +186,7 @@ spec = do
                                 DummyControllerAction
                                     { selectedPersonId = "20000000-0000-0000-0000-000000000000"
                                     }
+                            , anchor = ""
                             , activeClass = ""
                             , ariaCurrent = "false"
                             , firstName = "Jackie"
@@ -205,10 +214,38 @@ spec = do
             buildPersonItem
                 BadgesHidden
                 DummyControllerAction
+                NoAnchor
                 False
                 person
                 `shouldBe` PersonItem
                     { selectionAction = DummyControllerAction "10000000-0000-0000-0000-000000000000"
+                    , anchor = ""
+                    , activeClass = ""
+                    , ariaCurrent = "false"
+                    , firstName = "Barbara"
+                    , lastName = "Bush"
+                    , stateBadge = HiddenBadge
+                    }
+
+        it "returns a person item with the correct anchor when one is specified" do
+            let person =
+                    People.View.Person
+                        { id = "10000000-0000-0000-0000-000000000000"
+                        , firstName = "Barbara"
+                        , lastName = "Bush"
+                        , goesBy = "Barb"
+                        , state = People.View.PersonIdle
+                        }
+
+            buildPersonItem
+                BadgesHidden
+                DummyControllerAction
+                (Anchor "something")
+                False
+                person
+                `shouldBe` PersonItem
+                    { selectionAction = DummyControllerAction "10000000-0000-0000-0000-000000000000"
+                    , anchor = "something"
                     , activeClass = ""
                     , ariaCurrent = "false"
                     , firstName = "Barbara"
@@ -229,12 +266,14 @@ spec = do
             buildPersonItem
                 BadgesHidden
                 DummyControllerAction
+                NoAnchor
                 True
                 person
                 `shouldBe` PersonItem
                     { selectionAction =
                         DummyControllerAction
                             "10000000-0000-0000-0000-000000000000"
+                    , anchor = ""
                     , activeClass = "active"
                     , ariaCurrent = "true"
                     , firstName = "Barbara"
@@ -255,10 +294,12 @@ spec = do
             buildPersonItem
                 BadgesVisible
                 DummyControllerAction
+                NoAnchor
                 False
                 person
                 `shouldBe` PersonItem
                     { selectionAction = DummyControllerAction "10000000-0000-0000-0000-000000000000"
+                    , anchor = ""
                     , activeClass = ""
                     , ariaCurrent = "false"
                     , firstName = "Barbara"
