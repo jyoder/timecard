@@ -180,9 +180,9 @@ data TimecardEntryForm = TimecardEntryForm
     deriving (Eq, Show)
 
 data Column
-    = People
-    | Messages
-    | Timecards
+    = PeopleColumn
+    | MessagesColumn
+    | TimecardsColumn
     deriving (Eq, Show)
 
 instance View IndexView where
@@ -193,7 +193,7 @@ renderPage Page {..} =
     [hsx|
         <!-- Desktop version of the page. -->
         <div class="d-none d-xl-block">
-            <div class="communications-page d-flex flex-column">
+            <div class="d-flex flex-column">
                 {renderSectionNavigation Communications selectedPerson}
                 
                 <div class="d-flex flex-row">
@@ -212,23 +212,23 @@ renderPage Page {..} =
         
         <!-- Mobile version of the page. -->
         <div class="d-block d-xl-none">
-            <div class="communications-page d-flex flex-column">
+            <div class="d-flex flex-column">
                 <div id="people" class="d-flex flex-column">
                     {renderSectionNavigation Communications selectedPerson}
                     {renderPeopleNavigation peopleNavigation}
-                    {renderColumnNavigation People}
+                    {renderColumnNavigation PeopleColumn}
                     <div class="browser-nav bg-light"></div>
                 </div>
                 <div id="messages" class="d-flex flex-column">
                     {renderSectionNavigation Communications selectedPerson}
                     {renderMobileMessagesColumn messagesColumn}
-                    {renderColumnNavigation Messages}
+                    {renderColumnNavigation MessagesColumn}
                     <div class="browser-nav bg-light"></div>
                 </div>
                 <div id="timecards" class="d-flex flex-column">
                     {renderSectionNavigation Communications selectedPerson}
                     {renderTimecardsColumn timecardColumn}
-                    {renderColumnNavigation Timecards}
+                    {renderColumnNavigation TimecardsColumn}
                     <div class="browser-nav bg-light"></div>
                 </div>
             </div>
@@ -834,13 +834,13 @@ renderColumnNavigation currentColumn =
     [hsx|
         <ul class="bottom-nav m-0 p-0 border-top bg-light d-flex">
             <li class="bottom-nav-item flex-even border-right d-flex justify-content-center">
-                <a class={"bottom-nav-link text-center " <> linkClass People} href="#people">People</a>
+                <a class={"bottom-nav-link text-center " <> linkClass PeopleColumn} href="#people">People</a>
             </li>
             <li class="bottom-nav-item flex-even d-flex justify-content-center">
-                <a class={"bottom-nav-link text-center " <> linkClass Messages} href="#messages">Messages</a>
+                <a class={"bottom-nav-link text-center " <> linkClass MessagesColumn} href="#messages">Messages</a>
             </li>
             <li class="bottom-nav-item flex-even border-left d-flex justify-content-center">
-                <a class={"bottom-nav-link text-center " <> linkClass Timecards} href="#timecards">Timecards</a>
+                <a class={"bottom-nav-link text-center " <> linkClass TimecardsColumn} href="#timecards">Timecards</a>
             </li>
         </ul>
     |]
@@ -872,16 +872,8 @@ styles =
             :root {
                 --top-nav-height: 7.25rem;
                 --total-nav-height: calc(var(--top-nav-height) + var(--bottom-nav-height) + var(--browser-nav-height));
-                --message-input-height: 5.8rem;
+                --message-input-height: 7.0rem;
                 --screen-height: 100vh;
-            }
-
-            .communications-page {
-                height: var(--screen-height);
-            }
-
-            .top-nav {
-                height: var(--top-nav-height);
             }
 
             .bottom-nav {

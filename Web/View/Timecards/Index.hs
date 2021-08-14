@@ -85,6 +85,11 @@ data InvoiceTranslationCell
         }
     deriving (Eq, Show)
 
+data Column
+    = PeopleColumn
+    | TimecardsColumn
+    deriving (Eq, Show)
+
 instance View IndexView where
     html view = renderPage $ buildPage view
 
@@ -198,11 +203,30 @@ buildTotalHoursRow timecardEntries =
 renderPage :: Page -> Html
 renderPage Page {..} =
     [hsx|
-            {renderSectionNavigation Timecards selectedPerson}
+            <div class="d-none d-xl-block">
+                {renderSectionNavigation Timecards selectedPerson}
 
-            <div class="d-flex">
-                {renderPeopleNavigation peopleNavigation}
-                {renderTimecardColumn timecardColumn}
+                <div class="d-flex flex-row">
+                    {renderPeopleNavigation peopleNavigation}
+                    {renderTimecardColumn timecardColumn}
+                </div>
+            </div>
+
+            <div class="d-block d-xl-none">
+                <div class="d-flex flex-column">
+                    <div id="people" class="d-flex flex-column">
+                        {renderSectionNavigation Timecards selectedPerson}
+                        {renderPeopleNavigation peopleNavigation}
+                        {renderColumnNavigation PeopleColumn}
+                        <div class="browser-nav bg-light"></div>
+                    </div>
+                    <div id="timecards" class="d-flex flex-column">
+                        {renderSectionNavigation Timecards selectedPerson}
+                        {renderTimecardColumn timecardColumn}
+                        {renderColumnNavigation TimecardsColumn}
+                        <div class="browser-nav bg-light"></div>
+                    </div>
+                </div>
             </div>
 
             {styles}
@@ -215,7 +239,7 @@ renderTimecardColumn timecardColumn =
             [hsx||]
         TimecardColumnVisible {..} ->
             [hsx|
-                <div class="timecard-column m-3 flex-grow-1">
+                <div class="timecards-column m-xl-3 flex-grow-1">
                     {forEach timecardTables renderTimecardTable}
                 </div>
             |]
@@ -240,13 +264,13 @@ renderTimecardTable TimecardTable {..} =
                     <thead>
                         <tr>
                             <th scope="col">Day</th>
-                            <th scope="col">Date</th>
+                            <th scope="col" class="d-none d-md-table-cell">Date</th>
                             <th scope="col">Job</th>
-                            <th scope="col">Clock In</th>
-                            <th scope="col">Clock Out</th>
-                            <th scope="col">Lunch (mins)</th>
-                            <th scope="col">Work Done</th>
-                            <th scope="col">Invoice Translation</th>
+                            <th scope="col" class="d-none d-md-table-cell">Clock In</th>
+                            <th scope="col" class="d-none d-md-table-cell">Clock Out</th>
+                            <th scope="col" class="d-none d-md-table-cell">Lunch (mins)</th>
+                            <th scope="col" class="d-none d-md-table-cell">Work Done</th>
+                            <th scope="col" class="d-none d-md-table-cell">Invoice Translation</th>
                             <th scope="col">Hours</th>
                         </tr>
                     </thead>
@@ -273,12 +297,12 @@ renderJobRow JobRow {..} =
     [hsx|
         <tr>
             <th scope="row">{dayOfWeek'}</th>
-            <td>{date}</td>
+            <td class="d-none d-md-table-cell">{date}</td>
             <td>{jobName}</td>
-            <td>{clockedInAt}</td>
-            <td>{clockedOutAt}</td>
-            <td>{lunchDuration}</td>
-            <td class="work-done">{workDone}</td>
+            <td class="d-none d-md-table-cell">{clockedInAt}</td>
+            <td class="d-none d-md-table-cell">{clockedOutAt}</td>
+            <td class="d-none d-md-table-cell">{lunchDuration}</td>
+            <td class="work-done d-none d-md-table-cell">{workDone}</td>
             {renderInvoiceTranslationCell invoiceTranslationCell}
             <td>{hoursWorked}</td>
         </tr>
@@ -289,54 +313,22 @@ renderInvoiceTranslationCell invoiceTranslationCell =
     case invoiceTranslationCell of
         ShowInvoiceTranslation {..} ->
             [hsx|
-                <td class="invoice-translation">
+                <td class="invoice-translation d-none d-md-table-cell">
                     {invoiceTranslation} (<a href={editAction}>Edit</a>)
                 </td>
             |]
         EditInvoiceTranslation {..} ->
             [hsx|
-                <td class="invoice-translation">
-                    <form method="POST" 
-                        action={saveAction} id="edit-timecard-entry-form"
-                        class="edit-form"
-                        data-disable-javascript-submission="false">
-                        
-                        <div
-                            class="form-group"
-                            id="form-group-timecardEntry_invoiceTranslation">
-                            <textarea
-                                type="text"
-                                name="invoiceTranslation"
-                                placeholder=""
-                                id="timecardEntry_invoiceTranslation"
-                                class="form-control"
-                                value={invoiceTranslation}>
+                <td class="invoice-translation d-none d-md-table-cell">
+                    <form method="POST" action={saveAction} class="edit-form" data-disable-javascript-submission="false">
+                        <div class="form-group">
+                            <textarea type="text" name="invoiceTranslation" placeholder="" class="invoice-translation-input form-control" value={invoiceTranslation}>
                                 {invoiceTranslation}
                             </textarea> 
                         </div>
                         
-                        <div
-                            class="form-group"
-                            id="form-group-timecardEntry_id">
-                            <input
-                                type="hidden"
-                                name="id"
-                                placeholder=""
-                                id="timecardEntry_id"
-                                class="form-control"
-                                value={timecardEntryId}>
-                        </div>
-                        
-                        <button
-                            class="btn btn-primary btn btn-primary btn-sm">
-                            Save
-                        </button>
-                        
-                        <a 
-                            href={cancelAction}
-                            class="btn btn-secondary btn-sm ml-2">
-                            Cancel
-                        </a>
+                        <button class="btn btn-primary btn btn-primary btn-sm">Save</button>
+                        <a href={cancelAction} class="btn btn-secondary btn-sm ml-2">Cancel</a>
                     </form>
                 </td>
             |]
@@ -345,27 +337,82 @@ renderTotalHoursRow :: TotalHoursRow -> Html
 renderTotalHoursRow TotalHoursRow {..} =
     [hsx|
         <tr class="table-active">
-            <th scope="row" colspan="8">Total Hours</th>
+            <th scope="row">Total Hours</th>
+            <td class="d-none d-md-table-cell"></td>
+            <td></td>
+            <td class="d-none d-md-table-cell"></td>
+            <td class="d-none d-md-table-cell"></td>
+            <td class="d-none d-md-table-cell"></td>
+            <td class="d-none d-md-table-cell"></td>
+            <td class="d-none d-md-table-cell"></td>
             <td>{totalHours}</td>
         </tr>
     |]
+
+renderColumnNavigation :: Column -> Html
+renderColumnNavigation currentColumn =
+    [hsx|
+        <ul class="bottom-nav m-0 p-0 border-top bg-light d-flex">
+            <li class="bottom-nav-item flex-even border-right d-flex justify-content-center">
+                <a class={"bottom-nav-link text-center " <> linkClass PeopleColumn} href="#people">People</a>
+            </li>
+            <li class="bottom-nav-item flex-even border-left d-flex justify-content-center">
+                <a class={"bottom-nav-link text-center " <> linkClass TimecardsColumn} href="#timecards">Timecards</a>
+            </li>
+        </ul>
+    |]
+  where
+    linkClass column = if column == currentColumn then "text-dark" :: Text else "text-muted"
 
 styles :: Html
 styles =
     [hsx|
         <style>
+            @media only screen and (min-width: 1200px) {
+                :root {
+                    --bottom-nav-height: 0rem;
+                    --browser-nav-height: 0rem;
+                }
+            }
+
+            @media only screen and (max-width: 1200px) {
+                :root {
+                    --bottom-nav-height: 3rem;
+                    --browser-nav-height: 7rem;
+                }
+            }
+
             :root {
                 --top-nav-height: 7.25rem;
+                --total-nav-height: calc(var(--top-nav-height) + var(--bottom-nav-height) + var(--browser-nav-height));
+                --screen-height: 100vh;
+            }
+
+            .bottom-nav {
+                height: var(--bottom-nav-height);
+            }
+
+            .bottom-nav-item {
+                list-style-type: none;
+            }
+
+            .bottom-nav-link {
+                width: 100%;
+                line-height: 2.5rem;
+            }
+
+            .browser-nav {
+                height: var(--browser-nav-height);
             }
 
             .people-list {
-                height: calc(100vh - var(--top-nav-height));
+                height: calc(var(--screen-height) - var(--total-nav-height));
                 min-width: 18.75rem;
                 overflow-y: scroll;
             }
 
-            .timecard-column {
-                height: calc(100vh - 150px);
+            .timecards-column {
+                height: calc(var(--screen-height) - var(--total-nav-height));
                 overflow-y: scroll;
                 font-size: .9rem;
             }
@@ -379,16 +426,24 @@ styles =
             }
 
             .work-done {
-                width: 300px;
+                width: 18.75rem;
             }
 
             .invoice-translation {
-                width: 300px;
+                width: 18.75rem;
             }
 
-            #timecardEntry_invoiceTranslation {
+            .invoice-translation-input.form-control {
                 font-size: .9rem;
-                height: 150px;
+                height: 9.4rem;
+            }
+
+            .flex-even {
+                flex: 1;
+            }
+
+            body {
+                overflow: hidden;
             }
         </style>
 
