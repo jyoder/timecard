@@ -7,10 +7,10 @@ import Web.View.Prelude
 import Web.View.Service.Time (formatDay, formatTimeOfDay)
 
 newtype ShowView = ShowView
-    { reviewStatus :: ReviewStatus
+    { review :: Review
     }
 
-data ReviewStatus
+data Review
     = ReviewNotFound
     | ReviewExpired
     | ReviewFound
@@ -20,12 +20,142 @@ data ReviewStatus
         , signing :: !Signing
         }
 
+data ReviewStatus
+    = ReviewNotFoundStatus
+    | ReviewExpiredStatus
+    | ReviewFoundStatus
+        { firstName :: !Text
+        , lastName :: !Text
+        , weekOf :: !Text
+        , timecardEntryCards :: ![TimecardEntryCard]
+        , totalHoursCard :: !TotalHoursCard
+        , signatureBlock :: !SignatureBlock
+        }
+    deriving (Eq, Show)
+
+data TimecardEntryCard = TimecardEntryCard
+    { day :: !Text
+    , date :: !Text
+    , hoursWorked :: !Text
+    , jobName :: !Text
+    , clockDetails :: !ClockDetails
+    , workDone :: !Text
+    }
+    deriving (Eq, Show)
+
+newtype TotalHoursCard = TotalHoursCard
+    { totalHours :: Text
+    }
+    deriving (Eq, Show)
+
+data ClockDetails
+    = ClockDetails
+        { clockedInAt :: !Text
+        , clockedOutAt :: !Text
+        , lunchDuration :: !Text
+        }
+    | NoClockDetails
+    deriving (Eq, Show)
+
+data SignatureBlock
+    = NotSigned
+        { signatureForm :: !SignatureForm
+        }
+    | Signed
+        { completedSignature :: !CompletedSignature
+        }
+    deriving (Eq, Show)
+
+data SignatureForm = SignatureForm
+    { signing :: !Signing
+    , signAction :: !TimecardReviewsController
+    , accessToken :: !Text
+    }
+    deriving (Eq, Show)
+
+data CompletedSignature = CompletedSignature
+    { signedBy :: !Text
+    , signedAt :: !Text
+    , ipAddress :: !Text
+    }
+    deriving (Show, Eq)
+
 instance View ShowView where
-    html ShowView {..} =
-        [hsx|
-            {renderNavigation}
-            {renderReview reviewStatus}
-        |]
+    html ShowView {..} = buildReviewStatus review |> renderReviewPage
+
+buildReviewStatus :: Review -> ReviewStatus
+buildReviewStatus ReviewNotFound = ReviewNotFoundStatus
+buildReviewStatus ReviewExpired = ReviewExpiredStatus
+buildReviewStatus ReviewFound {..} =
+    ReviewFoundStatus
+        { firstName = get #firstName person
+        , lastName = get #lastName person
+        , weekOf = formatDay $ get #weekOf timecard
+        , timecardEntryCards = buildTimecardEntryCards timecard
+        , totalHoursCard = buildTotalHoursCard timecard
+        , signatureBlock = buildSignatureBlock accessToken signing
+        }
+
+buildTimecardEntryCards :: V.Timecard -> [TimecardEntryCard]
+buildTimecardEntryCards V.Timecard {..} = buildTimecardEntryCard <$> entries
+
+buildTimecardEntryCard :: V.TimecardEntry -> TimecardEntryCard
+buildTimecardEntryCard timecardEntry =
+    let V.TimecardEntry {..} = timecardEntry
+     in TimecardEntryCard
+            { day = show $ dayOfWeek date
+            , date = formatDay date
+            , hoursWorked = show hoursWorked
+            , jobName = jobName
+            , clockDetails = buildClockDetails timecardEntry
+            , workDone = workDone
+            }
+
+buildClockDetails :: V.TimecardEntry -> ClockDetails
+buildClockDetails V.TimecardEntry {..} =
+    case (clockedInAt, clockedOutAt, lunchDuration) of
+        (Just clockedInAt, Just clockedOutAt, Just lunchDuration) ->
+            ClockDetails
+                { clockedInAt = formatTimeOfDay clockedInAt
+                , clockedOutAt = formatTimeOfDay clockedOutAt
+                , lunchDuration = show lunchDuration
+                }
+        _ -> NoClockDetails
+
+buildTotalHoursCard :: V.Timecard -> TotalHoursCard
+buildTotalHoursCard V.Timecard {..} =
+    TotalHoursCard
+        { totalHours = show $ sum $ get #hoursWorked <$> entries
+        }
+
+buildSignatureBlock :: AccessToken -> Signing -> SignatureBlock
+buildSignatureBlock accessToken signing =
+    if isNew signing
+        then NotSigned $ buildSignatureForm accessToken signing
+        else Signed $ buildCompletedSignature signing
+
+buildSignatureForm :: AccessToken -> Signing -> SignatureForm
+buildSignatureForm accessToken signing =
+    SignatureForm
+        { signing = signing
+        , signAction = CreateSigningAction
+        , accessToken = get #value accessToken
+        }
+
+buildCompletedSignature :: Signing -> CompletedSignature
+buildCompletedSignature signing =
+    CompletedSignature
+        { signedAt = show $ get #signedAt signing
+        , signedBy = get #name signing
+        , ipAddress = get #ipAddress signing
+        }
+
+renderReviewPage :: ReviewStatus -> Html
+renderReviewPage reviewStatus =
+    [hsx|
+        {renderNavigation}
+        {renderReviewStatus reviewStatus}
+    |]
 
 renderNavigation :: Html
 renderNavigation =
@@ -33,7 +163,7 @@ renderNavigation =
         <nav class="navbar navbar-expand navbar-light bg-light">
             <div class="container-fluid">
                 <span class="navbar-brand mb-0 h1" href="#">Constructable</span>
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <div class="collapse navbar-collapse">
                     <ul class="navbar-nav mb-0">
                         <li class="nav-item">
                             <span class="nav-link active" aria-current="true">
@@ -46,31 +176,20 @@ renderNavigation =
         </nav>
     |]
 
-renderReview :: ReviewStatus -> Html
-renderReview reviewStatus = do
-    case reviewStatus of
-        ReviewNotFound -> renderNotFound
-        ReviewExpired -> renderExpired
-        ReviewFound {..} -> renderFound person timecard accessToken signing
-
-renderNotFound :: Html
-renderNotFound =
+renderReviewStatus :: ReviewStatus -> Html
+renderReviewStatus ReviewNotFoundStatus =
     [hsx|
         <div class="alert alert-dark d-flex justify-content-center" role="alert">
             Sorry, this link doesn't look valid. Just text us and we'll send you a new one!
         </div>
     |]
-
-renderExpired :: Html
-renderExpired =
+renderReviewStatus ReviewExpiredStatus =
     [hsx|
-        <div class="alert alert-dark" role="alert">
+        <div class="alert alert-dark d-flex justify-content-center" role="alert">
             Sorry, this link has expired. Just text us and we'll send you a new one!
         </div>
     |]
-
-renderFound :: Person -> V.Timecard -> AccessToken -> Signing -> Html
-renderFound person timecard accessToken signing =
+renderReviewStatus ReviewFoundStatus {..} =
     [hsx|
         <div>
             <h1 class="mb-4">Review and sign</h1>
@@ -83,52 +202,44 @@ renderFound person timecard accessToken signing =
                 {firstName} {lastName}
             </h3>
             <h3 class="mb-5">
-                Week of {formatDay $ get #weekOf timecard}
+                Week of {weekOf}
             </h3>
             <div class="col-sm-12 col-lg-6">
-                {renderTimecardEntries timecard}
-                {renderTotalHours timecard}
-                {renderSignatureBlock accessToken signing}
+                {renderTimecardEntryCards timecardEntryCards}
+                {renderTotalHoursCard totalHoursCard}
+                {renderSignatureBlock signatureBlock}
             </div>
         </div>
     |]
-  where
-    lastName = get #lastName person
-    firstName = get #firstName person
 
-renderTimecardEntries :: V.Timecard -> Html
-renderTimecardEntries V.Timecard {..} =
+renderTimecardEntryCards :: [TimecardEntryCard] -> Html
+renderTimecardEntryCards timecardEntryCards =
     [hsx|
         <ul class="list-group">
-            {forEach entries renderTimecardEntry}
+            {forEach timecardEntryCards renderTimecardEntryCard}
         </ul>
     |]
 
-renderTimecardEntry :: V.TimecardEntry -> Html
-renderTimecardEntry timecardEntry =
+renderTimecardEntryCard :: TimecardEntryCard -> Html
+renderTimecardEntryCard TimecardEntryCard {..} =
     [hsx|
         <div class="card mb-4">
             <h5 class="card-header">
-                {dayOfWeek date} - {formatDay date}
+                {day} - {date}
             </h5>
 
             <div class="card-body">
                 <h5 class="card-title">{hoursWorked} hours - {jobName}</h5>
                 <div class="card-text">
-                    {renderClockInfo timecardEntry}
+                    {renderClockDetails clockDetails}
                     <p>{workDone}</p>
                 </div>
             </div>
         </div>
     |]
-  where
-    date = get #date timecardEntry
-    jobName = get #jobName timecardEntry
-    hoursWorked = get #hoursWorked timecardEntry
-    workDone = get #workDone timecardEntry
 
-renderTotalHours :: V.Timecard -> Html
-renderTotalHours timecard =
+renderTotalHoursCard :: TotalHoursCard -> Html
+renderTotalHoursCard TotalHoursCard {..} =
     [hsx|
         <div class="card mb-4">
             <h5 class="card-header">
@@ -140,40 +251,33 @@ renderTotalHours timecard =
             </div>
         </div>
     |]
-  where
-    totalHours = sum hours
-    hours = get #hoursWorked <$> entries
-    entries = get #entries timecard
 
-renderClockInfo :: V.TimecardEntry -> Html
-renderClockInfo V.TimecardEntry {..} =
-    case (clockedInAt, clockedOutAt, lunchDuration) of
-        (Just clockedInAt, Just clockedOutAt, Just lunchDuration) ->
-            [hsx|
-                <p>
-                    {formatTimeOfDay clockedInAt}-{formatTimeOfDay clockedOutAt} ({show lunchDuration} min lunch)
-                </p>
-            |]
-        _ -> [hsx||]
+renderClockDetails :: ClockDetails -> Html
+renderClockDetails ClockDetails {..} =
+    [hsx| <p>{clockedInAt}-{clockedOutAt} ({lunchDuration} min lunch)</p> |]
+renderClockDetails NoClockDetails =
+    [hsx||]
 
-renderSignatureBlock :: AccessToken -> Signing -> Html
-renderSignatureBlock accessToken signing =
+renderSignatureBlock :: SignatureBlock -> Html
+renderSignatureBlock signatureBlock =
     [hsx|
         <div class="card mb-4">
             <div class="card-body">
                 <h5 class="card-title">Signature</h5>
-                {if isNew signing
-                    then renderSignatureForm accessToken signing
-                    else renderSignatureComplete signing}
+                    {renderSignatureBlock' signatureBlock}
             </div>
         </div>
     |]
 
-renderSignatureForm :: AccessToken -> Signing -> Html
-renderSignatureForm accessToken signing =
+renderSignatureBlock' :: SignatureBlock -> Html
+renderSignatureBlock' NotSigned {..} = renderSignatureForm' signatureForm
+renderSignatureBlock' Signed {..} = renderCompletedSignature completedSignature
+
+renderSignatureForm' :: SignatureForm -> Html
+renderSignatureForm' SignatureForm {..} =
     formFor'
         signing
-        (pathTo CreateSigningAction)
+        (pathTo signAction)
         [hsx|
             <p class="mb-4">I've reviewed the timecard above and it's all correct:</p>
 
@@ -185,32 +289,19 @@ renderSignatureForm accessToken signing =
                 , fieldInput = (\fieldInput -> H.input ! A.autocomplete "off") 
                 }}
             
-            <input 
-                type="hidden"
-                name="accessTokenValue"
-                id="accessTokenValue"
-                value={get #value accessToken}
-            />
+            <input type="hidden" name="accessTokenValue" value={accessToken}/>
 
             {submitButton { label = "Sign"}}
         |]
 
-renderSignatureComplete :: Signing -> Html
-renderSignatureComplete signing =
+renderCompletedSignature :: CompletedSignature -> Html
+renderCompletedSignature CompletedSignature {..} =
     [hsx|
         <p class="alert alert-success" role="alert">
             This timecard has been successfully signed! You are all done and can close this window.
         </p>
 
-        <p>
-            <strong>Signed by:</strong> {get #name signing}
-        </p>
-        <p>
-            <strong>Signed at:</strong> {get #signedAt signing}
-        </p>
-        <p>
-            <strong>IP address:</strong> {get #ipAddress signing}
-        </p>
+        <p><strong>Signed by:</strong> {signedBy}</p>
+        <p><strong>Signed at:</strong> {signedAt}</p>
+        <p><strong>IP address:</strong> {ipAddress}</p>
     |]
-  where
-    signedAt = get #signedAt signing

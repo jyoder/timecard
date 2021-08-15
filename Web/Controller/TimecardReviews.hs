@@ -19,7 +19,7 @@ instance Controller TimecardReviewsController where
             query @AccessToken
                 |> filterWhere (#value, accessToken)
                 |> fetchOneOrNothing
-        reviewStatus <- case maybeAccessToken of
+        review <- case maybeAccessToken of
             Just accessToken -> do
                 now <- getCurrentTime
                 if AccessToken.isValidAsOf now accessToken
@@ -87,7 +87,7 @@ instance Controller TimecardReviewsController where
                 |> Signing.validate
                 |> ifValid \case
                     Left signing ->
-                        let reviewStatus = ReviewFound {..}
+                        let review = ReviewFound {..}
                          in render ShowView {..}
                     Right signing -> do
                         signing <- createRecord signing
