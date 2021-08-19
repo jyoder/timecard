@@ -71,6 +71,7 @@ ALTER TABLE public.phone_contacts ENABLE TRIGGER ALL;
 
 ALTER TABLE public.process_events_jobs DISABLE TRIGGER ALL;
 
+INSERT INTO public.process_events_jobs (id, created_at, updated_at, status, last_error, attempts_count, locked_at, locked_by) VALUES ('cc7045f4-7560-472f-afe7-d1a54957aced', '2021-08-18 21:46:22.11693-07', '2021-08-18 21:47:22.194597-07', 'job_status_running', NULL, 1, '2021-08-18 21:46:22.142597-07', '82124be5-4f71-4e58-a4f2-f64d8320a33c');
 
 
 ALTER TABLE public.process_events_jobs ENABLE TRIGGER ALL;
@@ -133,20 +134,20 @@ ALTER TABLE public.timecard_signings ENABLE TRIGGER ALL;
 
 ALTER TABLE public.users DISABLE TRIGGER ALL;
 
-INSERT INTO public.users (id, email, password_hash, locked_at, failed_login_attempts, created_at, updated_at) VALUES ('aa267118-f73f-45ab-9644-5705f21070e7', 'test@company.com', 'sha256|17|V6JGPzE2wOfao5X6hI+QPA==|5/99LLTnfGArcvfziM8eIvlOMN/syoKpKvvW3NaRBvM=', NULL, 0, '2021-06-10 22:27:20.261931-07', '2021-06-11 10:53:14.096509-07');
+INSERT INTO public.users (id, email, password_hash, locked_at, failed_login_attempts, created_at, updated_at) VALUES ('aa267118-f73f-45ab-9644-5705f21070e7', 'test@company.com', 'sha256|17|V6JGPzE2wOfao5X6hI+QPA==|5/99LLTnfGArcvfziM8eIvlOMN/syoKpKvvW3NaRBvM=', NULL, 0, '2021-06-10 22:27:20.261931-07', '2021-08-11 13:23:01.92718-07');
 
 
 ALTER TABLE public.users ENABLE TRIGGER ALL;
 
 
-ALTER TABLE public.worker_preferences DISABLE TRIGGER ALL;
+ALTER TABLE public.worker_settings DISABLE TRIGGER ALL;
 
-INSERT INTO public.worker_preferences (id, created_at, updated_at, person_id, send_daily_reminder_at) VALUES ('ade22074-a9a7-4ac1-80b9-a7b92eb40504', '2021-06-24 18:56:06.349431-07', '2021-06-24 18:56:06.349431-07', 'c8a20c60-1c95-4a9e-bb6a-57ca2670115d', '19:00:00');
-INSERT INTO public.worker_preferences (id, created_at, updated_at, person_id, send_daily_reminder_at) VALUES ('9652722d-5227-4c39-92f5-4adb32f6d5a6', '2021-06-24 18:57:37.004369-07', '2021-06-24 18:57:37.004369-07', '6e41e1a0-7f59-4195-ad39-546fcf1e6b79', '00:15:30');
-INSERT INTO public.worker_preferences (id, created_at, updated_at, person_id, send_daily_reminder_at) VALUES ('a4fad215-6ac9-437b-bc8d-b7a5b32275a6', '2021-06-24 18:57:59.718703-07', '2021-06-24 18:57:59.718703-07', 'cfce1f7b-7617-4c5d-8349-e6640378e01e', '00:15:30');
-INSERT INTO public.worker_preferences (id, created_at, updated_at, person_id, send_daily_reminder_at) VALUES ('23885399-9925-48dd-b922-41ff619eb0cd', '2021-06-24 18:58:16.658285-07', '2021-06-24 18:58:16.658285-07', '4383aa8e-d200-45cb-9c8e-0090f14457ef', '00:15:30');
+INSERT INTO public.worker_settings (id, created_at, updated_at, person_id, send_daily_reminder_at) VALUES ('ade22074-a9a7-4ac1-80b9-a7b92eb40504', '2021-06-24 18:56:06.349431-07', '2021-06-24 18:56:06.349431-07', 'c8a20c60-1c95-4a9e-bb6a-57ca2670115d', '19:00:00');
+INSERT INTO public.worker_settings (id, created_at, updated_at, person_id, send_daily_reminder_at) VALUES ('9652722d-5227-4c39-92f5-4adb32f6d5a6', '2021-06-24 18:57:37.004369-07', '2021-06-24 18:57:37.004369-07', '6e41e1a0-7f59-4195-ad39-546fcf1e6b79', '00:15:30');
+INSERT INTO public.worker_settings (id, created_at, updated_at, person_id, send_daily_reminder_at) VALUES ('a4fad215-6ac9-437b-bc8d-b7a5b32275a6', '2021-06-24 18:57:59.718703-07', '2021-06-24 18:57:59.718703-07', 'cfce1f7b-7617-4c5d-8349-e6640378e01e', '00:15:30');
+INSERT INTO public.worker_settings (id, created_at, updated_at, person_id, send_daily_reminder_at) VALUES ('23885399-9925-48dd-b922-41ff619eb0cd', '2021-06-24 18:58:16.658285-07', '2021-06-24 18:58:16.658285-07', '4383aa8e-d200-45cb-9c8e-0090f14457ef', '00:15:30');
 
 
-ALTER TABLE public.worker_preferences ENABLE TRIGGER ALL;
+ALTER TABLE public.worker_settings ENABLE TRIGGER ALL;
 
 

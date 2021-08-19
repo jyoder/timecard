@@ -46,8 +46,8 @@ scheduleNextRequest ::
     IO (Maybe SendMessageAction)
 scheduleNextRequest timeZone now newEntry person fromId toId = do
     alreadyScheduled <- scheduledRequestExists toId
-    workerPreference <-
-        query @WorkerPreference
+    workerSetting <-
+        query @WorkerSetting
             |> filterWhere (#personId, get #id person)
             |> fetchOne
     timecardEntryRows <-
@@ -55,7 +55,7 @@ scheduleNextRequest timeZone now newEntry person fromId toId = do
             Timecard.Query.EntriesDateDescending
             (get #id person)
 
-    let sendTimeOfDay = get #sendDailyReminderAt workerPreference
+    let sendTimeOfDay = get #sendDailyReminderAt workerSetting
     let timecardEntryDays = get #timecardEntryDate <$> timecardEntryRows
     let body = requestBody person newEntry
     let maybeSendAt =

@@ -110,12 +110,12 @@ data TimecardReviewsController
     | CreateSigningAction
     deriving (Eq, Show, Data)
 
-data WorkerPreferencesController
-    = WorkerPreferencesAction
-    | NewWorkerPreferenceAction
-    | ShowWorkerPreferenceAction {workerPreferenceId :: !(Id WorkerPreference)}
-    | CreateWorkerPreferenceAction
-    | EditWorkerPreferenceAction {workerPreferenceId :: !(Id WorkerPreference)}
-    | UpdateWorkerPreferenceAction {workerPreferenceId :: !(Id WorkerPreference)}
-    | DeleteWorkerPreferenceAction {workerPreferenceId :: !(Id WorkerPreference)}
+data WorkerSettingsController
+    = WorkerSettingsAction
+    | NewWorkerSettingAction
+    | ShowWorkerSettingAction {workerSettingId :: !(Id WorkerSetting)}
+    | CreateWorkerSettingAction
+    | EditWorkerSettingAction {workerSettingId :: !(Id WorkerSetting)}
+    | UpdateWorkerSettingAction {workerSettingId :: !(Id WorkerSetting)}
+    | DeleteWorkerSettingAction {workerSettingId :: !(Id WorkerSetting)}
     deriving (Eq, Show, Data)

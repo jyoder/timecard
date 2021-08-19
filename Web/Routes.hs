@@ -14,4 +14,4 @@ instance AutoRoute CommunicationsController
 instance AutoRoute TwilioCallbacksController
 instance AutoRoute TimecardsController
 instance AutoRoute TimecardReviewsController
-instance AutoRoute WorkerPreferencesController
+instance AutoRoute WorkerSettingsController

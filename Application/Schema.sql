@@ -139,7 +139,7 @@ CREATE TABLE timecard_signings (
     signing_id UUID NOT NULL,
     UNIQUE(timecard_id, signing_id)
 );
-CREATE TABLE worker_preferences (
+CREATE TABLE worker_settings (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
@@ -197,7 +197,7 @@ CREATE INDEX timecard_access_tokens_timecard_id_index ON timecard_access_tokens 
 CREATE INDEX timecard_access_tokens_access_token_id_index ON timecard_access_tokens (access_token_id);
 CREATE INDEX timecard_signings_timecard_id_index ON timecard_signings (timecard_id);
 CREATE INDEX timecard_signings_signing_id_index ON timecard_signings (signing_id);
-CREATE INDEX worker_preferences_person_id_index ON worker_preferences (person_id);
+CREATE INDEX worker_settings_person_id_index ON worker_settings (person_id);
 CREATE FUNCTION trigger_set_updated_at() RETURNS TRIGGER AS $$
 BEGIN
   NEW.updated_at = NOW();
@@ -220,7 +220,7 @@ CREATE TRIGGER set_updated_at BEFORE UPDATE ON access_tokens FOR EACH ROW EXECUT
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON timecard_access_tokens FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON signings FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON timecard_signings FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
-CREATE TRIGGER set_updated_at BEFORE UPDATE ON worker_preferences FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
+CREATE TRIGGER set_updated_at BEFORE UPDATE ON worker_settings FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
 ALTER TABLE action_run_times ADD CONSTRAINT action_run_times_ref_action_run_state_id FOREIGN KEY (action_run_state_id) REFERENCES action_run_states (id) ON DELETE NO ACTION;
 ALTER TABLE phone_contacts ADD CONSTRAINT phone_contacts_ref_person_id FOREIGN KEY (person_id) REFERENCES people (id) ON DELETE NO ACTION;
 ALTER TABLE phone_contacts ADD CONSTRAINT phone_contacts_ref_phone_number_id FOREIGN KEY (phone_number_id) REFERENCES phone_numbers (id) ON DELETE NO ACTION;
@@ -237,4 +237,4 @@ ALTER TABLE timecard_signings ADD CONSTRAINT timecard_signings_ref_timecard_id F
 ALTER TABLE timecards ADD CONSTRAINT timecards_ref_person_id FOREIGN KEY (person_id) REFERENCES people (id) ON DELETE NO ACTION;
 ALTER TABLE twilio_messages ADD CONSTRAINT twilio_messages_ref_from_id FOREIGN KEY (from_id) REFERENCES phone_numbers (id) ON DELETE NO ACTION;
 ALTER TABLE twilio_messages ADD CONSTRAINT twilio_messages_ref_to_id FOREIGN KEY (to_id) REFERENCES phone_numbers (id) ON DELETE NO ACTION;
-ALTER TABLE worker_preferences ADD CONSTRAINT worker_preferences_ref_person_id FOREIGN KEY (person_id) REFERENCES people (id) ON DELETE NO ACTION;
+ALTER TABLE worker_settings ADD CONSTRAINT worker_settings_ref_person_id FOREIGN KEY (person_id) REFERENCES people (id) ON DELETE NO ACTION;

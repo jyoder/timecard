@@ -309,7 +309,7 @@ spec = do
                     |> set #personId (get #id ron)
                     |> createRecord
 
-                newRecord @WorkerPreference
+                newRecord @WorkerSetting
                     |> set #personId (get #id ron)
                     |> set #sendDailyReminderAt (read "15:30:00")
                     |> createRecord
@@ -377,7 +377,7 @@ spec = do
                     |> set #personId (get #id ron)
                     |> createRecord
 
-                newRecord @WorkerPreference
+                newRecord @WorkerSetting
                     |> set #personId (get #id ron)
                     |> set #sendDailyReminderAt (read "15:30:00")
                     |> createRecord
