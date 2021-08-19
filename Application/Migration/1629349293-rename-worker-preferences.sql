@@ -10,7 +10,7 @@ drop index if exists "public"."worker_preferences_person_id_index";
 
 drop index if exists "public"."worker_preferences_pkey";
 
-alter table "public"."worker_preferences" rename to "public"."worker_settings";
+alter table "public"."worker_preferences" rename to worker_settings;
 
 create index worker_settings_person_id_index on public.worker_settings using btree (person_id);
 
