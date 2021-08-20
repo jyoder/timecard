@@ -13,23 +13,23 @@ defaultLayout :: Html -> Html
 defaultLayout inner =
     H.docTypeHtml ! A.lang "en" $
         [hsx|
-<head>
-    {metaTags}
+            <head>
+                {metaTags}
 
-    {stylesheets}
-    {scripts}
+                {stylesheets}
+                {scripts}
 
-    {fullStoryIfProduction}
+                {fullStoryIfProduction}
 
-    <title>Constructable</title>
-</head>
-<body>
-    <div class="content container-fluid p-0 m-0">
-        {renderFlashMessages}
-        {inner}
-    </div>
-</body>
-|]
+                <title>Constructable</title>
+            </head>
+            <body>
+                <div class="content container-fluid p-0 m-0">
+                    {renderFlashMessages}
+                    {inner}
+                </div>
+            </body>
+        |]
 
 stylesheets :: Html
 stylesheets =
@@ -60,23 +60,32 @@ scripts =
 metaTags :: Html
 metaTags =
     [hsx|
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
-    <meta property="og:title" content="App"/>
-    <meta property="og:type" content="website"/>
-    <meta property="og:url" content="TODO"/>
-    <meta property="og:description" content="TODO"/>
-    {autoRefreshMeta}
-|]
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+        <meta property="og:title" content="App"/>
+        <meta property="og:type" content="website"/>
+        <meta property="og:url" content="TODO"/>
+        <meta property="og:description" content="TODO"/>
+        {autoRefreshMeta}
+    |]
 
 fullStoryIfProduction :: Html
 fullStoryIfProduction =
     if fromConfig environment == Production
-        then fullStory
-        else [hsx| |]
+        then fullStoryBase
+        else [hsx||]
 
 fullStory :: Html
 fullStory =
+    [hsx|
+        {fullStoryBase}
+        {fullStoryUser maybeUser}
+    |]
+  where
+    maybeUser = maybeFromFrozenContext @User
+
+fullStoryBase :: Html
+fullStoryBase =
     [hsx|
         <script>
             window['_fs_debug'] = false;
@@ -103,3 +112,17 @@ fullStory =
             })(window,document,window['_fs_namespace'],'script','user');
         </script>
     |]
+
+fullStoryUser :: Maybe User -> Html
+fullStoryUser (Just user) =
+    [hsx|
+        <script data-user-id={userId} data-user-email={userEmail}>
+            FS.identify(document.currentScript.dataset.userId, {
+                email: document.currentScript.dataset.userEmail
+            });
+        </script>
+    |]
+  where
+    userId = show $ get #id user
+    userEmail = show $ get #email user
+fullStoryUser Nothing = [hsx||]
