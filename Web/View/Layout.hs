@@ -72,17 +72,15 @@ metaTags =
 fullStoryIfProduction :: Html
 fullStoryIfProduction =
     if fromConfig environment == Production
-        then fullStory
-        else [hsx||]
+        then [hsx| {fullStory} |]
+        else [hsx|{fullStory}|]
 
 fullStory :: Html
 fullStory =
     [hsx|
         {fullStoryBase}
-        {fullStoryUser maybeUser}
+        {fullStoryUser currentUserOrNothing}
     |]
-  where
-    maybeUser = maybeFromFrozenContext @User
 
 fullStoryBase :: Html
 fullStoryBase =
