@@ -122,5 +122,5 @@ fullStoryUser (Just user) =
     |]
   where
     userId = show $ get #id user
-    userEmail = show $ get #email user
+    userEmail = get #email user
 fullStoryUser Nothing = [hsx||]
