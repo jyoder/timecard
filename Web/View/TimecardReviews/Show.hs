@@ -30,6 +30,7 @@ data ReviewStatus
         , timecardEntryCards :: ![TimecardEntryCard]
         , totalHoursCard :: !TotalHoursCard
         , signatureBlock :: !SignatureBlock
+        , fullStoryScript :: !FullStoryScript
         }
     deriving (Eq, Show)
 
@@ -80,8 +81,14 @@ data CompletedSignature = CompletedSignature
     }
     deriving (Show, Eq)
 
+data FullStoryScript = FullStoryScript
+    { personId :: !Text
+    , displayName :: !Text
+    }
+    deriving (Show, Eq)
+
 instance View ShowView where
-    html ShowView {..} = buildReviewStatus review |> renderReviewPage
+    html ShowView {..} = buildReviewStatus review |> renderReviewStatus
 
 buildReviewStatus :: Review -> ReviewStatus
 buildReviewStatus ReviewNotFound = ReviewNotFoundStatus
@@ -94,6 +101,7 @@ buildReviewStatus ReviewFound {..} =
         , timecardEntryCards = buildTimecardEntryCards timecard
         , totalHoursCard = buildTotalHoursCard timecard
         , signatureBlock = buildSignatureBlock accessToken signing
+        , fullStoryScript = buildFullStoryScript person
         }
 
 buildTimecardEntryCards :: V.Timecard -> [TimecardEntryCard]
@@ -150,12 +158,12 @@ buildCompletedSignature signing =
         , ipAddress = get #ipAddress signing
         }
 
-renderReviewPage :: ReviewStatus -> Html
-renderReviewPage reviewStatus =
-    [hsx|
-        {renderNavigation}
-        {renderReviewStatus reviewStatus}
-    |]
+buildFullStoryScript :: Person -> FullStoryScript
+buildFullStoryScript person =
+    FullStoryScript
+        { personId = show $ get #id person
+        , displayName = get #firstName person <> " " <> get #lastName person
+        }
 
 renderNavigation :: Html
 renderNavigation =
@@ -210,6 +218,8 @@ renderReviewStatus ReviewFoundStatus {..} =
                 {renderSignatureBlock signatureBlock}
             </div>
         </div>
+
+        {renderFullStoryScript fullStoryScript}
     |]
 
 renderTimecardEntryCards :: [TimecardEntryCard] -> Html
@@ -304,4 +314,14 @@ renderCompletedSignature CompletedSignature {..} =
         <p><strong>Signed by:</strong> {signedBy}</p>
         <p><strong>Signed at:</strong> {signedAt}</p>
         <p><strong>IP address:</strong> {ipAddress}</p>
+    |]
+
+renderFullStoryScript :: FullStoryScript -> Html
+renderFullStoryScript FullStoryScript {..} =
+    [hsx|
+        <script data-person-id={personId} data-display-name={displayName}>
+            FS.identify(document.currentScript.dataset.personId, {
+                displayName: document.currentScript.dataset.displayName
+            });
+        </script>
     |]

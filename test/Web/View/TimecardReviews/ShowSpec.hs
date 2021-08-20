@@ -117,6 +117,11 @@ spec = do
                                     , ipAddress = "192.168.1.1"
                                     }
                             }
+                    , fullStoryScript =
+                        FullStoryScript
+                            { personId = "80000000-0000-0000-0000-000000000000"
+                            , displayName = "first last"
+                            }
                     }
 
         it "returns a review not found status when the review was not found" do
@@ -329,4 +334,18 @@ spec = do
                     { signedBy = "Jack Sparrow"
                     , signedAt = "2021-08-14 10:30:05 UTC"
                     , ipAddress = "192.168.1.1"
+                    }
+
+    describe "buildFullStoryScript" do
+        it "returns a full story script based on the given parameters" do
+            let person =
+                    newRecord @Person
+                        |> set #id "10000000-0000-0000-0000-000000000000"
+                        |> set #firstName "Ralph"
+                        |> set #lastName "Nader"
+
+            buildFullStoryScript person
+                `shouldBe` FullStoryScript
+                    { personId = "10000000-0000-0000-0000-000000000000"
+                    , displayName = "Ralph Nader"
                     }
