@@ -72,7 +72,7 @@ metaTags =
 fullStoryIfProduction :: Html
 fullStoryIfProduction =
     if fromConfig environment == Production
-        then fullStoryBase
+        then fullStory
         else [hsx||]
 
 fullStory :: Html
