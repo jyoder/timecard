@@ -24,51 +24,6 @@ spec = do
                                    , "worker_settings"
                                    ]
 
-            itIO "excludes Matt Killam (TODO: this behavior temporary until we have a way to deactivate workers)" do
-                bot <-
-                    newRecord @Person
-                        |> set #firstName "Tim"
-                        |> set #lastName "Eckard"
-                        |> set #goesBy "Tim the Bot"
-                        |> createRecord
-
-                botPhoneNumber <-
-                    newRecord @PhoneNumber
-                        |> set #number "+14444444444"
-                        |> createRecord
-
-                newRecord @PhoneContact
-                    |> set #personId (get #id bot)
-                    |> set #phoneNumberId (get #id botPhoneNumber)
-                    |> createRecord
-
-                matt <-
-                    newRecord @Person
-                        |> set #firstName "Matt"
-                        |> set #lastName "Killam"
-                        |> set #goesBy "Matt"
-                        |> createRecord
-
-                workerSetting <-
-                    newRecord @WorkerSetting
-                        |> set #personId (get #id matt)
-                        |> set #isActive True
-                        |> set #sendDailyReminderAt (toTimeOfDay "12:00:00")
-                        |> createRecord
-
-                mattPhoneNumber <-
-                    newRecord @PhoneNumber
-                        |> set #number "+15555555555"
-                        |> createRecord
-
-                newRecord @PhoneContact
-                    |> set #personId (get #id matt)
-                    |> set #phoneNumberId (get #id mattPhoneNumber)
-                    |> createRecord
-
-                people <- People.Query.fetchActiveWorkers
-                people `shouldBe` []
-
             itIO "excludes inactive peole" do
                 matt <-
                     newRecord @Person
