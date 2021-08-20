@@ -2,6 +2,7 @@ module Application.People.QuerySpec where
 
 import qualified Application.Action.ActionRunState as ActionRunState
 import qualified Application.People.Query as People.Query
+import Data.Set (elems)
 import Generated.Types
 import IHP.ControllerPrelude
 import IHP.Test.Mocking
@@ -12,6 +13,17 @@ spec :: Spec
 spec = do
     describe "fetchExcludingBot" do
         beforeAll (testConfig >>= mockContext RootApplication) do
+            itIO "tracks appropriate tables" do
+                withTableReadTracker do
+                    People.Query.fetchExcludingBot
+                    trackedTables <- readIORef ?touchedTables
+                    elems trackedTables
+                        `shouldBe` [ "action_run_states"
+                                   , "people"
+                                   , "send_message_actions"
+                                   , "worker_settings"
+                                   ]
+
             itIO "excludes Matt Killam (TODO: this behavior temporary until we have a way to deactivate people)" do
                 bot <-
                     newRecord @Person
@@ -35,6 +47,41 @@ spec = do
                         |> set #firstName "Matt"
                         |> set #lastName "Killam"
                         |> set #goesBy "Matt"
+                        |> createRecord
+
+                workerSetting <-
+                    newRecord @WorkerSetting
+                        |> set #personId (get #id matt)
+                        |> set #isActive True
+                        |> set #sendDailyReminderAt (toTimeOfDay "12:00:00")
+                        |> createRecord
+
+                mattPhoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+15555555555"
+                        |> createRecord
+
+                newRecord @PhoneContact
+                    |> set #personId (get #id matt)
+                    |> set #phoneNumberId (get #id mattPhoneNumber)
+                    |> createRecord
+
+                people <- People.Query.fetchExcludingBot
+                people `shouldBe` []
+
+            itIO "excludes inactive peole" do
+                matt <-
+                    newRecord @Person
+                        |> set #firstName "George"
+                        |> set #lastName "Bush"
+                        |> set #goesBy "W"
+                        |> createRecord
+
+                workerSetting <-
+                    newRecord @WorkerSetting
+                        |> set #personId (get #id matt)
+                        |> set #isActive False
+                        |> set #sendDailyReminderAt (toTimeOfDay "12:00:00")
                         |> createRecord
 
                 mattPhoneNumber <-
@@ -75,6 +122,13 @@ spec = do
                         |> set #goesBy "Don"
                         |> createRecord
 
+                donaldWorkerSetting <-
+                    newRecord @WorkerSetting
+                        |> set #personId (get #id donald)
+                        |> set #isActive True
+                        |> set #sendDailyReminderAt (toTimeOfDay "12:00:00")
+                        |> createRecord
+
                 donaldPhoneNumber <-
                     newRecord @PhoneNumber
                         |> set #number "+15555555555"
@@ -105,6 +159,13 @@ spec = do
                         |> set #goesBy "Weiner"
                         |> createRecord
 
+                meyerWorkerSetting <-
+                    newRecord @WorkerSetting
+                        |> set #personId (get #id meyer)
+                        |> set #isActive True
+                        |> set #sendDailyReminderAt (toTimeOfDay "12:00:00")
+                        |> createRecord
+
                 meyerPhoneNumber <-
                     newRecord @PhoneNumber
                         |> set #number "+17777777777"
@@ -122,6 +183,13 @@ spec = do
                         |> set #goesBy "Don"
                         |> createRecord
 
+                duckWorkerSetting <-
+                    newRecord @WorkerSetting
+                        |> set #personId (get #id duck)
+                        |> set #isActive True
+                        |> set #sendDailyReminderAt (toTimeOfDay "12:00:00")
+                        |> createRecord
+
                 duckPhoneNumber <-
                     newRecord @PhoneNumber
                         |> set #number "+15555555555"
@@ -137,6 +205,13 @@ spec = do
                         |> set #firstName "Zoro"
                         |> set #lastName "Appleton"
                         |> set #goesBy "Z-boy"
+                        |> createRecord
+
+                appletonWorkerSetting <-
+                    newRecord @WorkerSetting
+                        |> set #personId (get #id appleton)
+                        |> set #isActive True
+                        |> set #sendDailyReminderAt (toTimeOfDay "12:00:00")
                         |> createRecord
 
                 appletonPhoneNumber <-
@@ -160,6 +235,13 @@ spec = do
                         |> set #firstName "Donald"
                         |> set #lastName "Duck"
                         |> set #goesBy "Don"
+                        |> createRecord
+
+                donaldWorkerSetting <-
+                    newRecord @WorkerSetting
+                        |> set #personId (get #id donald)
+                        |> set #isActive True
+                        |> set #sendDailyReminderAt (toTimeOfDay "12:00:00")
                         |> createRecord
 
                 donaldPhoneNumber <-
@@ -209,6 +291,13 @@ spec = do
                         |> set #goesBy "Don"
                         |> createRecord
 
+                donaldWorkerSetting <-
+                    newRecord @WorkerSetting
+                        |> set #personId (get #id donald)
+                        |> set #isActive True
+                        |> set #sendDailyReminderAt (toTimeOfDay "12:00:00")
+                        |> createRecord
+
                 donaldPhoneNumber <-
                     newRecord @PhoneNumber
                         |> set #number "+15555555555"
@@ -254,6 +343,13 @@ spec = do
                         |> set #firstName "Donald"
                         |> set #lastName "Duck"
                         |> set #goesBy "Don"
+                        |> createRecord
+
+                donaldWorkerSetting <-
+                    newRecord @WorkerSetting
+                        |> set #personId (get #id donald)
+                        |> set #isActive True
+                        |> set #sendDailyReminderAt (toTimeOfDay "12:00:00")
                         |> createRecord
 
                 donaldPhoneNumber <-
@@ -325,6 +421,13 @@ spec = do
                         |> set #firstName "Donald"
                         |> set #lastName "Duck"
                         |> set #goesBy "Don"
+                        |> createRecord
+
+                donaldWorkerSetting <-
+                    newRecord @WorkerSetting
+                        |> set #personId (get #id donald)
+                        |> set #isActive True
+                        |> set #sendDailyReminderAt (toTimeOfDay "12:00:00")
                         |> createRecord
 
                 donaldPhoneNumber <-

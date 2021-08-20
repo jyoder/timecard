@@ -34,6 +34,7 @@ instance FromRow Row where
 fetchExcludingBot :: (?modelContext :: ModelContext) => IO [Row]
 fetchExcludingBot = do
     trackTableRead "people"
+    trackTableRead "worker_settings"
     trackTableRead "action_run_states"
     trackTableRead "send_message_actions"
     sqlQuery query ()
@@ -50,6 +51,8 @@ query =
         from
             people
             inner join
+                worker_settings on (worker_settings.person_id = people.id)
+            inner join
                 phone_contacts on (phone_contacts.person_id = people.id)
             left join
                 send_message_actions on (send_message_actions.to_id = phone_contacts.phone_number_id)
@@ -60,6 +63,7 @@ query =
                 )
         where
             people.goes_by <> '#{botGoesBy}'
+            and worker_settings.is_active
             and people.first_name <> 'Matt'
             and people.last_name <> 'Killam'
         group by

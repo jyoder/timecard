@@ -22,7 +22,8 @@ renderForm workerSetting =
     formFor
         workerSetting
         [hsx|
-    {(textField #personId)}
-    {(textField #sendDailyReminderAt)}
+    {textField #personId}
+    {checkboxField #isActive}
+    {textField #sendDailyReminderAt}
     {submitButton}
 |]
