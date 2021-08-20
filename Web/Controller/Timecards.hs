@@ -23,7 +23,7 @@ instance Controller TimecardsController where
     action TimecardsAction = do
         people <-
             People.View.buildPeople
-                <$> People.Query.fetchExcludingBot
+                <$> People.Query.fetchActiveWorkers
 
         personSelection <- case people of
             firstPerson : _ -> do
@@ -46,7 +46,7 @@ instance Controller TimecardsController where
     action TimecardPersonSelectionAction {..} = do
         people <-
             People.View.buildPeople
-                <$> People.Query.fetchExcludingBot
+                <$> People.Query.fetchActiveWorkers
         selectedPerson <- fetch selectedPersonId
 
         timecards <-
@@ -63,7 +63,7 @@ instance Controller TimecardsController where
     action TimecardEditTimecardEntryAction {..} = do
         people <-
             People.View.buildPeople
-                <$> People.Query.fetchExcludingBot
+                <$> People.Query.fetchActiveWorkers
 
         selectedTimecardEntry <- fetch timecardEntryId
         selectedTimecard <- fetch (get #timecardId selectedTimecardEntry)
@@ -84,7 +84,7 @@ instance Controller TimecardsController where
     action TimecardDownloadTimecardAction {..} = do
         people <-
             People.View.buildPeople
-                <$> People.Query.fetchExcludingBot
+                <$> People.Query.fetchActiveWorkers
         timecard <-
             fromJust . Timecard.View.buildTimecard
                 <$> Timecard.Query.fetchById
@@ -124,7 +124,7 @@ instance Controller TimecardsController where
                 Left selectedTimecardEntry -> do
                     people <-
                         People.View.buildPeople
-                            <$> People.Query.fetchExcludingBot
+                            <$> People.Query.fetchActiveWorkers
                     selectedPerson <- fetch selectedPersonId
 
                     timecards <-

@@ -11,11 +11,11 @@ import Tests.Support
 
 spec :: Spec
 spec = do
-    describe "fetchExcludingBot" do
+    describe "fetchActiveWorkers" do
         beforeAll (testConfig >>= mockContext RootApplication) do
             itIO "tracks appropriate tables" do
                 withTableReadTracker do
-                    People.Query.fetchExcludingBot
+                    People.Query.fetchActiveWorkers
                     trackedTables <- readIORef ?touchedTables
                     elems trackedTables
                         `shouldBe` [ "action_run_states"
@@ -24,7 +24,7 @@ spec = do
                                    , "worker_settings"
                                    ]
 
-            itIO "excludes Matt Killam (TODO: this behavior temporary until we have a way to deactivate people)" do
+            itIO "excludes Matt Killam (TODO: this behavior temporary until we have a way to deactivate workers)" do
                 bot <-
                     newRecord @Person
                         |> set #firstName "Tim"
@@ -66,7 +66,7 @@ spec = do
                     |> set #phoneNumberId (get #id mattPhoneNumber)
                     |> createRecord
 
-                people <- People.Query.fetchExcludingBot
+                people <- People.Query.fetchActiveWorkers
                 people `shouldBe` []
 
             itIO "excludes inactive peole" do
@@ -94,7 +94,7 @@ spec = do
                     |> set #phoneNumberId (get #id mattPhoneNumber)
                     |> createRecord
 
-                people <- People.Query.fetchExcludingBot
+                people <- People.Query.fetchActiveWorkers
                 people `shouldBe` []
 
             itIO "selects everyone but the bot" do
@@ -139,7 +139,7 @@ spec = do
                     |> set #phoneNumberId (get #id donaldPhoneNumber)
                     |> createRecord
 
-                people <- People.Query.fetchExcludingBot
+                people <- People.Query.fetchActiveWorkers
 
                 people
                     `shouldBe` [ People.Query.Row
@@ -224,7 +224,7 @@ spec = do
                     |> set #phoneNumberId (get #id appletonPhoneNumber)
                     |> createRecord
 
-                people <- People.Query.fetchExcludingBot
+                people <- People.Query.fetchActiveWorkers
 
                 get #lastName <$> people
                     `shouldBe` ["Appleton", "Duck", "Meyer"]
@@ -271,7 +271,7 @@ spec = do
                     |> set #body "Hi!"
                     |> createRecord
 
-                people <- People.Query.fetchExcludingBot
+                people <- People.Query.fetchActiveWorkers
 
                 people
                     `shouldBe` [ People.Query.Row
@@ -325,7 +325,7 @@ spec = do
                     |> set #body "Hi!"
                     |> createRecord
 
-                people <- People.Query.fetchExcludingBot
+                people <- People.Query.fetchActiveWorkers
 
                 people
                     `shouldBe` [ People.Query.Row
@@ -403,7 +403,7 @@ spec = do
                     |> set #body "Hi!"
                     |> createRecord
 
-                people <- People.Query.fetchExcludingBot
+                people <- People.Query.fetchActiveWorkers
 
                 people
                     `shouldBe` [ People.Query.Row
@@ -469,7 +469,7 @@ spec = do
                     |> set #body "Hi!"
                     |> createRecord
 
-                people <- People.Query.fetchExcludingBot
+                people <- People.Query.fetchActiveWorkers
 
                 people
                     `shouldBe` [ People.Query.Row

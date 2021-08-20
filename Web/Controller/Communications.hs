@@ -28,7 +28,7 @@ instance Controller CommunicationsController where
     action CommunicationsAction = autoRefresh do
         people <-
             People.View.buildPeople
-                <$> People.Query.fetchExcludingBot
+                <$> People.Query.fetchActiveWorkers
 
         personSelection <- case people of
             firstPerson : _ -> do
@@ -59,7 +59,7 @@ instance Controller CommunicationsController where
         botId <- Person.fetchBotId
         people <-
             People.View.buildPeople
-                <$> People.Query.fetchExcludingBot
+                <$> People.Query.fetchActiveWorkers
         selectedPerson <- fetch selectedPersonId
 
         messages <- Twilio.Query.fetchByPeople botId selectedPersonId
@@ -85,7 +85,7 @@ instance Controller CommunicationsController where
         botId <- Person.fetchBotId
         people <-
             People.View.buildPeople
-                <$> People.Query.fetchExcludingBot
+                <$> People.Query.fetchActiveWorkers
         selectedPerson <- fetch selectedPersonId
 
         messages <- Twilio.Query.fetchByPeople botId selectedPersonId
@@ -119,7 +119,7 @@ instance Controller CommunicationsController where
         botId <- Person.fetchBotId
         people <-
             People.View.buildPeople
-                <$> People.Query.fetchExcludingBot
+                <$> People.Query.fetchActiveWorkers
         selectedPerson <- fetch selectedPersonId
 
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
@@ -147,7 +147,7 @@ instance Controller CommunicationsController where
         botId <- Person.fetchBotId
         people <-
             People.View.buildPeople
-                <$> People.Query.fetchExcludingBot
+                <$> People.Query.fetchActiveWorkers
         selectedPerson <- fetch selectedPersonId
 
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
@@ -188,7 +188,7 @@ instance Controller CommunicationsController where
                     ( \timecardEntry -> do
                         people <-
                             People.View.buildPeople
-                                <$> People.Query.fetchExcludingBot
+                                <$> People.Query.fetchActiveWorkers
                         messages <- Twilio.Query.fetchByPeople botId selectedPersonId
                         let selectedMessages = findSelectedMessages messages selectedMessageIds
                         scheduledMessages <-
@@ -229,7 +229,7 @@ instance Controller CommunicationsController where
                         botId <- Person.fetchBotId
                         people <-
                             People.View.buildPeople
-                                <$> People.Query.fetchExcludingBot
+                                <$> People.Query.fetchActiveWorkers
                         selectedPerson <- fetch selectedPersonId
 
                         messages <- Twilio.Query.fetchByPeople botId selectedPersonId
@@ -275,7 +275,7 @@ instance Controller CommunicationsController where
         botId <- Person.fetchBotId
         people <-
             People.View.buildPeople
-                <$> People.Query.fetchExcludingBot
+                <$> People.Query.fetchActiveWorkers
         selectedPerson <- fetch selectedPersonId
 
         messages <- Twilio.Query.fetchByPeople botId selectedPersonId

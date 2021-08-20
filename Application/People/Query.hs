@@ -1,5 +1,5 @@
 module Application.People.Query (
-    fetchExcludingBot,
+    fetchActiveWorkers,
     Row (..),
 ) where
 
@@ -31,8 +31,8 @@ instance FromRow Row where
             <*> field
             <*> field
 
-fetchExcludingBot :: (?modelContext :: ModelContext) => IO [Row]
-fetchExcludingBot = do
+fetchActiveWorkers :: (?modelContext :: ModelContext) => IO [Row]
+fetchActiveWorkers = do
     trackTableRead "people"
     trackTableRead "worker_settings"
     trackTableRead "action_run_states"
