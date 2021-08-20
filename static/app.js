@@ -38,20 +38,12 @@ function initTimePicker() {
     });
 }
 
-function initCustomTime() {
-    document.querySelectorAll('.weekday').forEach(function (elem) {
-        var date = new Date(elem.dateTime);
-        elem.innerHTML = date.toLocaleDateString([], { weekday: 'long' });
-    });
-}
-
 function initApp() {
     // For anything with class 'scroll-to-end', scroll that element to the end on page load
     scrollToEnd();
 
     // Reformat time elements based on locale whenever page changes occur
     initTime();
-    initCustomTime();
     initTimePicker();
 }
 
