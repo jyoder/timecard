@@ -144,7 +144,8 @@ CREATE TABLE worker_settings (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     person_id UUID NOT NULL,
-    send_daily_reminder_at TIME NOT NULL
+    send_daily_reminder_at TIME NOT NULL,
+    is_active BOOLEAN DEFAULT true NOT NULL
 );
 CREATE FUNCTION trigger_validate_timecard_entry_date_matches_timecard() RETURNS TRIGGER AS $$
 BEGIN
