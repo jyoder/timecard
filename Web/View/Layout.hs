@@ -73,7 +73,7 @@ fullStoryIfProduction :: Html
 fullStoryIfProduction =
     if fromConfig environment == Production
         then [hsx| {fullStory} |]
-        else [hsx|{fullStory}|]
+        else [hsx||]
 
 fullStory :: Html
 fullStory =
