@@ -116,6 +116,7 @@ fullStoryUser (Just user) =
     [hsx|
         <script data-user-id={userId} data-user-email={userEmail}>
             FS.identify(document.currentScript.dataset.userId, {
+                displayName: document.currentScript.dataset.userEmail,
                 email: document.currentScript.dataset.userEmail
             });
         </script>
