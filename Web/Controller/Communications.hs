@@ -91,9 +91,7 @@ instance Controller CommunicationsController where
         messages <- Twilio.Query.fetchByPeople botId selectedPersonId
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
 
-        -- TODO: this is a workaround to deal with a bug in AutoRoute:
-        -- https://github.com/digitallyinduced/ihp/issues/971
-        let selectedMessageIds' = fromMaybe [] (tail (textToId <$> selectedMessageIds))
+        let selectedMessageIds' = textToId <$> selectedMessageIds
         let selectedMessages = findSelectedMessages messages selectedMessageIds'
         scheduledMessages <-
             SendMessageAction.fetchNotStartedOrSuspendedByPhoneNumber
@@ -153,9 +151,7 @@ instance Controller CommunicationsController where
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
         messages <- Twilio.Query.fetchByPeople botId selectedPersonId
 
-        -- TODO: this is a workaround to deal with a bug in AutoRoute:
-        -- https://github.com/digitallyinduced/ihp/issues/971
-        let selectedMessageIds' = fromMaybe [] (tail (textToId <$> selectedMessageIds))
+        let selectedMessageIds' = textToId <$> selectedMessageIds
         let selectedMessages = findSelectedMessages messages selectedMessageIds'
         scheduledMessages <-
             SendMessageAction.fetchNotStartedOrSuspendedByPhoneNumber

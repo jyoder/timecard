@@ -323,14 +323,11 @@ buildMessageItem selectedPerson personActivity selectedMessageIds message =
                     , ..
                     }
     selectedPersonId = get #id selectedPerson
-    toggledMessageIds = show <$> dummyMessageId : if isSelected then excludeMessageId else includeMessageId
+    toggledMessageIds = show <$> if isSelected then excludeMessageId else includeMessageId
     isSelected = messageId `elem` selectedMessageIds
     excludeMessageId = filter (/= messageId) selectedMessageIds
     includeMessageId = messageId : selectedMessageIds
     messageId = get #id message
-    -- TODO: this is a workaround to deal with a bug in AutoRoute:
-    -- https://github.com/digitallyinduced/ihp/issues/971
-    dummyMessageId = "00000000-0000-0000-0000-000000000000"
 
 messageStatusClass :: Twilio.Query.Status -> Text
 messageStatusClass status =
