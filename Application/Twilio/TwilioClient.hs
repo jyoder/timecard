@@ -123,4 +123,4 @@ config =
         |> TMap.lookup @Config
         |> \case
             Just config -> config
-            Nothing -> error "Missing configuration Twilio.Config"
+            Nothing -> error "Missing configuration TwilioClient.Config"

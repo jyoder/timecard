@@ -1,4 +1,5 @@
 module Application.Service.Validation (
+    nonBlank,
     validateAndCreate,
     validateAndUpdate,
     ensureValid,
@@ -9,11 +10,12 @@ module Application.Service.Validation (
 ) where
 
 import qualified Control.Exception as Exception
-import Data.Text (unpack)
+import Data.Text (strip, unpack)
 import IHP.Controller.Param (ifValid)
 import IHP.ModelSupport
 import qualified IHP.ModelSupport as ModelSupport
 import IHP.Prelude hiding (toException)
+import IHP.ValidationSupport.Types (ValidatorResult (..))
 
 newtype ValidationException = ValidationException
     { description :: Text
@@ -23,6 +25,11 @@ newtype ValidationException = ValidationException
 instance Exception ValidationException where
     displayException ValidationException {description} =
         unpack $ "Validations failed: " <> description
+
+nonBlank :: Text -> ValidatorResult
+nonBlank text = case strip text of
+    "" -> Failure "This field cannot be blank"
+    _ -> Success
 
 validateAndCreate ::
     ( ?modelContext :: ModelContext

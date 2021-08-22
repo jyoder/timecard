@@ -4,6 +4,7 @@ module Application.Config.Config (
 
 import Application.Config.Environment (findVar, loadEnvVars)
 import qualified Application.Twilio.TwilioClient as TwilioClient
+import qualified Application.VertexAi.VertexAiClient as VertexAiClient
 import IHP.Prelude
 
 load :: IO TwilioClient.Config
@@ -28,12 +29,29 @@ buildTwilioConfig vars =
                     , statusCallbackUrl = findVar vars twilioStatusCallbackUrlVarName
                     }
 
+buildVertexAiConfig :: [(Text, Text)] -> VertexAiClient.Config
+buildVertexAiConfig vars =
+    let enableIntegrations = findVar vars timecardEnableIntegrationsVarName
+     in if enableIntegrations == "0"
+            then VertexAiClient.DisabledConfig
+            else
+                VertexAiClient.EnabledConfig
+                    { endpointRegion = findVar vars vertexAiEndpointRegionVarName
+                    , endpointProjectName = findVar vars vertexAiEndpointProjectNameVarName
+                    , endpointId = findVar vars vertexAiEndpointIdVarName
+                    , authToken = findVar vars vertexAiAuthTokenVarName
+                    }
+
 envVarNames :: [Text]
 envVarNames =
     [ timecardEnableIntegrationsVarName
     , twilioAccountIdVarName
     , twilioAuthTokenVarName
     , twilioStatusCallbackUrlVarName
+    , vertexAiEndpointRegionVarName
+    , vertexAiEndpointProjectNameVarName
+    , vertexAiEndpointIdVarName
+    , vertexAiAuthTokenVarName
     ]
 
 timecardEnableIntegrationsVarName :: Text
@@ -47,3 +65,15 @@ twilioAuthTokenVarName = "TWILIO_AUTH_TOKEN"
 
 twilioStatusCallbackUrlVarName :: Text
 twilioStatusCallbackUrlVarName = "TWILIO_STATUS_CALLBACK_URL"
+
+vertexAiEndpointRegionVarName :: Text
+vertexAiEndpointRegionVarName = "VERTEX_AI_ENDPOINT_REGION"
+
+vertexAiEndpointProjectNameVarName :: Text
+vertexAiEndpointProjectNameVarName = "VERTEX_AI_ENDPOINT_PROJECT_NAME"
+
+vertexAiEndpointIdVarName :: Text
+vertexAiEndpointIdVarName = "VERTEX_AI_ENDPOINT_ID"
+
+vertexAiAuthTokenVarName :: Text
+vertexAiAuthTokenVarName = "VERTEX_AI_AUTH_TOKEN"

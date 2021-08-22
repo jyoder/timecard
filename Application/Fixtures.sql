@@ -23,7 +23,6 @@ ALTER TABLE public.access_tokens ENABLE TRIGGER ALL;
 
 ALTER TABLE public.action_run_states DISABLE TRIGGER ALL;
 
-INSERT INTO public.action_run_states (id, created_at, updated_at, state) VALUES ('fb831066-e31a-4d09-ae14-31a4034efe35', '2021-08-18 21:59:22.845389-07', '2021-08-18 21:59:22.845389-07', 'not_started');
 
 
 ALTER TABLE public.action_run_states ENABLE TRIGGER ALL;
@@ -31,7 +30,6 @@ ALTER TABLE public.action_run_states ENABLE TRIGGER ALL;
 
 ALTER TABLE public.action_run_times DISABLE TRIGGER ALL;
 
-INSERT INTO public.action_run_times (id, created_at, updated_at, runs_at, action_run_state_id) VALUES ('0bdda1dd-f984-4310-bdcb-a61b40bedbd3', '2021-08-18 21:59:22.845389-07', '2021-08-18 21:59:22.845389-07', '2021-08-19 19:00:00-07', 'fb831066-e31a-4d09-ae14-31a4034efe35');
 
 
 ALTER TABLE public.action_run_times ENABLE TRIGGER ALL;
@@ -75,7 +73,7 @@ ALTER TABLE public.phone_contacts ENABLE TRIGGER ALL;
 
 ALTER TABLE public.process_events_jobs DISABLE TRIGGER ALL;
 
-INSERT INTO public.process_events_jobs (id, created_at, updated_at, status, last_error, attempts_count, locked_at, locked_by) VALUES ('a3ee02d9-d915-418f-bc4c-4d86d57b7c76', '2021-08-18 22:54:35.9177-07', '2021-08-18 22:55:35.944445-07', 'job_status_running', NULL, 1, '2021-08-18 22:54:35.925079-07', '7878f8d0-2d72-4eb4-8abb-cf36d29d3061');
+INSERT INTO public.process_events_jobs (id, created_at, updated_at, status, last_error, attempts_count, locked_at, locked_by) VALUES ('11ce61a9-a528-4377-a2a0-d7a4e8f84829', '2021-08-22 13:45:38.818069-07', '2021-08-22 13:55:24.436164-07', 'job_status_running', NULL, 1, '2021-08-22 13:46:24.29844-07', 'fe2dcedf-27f5-4152-9cc0-c8b597541acb');
 
 
 ALTER TABLE public.process_events_jobs ENABLE TRIGGER ALL;
@@ -83,7 +81,6 @@ ALTER TABLE public.process_events_jobs ENABLE TRIGGER ALL;
 
 ALTER TABLE public.send_message_actions DISABLE TRIGGER ALL;
 
-INSERT INTO public.send_message_actions (id, created_at, updated_at, body, from_id, to_id, action_run_state_id) VALUES ('6b527aa4-c848-4882-bd2b-b302ff48bab0', '2021-08-18 21:59:22.845389-07', '2021-08-18 21:59:22.845389-07', 'Hey John - I''ve got you at John''s Parent''s House today. Let me know what hours you worked and what you did when you have a chance. Thanks!', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'c1375981-0102-4132-8799-54f4fe3e0fbd', 'fb831066-e31a-4d09-ae14-31a4034efe35');
 
 
 ALTER TABLE public.send_message_actions ENABLE TRIGGER ALL;
@@ -140,6 +137,13 @@ ALTER TABLE public.timecard_signings DISABLE TRIGGER ALL;
 
 
 ALTER TABLE public.timecard_signings ENABLE TRIGGER ALL;
+
+
+ALTER TABLE public.twilio_message_entities DISABLE TRIGGER ALL;
+
+
+
+ALTER TABLE public.twilio_message_entities ENABLE TRIGGER ALL;
 
 
 ALTER TABLE public.users DISABLE TRIGGER ALL;

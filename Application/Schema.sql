@@ -147,6 +147,30 @@ CREATE TABLE worker_settings (
     send_daily_reminder_at TIME NOT NULL,
     is_active BOOLEAN DEFAULT true NOT NULL
 );
+CREATE TABLE vertex_ai_entity_predictions (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    vertex_ai_id TEXT NOT NULL,
+    display_name TEXT NOT NULL,
+    segment_start_offset INT NOT NULL,
+    segment_end_offset INT NOT NULL,
+    confidence DOUBLE PRECISION NOT NULL,
+    CHECK (vertex_ai_id <> '' IS NOT TRUE),
+    CHECK (display_name <> '' IS NOT TRUE),
+    CHECK (segment_start_offset >= 0),
+    CHECK (segment_end_offset >= segment_start_offset),
+    CHECK (confidence >= 0.0),
+    CHECK (confidence <= 1.0)
+);
+CREATE TABLE twilio_message_entities (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    twilio_message_id UUID NOT NULL,
+    vertex_ai_entity_prediction_id UUID NOT NULL,
+    UNIQUE(twilio_message_id, vertex_ai_entity_prediction_id)
+);
 CREATE FUNCTION trigger_validate_timecard_entry_date_matches_timecard() RETURNS TRIGGER AS $$
 BEGIN
   IF date_trunc('week', NEW.date) = (SELECT timecards.week_of FROM timecards WHERE timecards.id = NEW.timecard_id) THEN
@@ -199,6 +223,8 @@ CREATE INDEX timecard_access_tokens_access_token_id_index ON timecard_access_tok
 CREATE INDEX timecard_signings_timecard_id_index ON timecard_signings (timecard_id);
 CREATE INDEX timecard_signings_signing_id_index ON timecard_signings (signing_id);
 CREATE INDEX worker_settings_person_id_index ON worker_settings (person_id);
+CREATE INDEX twilio_message_entities_twilio_message_id_index ON twilio_message_entities (twilio_message_id);
+CREATE INDEX twilio_message_entities_vertex_ai_entity_prediction_id_index ON twilio_message_entities (vertex_ai_entity_prediction_id);
 CREATE FUNCTION trigger_set_updated_at() RETURNS TRIGGER AS $$
 BEGIN
   NEW.updated_at = NOW();
@@ -222,6 +248,8 @@ CREATE TRIGGER set_updated_at BEFORE UPDATE ON timecard_access_tokens FOR EACH R
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON signings FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON timecard_signings FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON worker_settings FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
+CREATE TRIGGER set_updated_at BEFORE UPDATE ON vertex_ai_entity_predictions FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
+CREATE TRIGGER set_updated_at BEFORE UPDATE ON twilio_message_entities FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
 ALTER TABLE action_run_times ADD CONSTRAINT action_run_times_ref_action_run_state_id FOREIGN KEY (action_run_state_id) REFERENCES action_run_states (id) ON DELETE NO ACTION;
 ALTER TABLE phone_contacts ADD CONSTRAINT phone_contacts_ref_person_id FOREIGN KEY (person_id) REFERENCES people (id) ON DELETE NO ACTION;
 ALTER TABLE phone_contacts ADD CONSTRAINT phone_contacts_ref_phone_number_id FOREIGN KEY (phone_number_id) REFERENCES phone_numbers (id) ON DELETE NO ACTION;
@@ -236,6 +264,8 @@ ALTER TABLE timecard_entry_messages ADD CONSTRAINT timecard_entry_messages_ref_t
 ALTER TABLE timecard_signings ADD CONSTRAINT timecard_signings_ref_signing_id FOREIGN KEY (signing_id) REFERENCES signings (id) ON DELETE NO ACTION;
 ALTER TABLE timecard_signings ADD CONSTRAINT timecard_signings_ref_timecard_id FOREIGN KEY (timecard_id) REFERENCES timecards (id) ON DELETE NO ACTION;
 ALTER TABLE timecards ADD CONSTRAINT timecards_ref_person_id FOREIGN KEY (person_id) REFERENCES people (id) ON DELETE NO ACTION;
+ALTER TABLE twilio_message_entities ADD CONSTRAINT twilio_message_entities_ref_vertex_ai_entity_prediction_id FOREIGN KEY (vertex_ai_entity_prediction_id) REFERENCES vertex_ai_entity_predictions (id) ON DELETE NO ACTION;
+ALTER TABLE twilio_message_entities ADD CONSTRAINT twilio_message_entities_ref_twilio_message_id FOREIGN KEY (twilio_message_id) REFERENCES twilio_messages (id) ON DELETE NO ACTION;
 ALTER TABLE twilio_messages ADD CONSTRAINT twilio_messages_ref_from_id FOREIGN KEY (from_id) REFERENCES phone_numbers (id) ON DELETE NO ACTION;
 ALTER TABLE twilio_messages ADD CONSTRAINT twilio_messages_ref_to_id FOREIGN KEY (to_id) REFERENCES phone_numbers (id) ON DELETE NO ACTION;
 ALTER TABLE worker_settings ADD CONSTRAINT worker_settings_ref_person_id FOREIGN KEY (person_id) REFERENCES people (id) ON DELETE NO ACTION;
