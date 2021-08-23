@@ -34,6 +34,13 @@ ALTER TABLE public.action_run_times DISABLE TRIGGER ALL;
 ALTER TABLE public.action_run_times ENABLE TRIGGER ALL;
 
 
+ALTER TABLE public.fetch_entity_prediction_jobs DISABLE TRIGGER ALL;
+
+
+
+ALTER TABLE public.fetch_entity_prediction_jobs ENABLE TRIGGER ALL;
+
+
 ALTER TABLE public.people DISABLE TRIGGER ALL;
 
 INSERT INTO public.people (id, created_at, updated_at, first_name, last_name, goes_by) VALUES ('5419fec4-1380-475b-a6e7-87f1ea8870a6', '2021-05-11 22:58:57.614427-07', '2021-05-11 22:58:57.614427-07', 'Tim', 'Eckard', 'Tim the Bot');
@@ -72,7 +79,7 @@ ALTER TABLE public.phone_contacts ENABLE TRIGGER ALL;
 
 ALTER TABLE public.process_events_jobs DISABLE TRIGGER ALL;
 
-INSERT INTO public.process_events_jobs (id, created_at, updated_at, status, last_error, attempts_count, locked_at, locked_by) VALUES ('120e0bc3-81bb-453a-a1aa-226a5f8415ba', '2021-08-22 16:32:20.181043-07', '2021-08-22 20:39:11.608941-07', 'job_status_running', NULL, 1, '2021-08-22 16:32:20.188135-07', '3e5e623d-7f53-4bb7-b5ca-c92099002a8b');
+INSERT INTO public.process_events_jobs (id, created_at, updated_at, status, last_error, attempts_count, locked_at, locked_by) VALUES ('a917fc25-8a86-4840-ab5f-586b10d0f97e', '2021-08-22 21:09:37.041839-07', '2021-08-22 21:09:37.056226-07', 'job_status_running', NULL, 1, '2021-08-22 21:09:37.047815-07', '27a97309-57d7-4871-ab0c-36383697a32c');
 
 
 ALTER TABLE public.process_events_jobs ENABLE TRIGGER ALL;
