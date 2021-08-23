@@ -31,7 +31,6 @@ ALTER TABLE public.action_run_states ENABLE TRIGGER ALL;
 ALTER TABLE public.action_run_times DISABLE TRIGGER ALL;
 
 
-
 ALTER TABLE public.action_run_times ENABLE TRIGGER ALL;
 
 
@@ -73,7 +72,7 @@ ALTER TABLE public.phone_contacts ENABLE TRIGGER ALL;
 
 ALTER TABLE public.process_events_jobs DISABLE TRIGGER ALL;
 
-INSERT INTO public.process_events_jobs (id, created_at, updated_at, status, last_error, attempts_count, locked_at, locked_by) VALUES ('11ce61a9-a528-4377-a2a0-d7a4e8f84829', '2021-08-22 13:45:38.818069-07', '2021-08-22 13:55:24.436164-07', 'job_status_running', NULL, 1, '2021-08-22 13:46:24.29844-07', 'fe2dcedf-27f5-4152-9cc0-c8b597541acb');
+INSERT INTO public.process_events_jobs (id, created_at, updated_at, status, last_error, attempts_count, locked_at, locked_by) VALUES ('120e0bc3-81bb-453a-a1aa-226a5f8415ba', '2021-08-22 16:32:20.181043-07', '2021-08-22 20:39:11.608941-07', 'job_status_running', NULL, 1, '2021-08-22 16:32:20.188135-07', '3e5e623d-7f53-4bb7-b5ca-c92099002a8b');
 
 
 ALTER TABLE public.process_events_jobs ENABLE TRIGGER ALL;
@@ -119,6 +118,7 @@ ALTER TABLE public.timecard_entries ENABLE TRIGGER ALL;
 ALTER TABLE public.twilio_messages DISABLE TRIGGER ALL;
 
 INSERT INTO public.twilio_messages (id, created_at, updated_at, api_version, message_sid, account_sid, messaging_service_sid, to_id, from_id, status, body, num_media) VALUES ('8bc3933a-cc0f-446c-af4b-d2539e7ff813', '2021-08-18 21:58:28.077774-07', '2021-08-18 21:58:29.477766-07', '2010-04-01', 'SMf7f1c166d3b64888959e0a2bd167b786', 'AC828cf7fa609e74ef78861e56ad166f42', NULL, 'c1375981-0102-4132-8799-54f4fe3e0fbd', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'delivered', 'Test', 0);
+INSERT INTO public.twilio_messages (id, created_at, updated_at, api_version, message_sid, account_sid, messaging_service_sid, to_id, from_id, status, body, num_media) VALUES ('04bfdc5d-94ed-4c03-acf1-f31957273311', '2021-08-22 14:35:30.205963-07', '2021-08-22 14:35:31.409934-07', '2010-04-01', 'SM91e98cecb20b412da2164e92e8e71dd2', 'AC828cf7fa609e74ef78861e56ad166f42', NULL, 'c1375981-0102-4132-8799-54f4fe3e0fbd', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'delivered', 'Hey John - I''ve got you at John''s Parent''s House today. Let me know what hours you worked and what you did when you have a chance. Thanks!', 0);
 
 
 ALTER TABLE public.twilio_messages ENABLE TRIGGER ALL;
@@ -137,6 +137,13 @@ ALTER TABLE public.timecard_signings DISABLE TRIGGER ALL;
 
 
 ALTER TABLE public.timecard_signings ENABLE TRIGGER ALL;
+
+
+ALTER TABLE public.vertex_ai_entity_predictions DISABLE TRIGGER ALL;
+
+
+
+ALTER TABLE public.vertex_ai_entity_predictions ENABLE TRIGGER ALL;
 
 
 ALTER TABLE public.twilio_message_entities DISABLE TRIGGER ALL;
