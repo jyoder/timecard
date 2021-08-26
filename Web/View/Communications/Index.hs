@@ -535,6 +535,7 @@ renderPage Page {..} =
             <div class="d-flex flex-row">
                 <div class={"mr-lg-3 flex-column " <> peopleNavigationClasses}>
                     {renderPeopleNavigation peopleNavigation}
+                    <div class="mobile-buffer d-lg-none"></div>
                 </div>
                 <div class={"flex-lg-grow-1 flex-column-reverse flex-lg-column " <> messagesColumnClasses}>
                     {renderMessagesColumn messagesColumn}
@@ -569,8 +570,9 @@ renderMessageItems messageItems scheduledMessageItems =
         <div class="list-group-flush d-flex flex-column-reverse flex-lg-column">
             {forEach messageItems renderMessageItem}
             {forEach scheduledMessageItems renderScheduledMessageItem}
-            <div class="scroll-to-pinned"></div>
+            <div class="scroll-to-pinned d-none d-lg-block"></div>
         </div>
+        <div class="mobile-buffer d-lg-none"></div>
     |]
 
 renderMessageItem :: MessageItem -> Html
@@ -701,6 +703,7 @@ renderTimecardsColumn timecardColumn =
     [hsx|
         <div class="timecards-block">
             {renderTimecardsColumn' timecardColumn}
+            <div class="mobile-buffer d-lg-none"></div>
         </div>
     |]
 
@@ -843,6 +846,7 @@ renderTimecardEntryForm TimecardEntryForm {..} =
             <button class="btn btn-primary">{submitLabel}</button>
             <a href={cancelAction} class="btn btn-secondary ml-2" role="button">Cancel</a>
         </form>
+        <div class="mobile-buffer d-lg-none"></div>
     |]
 
 renderFieldError :: Maybe Text -> Html
@@ -872,13 +876,6 @@ styles :: Html
 styles =
     [hsx|
         <style>
-            :root {
-                --top-nav-height: 7.25rem;
-                --total-nav-height: calc(var(--top-nav-height) + var(--column-nav-height));
-                --message-input-height: 7rem;
-                --screen-height: 100vh;
-            }
-
             @media only screen and (min-width: 992px) {
                 :root {
                     --column-nav-height: 0rem;
@@ -895,6 +892,13 @@ styles =
                 }
             }
 
+            :root {
+                --section-nav-height: 7.25rem;
+                --total-nav-height: calc(var(--section-nav-height) + var(--column-nav-height));
+                --message-input-height: 7rem;
+                --screen-height: 100vh;
+            }
+
             .column-nav {
                 height: var(--column-nav-height);
             }
@@ -906,6 +910,10 @@ styles =
             .column-nav-link {
                 width: 100%;
                 line-height: 2.5rem;
+            }
+
+            .mobile-buffer {
+                height: 4rem;
             }
 
             .people-list {
