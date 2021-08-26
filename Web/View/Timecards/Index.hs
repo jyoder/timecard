@@ -269,7 +269,7 @@ renderPage Page {..} =
                 <div class={"mr-lg-3 flex-column " <> peopleNavigationClasses}>
                     {renderPeopleNavigation peopleNavigation}
                 </div>
-                <div class={"ml-lg-3 flex-column " <> timecardsColumnClasses}>
+                <div class={"flex-column " <> timecardsColumnClasses}>
                     {renderTimecardsColumn timecardsColumn}
                 </div>
             </div>
