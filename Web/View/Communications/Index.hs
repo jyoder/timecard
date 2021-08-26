@@ -231,7 +231,6 @@ buildPage view =
         NoPersonSelected -> Nothing
         PersonSelected {..} -> Just selectedPerson
 
--- TODO: DRY this up
 columnClasses :: Column -> Column -> Text
 columnClasses column currentColumn =
     if currentColumn == column
