@@ -535,7 +535,6 @@ renderPage Page {..} =
             <div class="d-flex flex-row">
                 <div class={"mr-lg-3 flex-column " <> peopleNavigationClasses}>
                     {renderPeopleNavigation peopleNavigation}
-                    <div class="mobile-buffer d-lg-none"></div>
                 </div>
                 <div class={"flex-lg-grow-1 flex-column-reverse flex-lg-column " <> messagesColumnClasses}>
                     {renderMessagesColumn messagesColumn}
@@ -701,7 +700,7 @@ renderSendMessageForm SendMessageForm {..} =
 renderTimecardsColumn :: TimecardColumn -> Html
 renderTimecardsColumn timecardColumn =
     [hsx|
-        <div class="timecards-block">
+        <div class="timecards-column">
             {renderTimecardsColumn' timecardColumn}
             <div class="mobile-buffer d-lg-none"></div>
         </div>
@@ -881,7 +880,7 @@ styles =
                     --column-nav-height: 0rem;
                 }
 
-                .timecards-block {
+                .timecards-column {
                     width: 31rem;
                 }
             }
@@ -912,10 +911,6 @@ styles =
                 line-height: 2.5rem;
             }
 
-            .mobile-buffer {
-                height: 4rem;
-            }
-
             .people-list {
                 height: calc(var(--screen-height) - var(--total-nav-height));
                 min-width: 18.75rem;
@@ -932,7 +927,7 @@ styles =
                 height: var(--message-input-height);
             }
 
-            .timecards-block {
+            .timecards-column {
                 height: calc(var(--screen-height) - var(--total-nav-height));
                 overflow-y: scroll;
             }

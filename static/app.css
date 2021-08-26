@@ -12,3 +12,7 @@ a:active { text-decoration: none; }
     height: 100px;
     margin: 10px 0px 40px 0px;
 }
+
+.mobile-buffer {
+    height: 4rem;
+}
