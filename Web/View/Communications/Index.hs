@@ -886,7 +886,7 @@ styles =
             @media only screen and (max-width: 992px) {
                 :root {
                     --column-nav-height: 3rem;
-                    --mobile-browser-bar-height: 6rem;
+                    --mobile-browser-bar-height: 8rem;
                 }
             }
 
