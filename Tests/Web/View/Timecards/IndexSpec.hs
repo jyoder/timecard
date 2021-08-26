@@ -76,8 +76,8 @@ spec = do
                                     }
                                 ]
                             }
-                    , timecardColumnClasses = "d-none d-lg-flex"
-                    , timecardColumn = Index.TimecardColumnNotVisible
+                    , timecardsColumnClasses = "d-none d-lg-flex"
+                    , timecardsColumn = Index.TimecardsColumnNotVisible
                     , columnNavigation =
                         Index.ColumnNavigation
                             { peopleLinkClass = "text-dark"
@@ -138,8 +138,8 @@ spec = do
 
             let currentColumn = Index.TimecardsColumn
 
-            Index.buildTimecardColumn Index.IndexView {..}
-                `shouldBe` Index.TimecardColumnNotVisible
+            Index.buildTimecardsColumn Index.IndexView {..}
+                `shouldBe` Index.TimecardsColumnNotVisible
 
         it "returns a visible timecard column when a person has been selected" do
             let person =
@@ -192,8 +192,8 @@ spec = do
 
             let currentColumn = Index.TimecardsColumn
 
-            Index.buildTimecardColumn Index.IndexView {..}
-                `shouldBe` Index.TimecardColumnVisible
+            Index.buildTimecardsColumn Index.IndexView {..}
+                `shouldBe` Index.TimecardsColumnVisible
                     { timecardTables =
                         [ Index.TimecardTable
                             { weekOf = "06/21/2021"

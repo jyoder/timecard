@@ -53,8 +53,8 @@ data Page = Page
     , peopleNavigation :: !(PeopleNavigation CommunicationsController)
     , messagesColumnClasses :: !Text
     , messagesColumn :: !MessagesColumn
-    , timecardColumnClasses :: !Text
-    , timecardColumn :: !TimecardColumn
+    , timecardsColumnClasses :: !Text
+    , timecardsColumn :: !TimecardsColumn
     , columnNavigation :: !ColumnNavigation
     }
     deriving (Eq, Show)
@@ -107,7 +107,7 @@ newtype SendMessageForm = SendMessageForm
     }
     deriving (Eq, Show)
 
-data TimecardColumn
+data TimecardsColumn
     = TimecardList
         { timecardBlocks :: ![TimecardBlock]
         }
@@ -222,8 +222,8 @@ buildPage view =
                     (get #people view)
             , messagesColumnClasses = columnClasses MessagesColumn currentColumn
             , messagesColumn = buildMessagesColumn view
-            , timecardColumnClasses = columnClasses TimecardsColumn currentColumn
-            , timecardColumn = buildTimecardColumn view
+            , timecardsColumnClasses = columnClasses TimecardsColumn currentColumn
+            , timecardsColumn = buildTimecardsColumn view
             , columnNavigation = buildColumnNavigation personSelection currentColumn
             }
   where
@@ -380,8 +380,8 @@ buildSendMessageForm toPhoneNumber =
         { toPhoneNumberId = show $ get #id toPhoneNumber
         }
 
-buildTimecardColumn :: IndexView -> TimecardColumn
-buildTimecardColumn IndexView {..} =
+buildTimecardsColumn :: IndexView -> TimecardsColumn
+buildTimecardsColumn IndexView {..} =
     case personSelection of
         NoPersonSelected -> TimecardList []
         PersonSelected {..} ->
@@ -544,8 +544,8 @@ renderPage Page {..} =
                 <div class={"flex-lg-grow-1 flex-column-reverse flex-lg-column " <> messagesColumnClasses}>
                     {renderMessagesColumn messagesColumn}
                 </div>
-                <div class={"ml-lg-3 flex-column " <> timecardColumnClasses}>
-                    {renderTimecardsColumn timecardColumn}
+                <div class={"ml-lg-3 flex-column " <> timecardsColumnClasses}>
+                    {renderTimecardsColumn timecardsColumn}
                 </div>
             </div>
         </div>
@@ -701,17 +701,17 @@ renderSendMessageForm SendMessageForm {..} =
         </form>
     |]
 
-renderTimecardsColumn :: TimecardColumn -> Html
-renderTimecardsColumn timecardColumn =
+renderTimecardsColumn :: TimecardsColumn -> Html
+renderTimecardsColumn timecardsColumn =
     [hsx|
         <div class="timecards-column">
-            {renderTimecardsColumn' timecardColumn}
+            {renderTimecardsColumn' timecardsColumn}
         </div>
     |]
 
-renderTimecardsColumn' :: TimecardColumn -> Html
-renderTimecardsColumn' timecardColumn =
-    case timecardColumn of
+renderTimecardsColumn' :: TimecardsColumn -> Html
+renderTimecardsColumn' timecardsColumn =
+    case timecardsColumn of
         TimecardList {..} ->
             forEach timecardBlocks renderTimecardBlock
         NewTimecardEntry {..} ->

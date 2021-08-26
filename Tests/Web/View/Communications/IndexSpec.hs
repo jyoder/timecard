@@ -84,8 +84,8 @@ spec = do
                             ]
                     , messagesColumnClasses = "d-none d-lg-flex"
                     , messagesColumn = Index.MessagesColumnNotVisible
-                    , timecardColumnClasses = "d-none d-lg-flex"
-                    , timecardColumn = Index.TimecardList []
+                    , timecardsColumnClasses = "d-none d-lg-flex"
+                    , timecardsColumn = Index.TimecardList []
                     , columnNavigation =
                         Index.ColumnNavigation
                             { peopleLinkClass = "text-dark"
@@ -773,7 +773,7 @@ spec = do
 
             let currentColumn = Index.TimecardsColumn
 
-            Index.buildTimecardColumn Index.IndexView {..}
+            Index.buildTimecardsColumn Index.IndexView {..}
                 `shouldBe` Index.TimecardList
                     [ Index.TimecardBlock
                         { weekOf = "06/21/2021"
@@ -852,7 +852,7 @@ spec = do
 
             let currentColumn = Index.TimecardsColumn
 
-            Index.buildTimecardColumn Index.IndexView {..}
+            Index.buildTimecardsColumn Index.IndexView {..}
                 `shouldBe` Index.EditTimecardEntry
                     { timecardEntryForm =
                         Index.TimecardEntryForm

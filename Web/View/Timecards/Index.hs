@@ -33,15 +33,15 @@ data Page = Page
     { selectedPerson :: !(Maybe Person)
     , peopleNavigationClasses :: !Text
     , peopleNavigation :: !(PeopleNavigation TimecardsController)
-    , timecardColumnClasses :: !Text
-    , timecardColumn :: !TimecardColumn
+    , timecardsColumnClasses :: !Text
+    , timecardsColumn :: !TimecardsColumn
     , columnNavigation :: !ColumnNavigation
     }
     deriving (Eq, Show)
 
-data TimecardColumn
-    = TimecardColumnNotVisible
-    | TimecardColumnVisible
+data TimecardsColumn
+    = TimecardsColumnNotVisible
+    | TimecardsColumnVisible
         { timecardTables :: ![TimecardTable]
         }
     deriving (Eq, Show)
@@ -122,8 +122,8 @@ buildPage view =
                     )
                     selectedPerson
                     people
-            , timecardColumnClasses = columnClasses TimecardsColumn currentColumn
-            , timecardColumn = buildTimecardColumn view
+            , timecardsColumnClasses = columnClasses TimecardsColumn currentColumn
+            , timecardsColumn = buildTimecardsColumn view
             , columnNavigation = buildColumnNavigation personSelection currentColumn
             }
   where
@@ -137,12 +137,12 @@ columnClasses column currentColumn =
         then "d-flex flex-grow-1 flex-lg-grow-0"
         else "d-none d-lg-flex"
 
-buildTimecardColumn :: IndexView -> TimecardColumn
-buildTimecardColumn IndexView {..} =
+buildTimecardsColumn :: IndexView -> TimecardsColumn
+buildTimecardsColumn IndexView {..} =
     case personSelection of
-        NoPersonSelected -> TimecardColumnNotVisible
+        NoPersonSelected -> TimecardsColumnNotVisible
         PersonSelected {..} ->
-            TimecardColumnVisible
+            TimecardsColumnVisible
                 { timecardTables =
                     buildTimecardTable
                         selectedPerson
@@ -269,8 +269,8 @@ renderPage Page {..} =
                 <div class={"mr-lg-3 flex-column " <> peopleNavigationClasses}>
                     {renderPeopleNavigation peopleNavigation}
                 </div>
-                <div class={"ml-lg-3 flex-column " <> timecardColumnClasses}>
-                    {renderTimecardColumn timecardColumn}
+                <div class={"ml-lg-3 flex-column " <> timecardsColumnClasses}>
+                    {renderTimecardsColumn timecardsColumn}
                 </div>
             </div>
         </div>
@@ -278,12 +278,12 @@ renderPage Page {..} =
         {styles}
     |]
 
-renderTimecardColumn :: TimecardColumn -> Html
-renderTimecardColumn timecardColumn =
-    case timecardColumn of
-        TimecardColumnNotVisible ->
+renderTimecardsColumn :: TimecardsColumn -> Html
+renderTimecardsColumn timecardsColumn =
+    case timecardsColumn of
+        TimecardsColumnNotVisible ->
             [hsx||]
-        TimecardColumnVisible {..} ->
+        TimecardsColumnVisible {..} ->
             [hsx|
                 <div class="timecards-column m-xl-3 flex-grow-1">
                     {forEach timecardTables renderTimecardTable}
