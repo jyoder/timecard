@@ -1,7 +1,7 @@
-function scrollToEnd() {
-    let elements = $('.scroll-to-end');
+function scrollToPinned() {
+    let elements = $('.scroll-to-pinned');
     for (let i = 0; i < elements.length; i++) {
-        elements[i].scrollTop = 1000000000;
+        elements[i].scrollIntoView();
     }
 }
 
@@ -39,8 +39,8 @@ function initTimePicker() {
 }
 
 function initApp() {
-    // For anything with class 'scroll-to-end', scroll that element to the end on page load
-    scrollToEnd();
+    // For anything with class 'scroll-to-pinned', scroll to that element
+    scrollToPinned();
 
     // Reformat time elements based on locale whenever page changes occur
     initTime();

@@ -101,7 +101,6 @@ buildPage view =
             buildPeopleNavigation
                 BadgesHidden
                 TimecardPersonSelectionAction
-                (Anchor "timecards")
                 selectedPerson
                 (get #people view)
         , timecardColumn = buildTimecardColumn view

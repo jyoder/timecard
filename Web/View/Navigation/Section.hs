@@ -33,7 +33,11 @@ renderSectionNavigation currentSection selectedPerson =
         Just selectedPerson -> TimecardPersonSelectionAction (get #id selectedPerson)
         Nothing -> TimecardsAction
     communicationsAction = case selectedPerson of
-        Just selectedPerson -> CommunicationsPersonSelectionAction (get #id selectedPerson)
+        Just selectedPerson ->
+            CommunicationsPersonSelectionAction
+                { selectedPersonId = get #id selectedPerson
+                , column = Nothing
+                }
         Nothing -> CommunicationsAction
 
 renderItem :: (HasPath action) => action -> Section -> Text -> Section -> Html

@@ -54,6 +54,7 @@ data CommunicationsController
     = CommunicationsAction
     | CommunicationsPersonSelectionAction
         { selectedPersonId :: !(Id Person)
+        , column :: !(Maybe Text)
         }
     | CommunicationsNewTimecardEntryAction
         { selectedPersonId :: !(Id Person)

@@ -41,17 +41,20 @@ spec = do
 
             let personSelection = Index.NoPersonSelected
 
+            let currentColumn = Index.PeopleColumn
+
             Index.buildPage Index.IndexView {..}
                 `shouldBe` Index.Page
                     { selectedPerson = Nothing
+                    , peopleNavigationClasses = "d-flex flex-grow-1 flex-lg-grow-0"
                     , peopleNavigation =
                         PeopleNavigation
                             [ PersonItem
                                 { selectionAction =
                                     CommunicationsPersonSelectionAction
                                         { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                                        , column = Just "messages"
                                         }
-                                , anchor = "messages"
                                 , activeClass = ""
                                 , ariaCurrent = "false"
                                 , firstName = "Barbara"
@@ -66,8 +69,8 @@ spec = do
                                 { selectionAction =
                                     CommunicationsPersonSelectionAction
                                         { selectedPersonId = "20000000-0000-0000-0000-000000000000"
+                                        , column = Just "messages"
                                         }
-                                , anchor = "messages"
                                 , activeClass = ""
                                 , ariaCurrent = "false"
                                 , firstName = "Jackie"
@@ -79,9 +82,30 @@ spec = do
                                         }
                                 }
                             ]
+                    , messagesColumnClasses = "d-none d-lg-flex"
                     , messagesColumn = Index.MessagesColumnNotVisible
+                    , timecardColumnClasses = "d-none d-lg-flex"
                     , timecardColumn = Index.TimecardList []
+                    , columnNavigation =
+                        Index.ColumnNavigation
+                            { peopleLinkClass = "text-dark"
+                            , peopleAction = CommunicationsAction
+                            , messagesLinkClass = "text-muted"
+                            , messagesAction = CommunicationsAction
+                            , timecardsLinkClass = "text-muted"
+                            , timecardsAction = CommunicationsAction
+                            }
                     }
+
+    describe "columnClasses" do
+        context "when the given column is in view" do
+            it "returns classes that allow the column to expand to the whole width of the screen on mobile" do
+                Index.columnClasses Index.PeopleColumn Index.PeopleColumn
+                    `shouldBe` "d-flex flex-grow-1 flex-lg-grow-0"
+        context "when the given column is not in view" do
+            it "returns classes that hide the column on mobile" do
+                Index.columnClasses Index.PeopleColumn Index.TimecardsColumn
+                    `shouldBe` "d-none d-lg-flex"
 
     describe "buildMessagesColumn" do
         it "returns a visible messages column when a person is selected" do
@@ -171,6 +195,8 @@ spec = do
                         , personActivity = personActivity
                         }
 
+            let currentColumn = Index.TimecardsColumn
+
             Index.buildMessagesColumn Index.IndexView {..}
                 `shouldBe` Index.MessagesColumnVisible
                     { messageItems =
@@ -239,6 +265,8 @@ spec = do
             let people = [person]
 
             let personSelection = Index.NoPersonSelected
+
+            let currentColumn = Index.TimecardsColumn
 
             Index.buildMessagesColumn Index.IndexView {..}
                 `shouldBe` Index.MessagesColumnNotVisible
@@ -675,6 +703,7 @@ spec = do
                     , cancelAction =
                         CommunicationsPersonSelectionAction
                             { selectedPersonId = "50000000-0000-0000-0000-000000000000"
+                            , column = Just "messages"
                             }
                     }
 
@@ -741,6 +770,9 @@ spec = do
                                 { timecards = [timecard]
                                 }
                         }
+
+            let currentColumn = Index.TimecardsColumn
+
             Index.buildTimecardColumn Index.IndexView {..}
                 `shouldBe` Index.TimecardList
                     [ Index.TimecardBlock
@@ -817,6 +849,9 @@ spec = do
                                 , timecardActivity = Index.CreatingEntry
                                 }
                         }
+
+            let currentColumn = Index.TimecardsColumn
+
             Index.buildTimecardColumn Index.IndexView {..}
                 `shouldBe` Index.EditTimecardEntry
                     { timecardEntryForm =
@@ -852,6 +887,7 @@ spec = do
                             , cancelAction =
                                 CommunicationsPersonSelectionAction
                                     { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                                    , column = Just "timecards"
                                     }
                             }
                     }
@@ -1154,6 +1190,7 @@ spec = do
                     , cancelAction =
                         CommunicationsPersonSelectionAction
                             { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                            , column = "timecards"
                             }
                     }
 
@@ -1234,6 +1271,7 @@ spec = do
                     , cancelAction =
                         CommunicationsPersonSelectionAction
                             { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                            , column = Just "timecards"
                             }
                     }
 
@@ -1310,6 +1348,7 @@ spec = do
                     , cancelAction =
                         CommunicationsPersonSelectionAction
                             { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                            , column = Just "timecards"
                             }
                     }
 
@@ -1395,6 +1434,7 @@ spec = do
                     , cancelAction =
                         CommunicationsPersonSelectionAction
                             { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                            , column = Just "timecards"
                             }
                     }
 
@@ -1458,3 +1498,53 @@ spec = do
                         }
             Index.assembleMessageBodies "Existing text" [twilioMessage1, twilioMessage2]
                 `shouldBe` "Existing text"
+
+    describe "buildColumnNavigation" do
+        it "uses dark text for the currently selected column" do
+            let selectedPerson =
+                    newRecord @Person
+                        |> set #id "10000000-0000-0000-0000-000000000000"
+
+            let personSelection =
+                    Index.PersonSelected
+                        { selectedPerson = selectedPerson
+                        , messages = []
+                        , toPhoneNumber = newRecord @PhoneNumber
+                        , scheduledMessages = []
+                        , editingScheduledMessage = False
+                        , newMessage = newRecord @TwilioMessage
+                        , personActivity =
+                            Index.SendingMessage
+                                { timecards = []
+                                }
+                        }
+
+            Index.buildColumnNavigation personSelection Index.PeopleColumn
+                `shouldBe` Index.ColumnNavigation
+                    { peopleLinkClass = "text-dark"
+                    , peopleAction =
+                        CommunicationsPersonSelectionAction
+                            { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                            , column = Just "people"
+                            }
+                    , messagesLinkClass = "text-muted"
+                    , messagesAction =
+                        CommunicationsPersonSelectionAction
+                            { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                            , column = Just "messages"
+                            }
+                    , timecardsLinkClass = "text-muted"
+                    , timecardsAction =
+                        CommunicationsPersonSelectionAction
+                            { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                            , column = Just "timecards"
+                            }
+                    }
+
+    describe "columnToParam" do
+        it "returns 'people' for the people column" do
+            Index.columnToParam Index.PeopleColumn `shouldBe` "people"
+        it "returns 'messages' for the people column" do
+            Index.columnToParam Index.MessagesColumn `shouldBe` "messages"
+        it "returns 'timecards' for the people column" do
+            Index.columnToParam Index.TimecardsColumn `shouldBe` "timecards"

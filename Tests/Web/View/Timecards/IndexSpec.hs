@@ -64,7 +64,6 @@ spec = do
                                         TimecardPersonSelectionAction
                                             { selectedPersonId = "10000000-0000-0000-0000-000000000000"
                                             }
-                                    , anchor = "timecards"
                                     , activeClass = ""
                                     , ariaCurrent = "false"
                                     , firstName = "John"

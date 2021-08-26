@@ -26,6 +26,7 @@ instance Controller CommunicationsController where
     beforeAction = ensureIsUser
 
     action CommunicationsAction = autoRefresh do
+        let currentColumn = PeopleColumn
         people <-
             People.View.buildPeople
                 <$> People.Query.fetchActiveWorkers
@@ -56,6 +57,7 @@ instance Controller CommunicationsController where
         render IndexView {..}
     --
     action CommunicationsPersonSelectionAction {..} = autoRefresh do
+        let currentColumn = maybe PeopleColumn paramToColumn column
         botId <- Person.fetchBotId
         people <-
             People.View.buildPeople
@@ -82,6 +84,8 @@ instance Controller CommunicationsController where
         render IndexView {..}
     --
     action CommunicationsNewTimecardEntryAction {..} = autoRefresh do
+        let currentColumn = TimecardsColumn
+        let column = Just $ columnToParam currentColumn
         botId <- Person.fetchBotId
         people <-
             People.View.buildPeople
@@ -114,6 +118,8 @@ instance Controller CommunicationsController where
         toLocalDay = localDay . utcToLocalTime companyTimeZone
     --
     action CommunicationsEditTimecardEntryAction {..} = autoRefresh do
+        let currentColumn = TimecardsColumn
+        let column = Just $ columnToParam currentColumn
         botId <- Person.fetchBotId
         people <-
             People.View.buildPeople
@@ -142,6 +148,8 @@ instance Controller CommunicationsController where
             else render IndexView {..}
     --
     action CommunicationsEditModifiedTimecardEntryAction {..} = autoRefresh do
+        let currentColumn = TimecardsColumn
+        let column = Just $ columnToParam currentColumn
         botId <- Person.fetchBotId
         people <-
             People.View.buildPeople
@@ -170,6 +178,8 @@ instance Controller CommunicationsController where
             else render IndexView {..}
     --
     action CommunicationsCreateTimecardEntryAction = do
+        let currentColumn = TimecardsColumn
+        let column = Just $ columnToParam currentColumn
         let selectedPersonId = param @(Id Person) "selectedPersonId"
         let selectedMessageIds = param @[Id TwilioMessage] "selectedMessageIds"
 
@@ -213,6 +223,8 @@ instance Controller CommunicationsController where
                     )
     --
     action CommunicationsUpdateTimecardEntryAction {timecardEntryId} = do
+        let currentColumn = TimecardsColumn
+        let column = Just $ columnToParam currentColumn
         let selectedPersonId = param @(Id Person) "selectedPersonId"
         let selectedMessageIds = param @[Id TwilioMessage] "selectedMessageIds"
         timecardEntry <- fetch timecardEntryId
@@ -254,15 +266,17 @@ instance Controller CommunicationsController where
         botId <- Person.fetchBotId
         fromPhoneNumber <- PhoneNumber.fetchByPerson botId
         toPerson <- Person.fetchByPhoneNumber toPhoneNumberId
+        let selectedPersonId = get #id toPerson
+        let column = Just $ columnToParam MessagesColumn
 
         let body = strip $ param "body"
         if body == ""
-            then redirectTo $ CommunicationsPersonSelectionAction (get #id toPerson)
+            then redirectTo CommunicationsPersonSelectionAction {..}
             else do
                 TwilioMessage.send fromPhoneNumber toPhoneNumber body
-                redirectTo $ CommunicationsPersonSelectionAction (get #id toPerson)
-    --
+                redirectTo CommunicationsPersonSelectionAction {..}
     action CommunicationsEditScheduledMessageAction {..} = do
+        let currentColumn = MessagesColumn
         sendMessageAction <- fetch sendMessageActionId
         actionRunState <- fetch (get #actionRunStateId sendMessageAction)
         toPerson <- Person.fetchByPhoneNumber (get #toId sendMessageAction)
@@ -297,6 +311,8 @@ instance Controller CommunicationsController where
         sendMessageAction <- fetch sendMessageActionId
         actionRunState <- fetch (get #actionRunStateId sendMessageAction)
         toPerson <- Person.fetchByPhoneNumber (get #toId sendMessageAction)
+        let selectedPersonId = get #id toPerson
+        let column = Just $ columnToParam MessagesColumn
 
         case paramOrNothing @Text "body" of
             Just body ->
@@ -321,17 +337,18 @@ instance Controller CommunicationsController where
                     then ActionRunState.updateNotStarted actionRunState >> pure ()
                     else pure ()
 
-        redirectTo $ CommunicationsPersonSelectionAction (get #id toPerson)
+        redirectTo $ CommunicationsPersonSelectionAction {..}
     --
     action CommunicationsCreateTimecardReview = do
         let selectedPersonId = param @(Id Person) "selectedPersonId"
         let timecardId = param @(Id Timecard) "timecardId"
+        let column = Just $ columnToParam MessagesColumn
 
         now <- getCurrentTime
         let expiresAt = Timecard.AccessToken.expirationFrom now
         Timecard.AccessToken.create expiresAt timecardId
 
-        redirectTo $ CommunicationsPersonSelectionAction selectedPersonId
+        redirectTo CommunicationsPersonSelectionAction {..}
 
 findSelectedMessages ::
     [Twilio.Query.Row] ->
@@ -369,6 +386,12 @@ buildTimecardEntry timecardEntry =
              , "workDone"
              , "invoiceTranslation"
              ]
+
+paramToColumn :: Text -> Column
+paramToColumn "people" = PeopleColumn
+paramToColumn "messages" = MessagesColumn
+paramToColumn "timecards" = TimecardsColumn
+paramToColumn _ = PeopleColumn
 
 defaultLunchDuration :: Maybe Int
 defaultLunchDuration = Just 30

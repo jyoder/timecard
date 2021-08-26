@@ -16,6 +16,7 @@ import Web.View.Timecards.Status
 data IndexView = IndexView
     { people :: ![V.Person]
     , personSelection :: !PersonSelection
+    , currentColumn :: !Column
     }
 
 data PersonSelection
@@ -48,9 +49,13 @@ data TimecardActivity
 
 data Page = Page
     { selectedPerson :: !(Maybe Person)
+    , peopleNavigationClasses :: !Text
     , peopleNavigation :: !(PeopleNavigation CommunicationsController)
+    , messagesColumnClasses :: !Text
     , messagesColumn :: !MessagesColumn
+    , timecardColumnClasses :: !Text
     , timecardColumn :: !TimecardColumn
+    , columnNavigation :: !ColumnNavigation
     }
     deriving (Eq, Show)
 
@@ -179,6 +184,16 @@ data TimecardEntryForm = TimecardEntryForm
     }
     deriving (Eq, Show)
 
+data ColumnNavigation = ColumnNavigation
+    { peopleLinkClass :: !Text
+    , peopleAction :: !CommunicationsController
+    , messagesLinkClass :: !Text
+    , messagesAction :: !CommunicationsController
+    , timecardsLinkClass :: !Text
+    , timecardsAction :: !CommunicationsController
+    }
+    deriving (Eq, Show)
+
 data Column
     = PeopleColumn
     | MessagesColumn
@@ -188,73 +203,39 @@ data Column
 instance View IndexView where
     html view = renderPage $ buildPage view
 
-renderPage :: Page -> Html
-renderPage Page {..} =
-    [hsx|
-        <!-- Desktop version of the page. -->
-        <div class="d-none d-xl-block">
-            <div class="d-flex flex-column">
-                {renderSectionNavigation Communications selectedPerson}
-                
-                <div class="d-flex flex-row">
-                    <div class="mr-3 d-flex flex-column">
-                        {renderPeopleNavigation peopleNavigation}
-                    </div>
-                    <div class="flex-grow-1 d-flex flex-column">
-                        {renderMessagesColumn messagesColumn}
-                    </div>
-                    <div class="ml-3 d-flex flex-column">
-                        {renderTimecardsColumn timecardColumn}
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Mobile version of the page. -->
-        <div class="d-block d-xl-none">
-            <div class="d-flex flex-column">
-                <div id="people" class="d-flex flex-column">
-                    {renderSectionNavigation Communications selectedPerson}
-                    {renderPeopleNavigation peopleNavigation}
-                    {renderColumnNavigation PeopleColumn}
-                    <div class="browser-nav bg-light"></div>
-                </div>
-                <div id="messages" class="d-flex flex-column">
-                    {renderSectionNavigation Communications selectedPerson}
-                    {renderMobileMessagesColumn messagesColumn}
-                    {renderColumnNavigation MessagesColumn}
-                    <div class="browser-nav bg-light"></div>
-                </div>
-                <div id="timecards" class="d-flex flex-column">
-                    {renderSectionNavigation Communications selectedPerson}
-                    {renderTimecardsColumn timecardColumn}
-                    {renderColumnNavigation TimecardsColumn}
-                    <div class="browser-nav bg-light"></div>
-                </div>
-            </div>
-        </div>
-
-        {styles}
-    |]
-
 buildPage :: IndexView -> Page
 buildPage view =
-    Page
-        { selectedPerson = selectedPerson
-        , peopleNavigation =
-            buildPeopleNavigation
-                BadgesVisible
-                CommunicationsPersonSelectionAction
-                (Anchor "messages")
-                selectedPerson
-                (get #people view)
-        , messagesColumn = buildMessagesColumn view
-        , timecardColumn = buildTimecardColumn view
-        }
+    let IndexView {..} = view
+     in Page
+            { selectedPerson = selectedPerson
+            , peopleNavigationClasses = columnClasses PeopleColumn currentColumn
+            , peopleNavigation =
+                buildPeopleNavigation
+                    BadgesVisible
+                    ( \selectedPersonId ->
+                        CommunicationsPersonSelectionAction
+                            { selectedPersonId
+                            , column = Just $ columnToParam MessagesColumn
+                            }
+                    )
+                    selectedPerson
+                    (get #people view)
+            , messagesColumnClasses = columnClasses MessagesColumn currentColumn
+            , messagesColumn = buildMessagesColumn view
+            , timecardColumnClasses = columnClasses TimecardsColumn currentColumn
+            , timecardColumn = buildTimecardColumn view
+            , columnNavigation = buildColumnNavigation personSelection currentColumn
+            }
   where
     selectedPerson = case get #personSelection view of
         NoPersonSelected -> Nothing
         PersonSelected {..} -> Just selectedPerson
+
+columnClasses :: Column -> Column -> Text
+columnClasses column currentColumn =
+    if currentColumn == column
+        then "d-flex flex-grow-1 flex-lg-grow-0"
+        else "d-none d-lg-flex"
 
 buildMessagesColumn :: IndexView -> MessagesColumn
 buildMessagesColumn IndexView {..} =
@@ -382,8 +363,15 @@ buildEditScheduledMessageForm selectedPersonId scheduledMessage =
         , cancelAction = cancelAction
         }
   where
-    saveAction = CommunicationsUpdateScheduledMessageAction (get #id scheduledMessage)
-    cancelAction = CommunicationsPersonSelectionAction selectedPersonId
+    saveAction =
+        CommunicationsUpdateScheduledMessageAction
+            { sendMessageActionId = get #id scheduledMessage
+            }
+    cancelAction =
+        CommunicationsPersonSelectionAction
+            { selectedPersonId
+            , column = Just $ columnToParam MessagesColumn
+            }
 
 buildSendMessageForm :: PhoneNumber -> SendMessageForm
 buildSendMessageForm toPhoneNumber =
@@ -486,7 +474,7 @@ buildTimecardEntryForm
             , selectedPersonIdParam = selectedPersonId
             , submitLabel = if timecardActivity == CreatingEntry then "Create" else "Update"
             , submitAction = if timecardActivity == CreatingEntry then createAction else updateAction
-            , cancelAction = CommunicationsPersonSelectionAction (get #id selectedPerson)
+            , cancelAction
             }
       where
         hasErrorFor = isJust . errorFor
@@ -500,13 +488,65 @@ buildTimecardEntryForm
         sortedMessages = sortBy (\m1 m2 -> get #createdAt m1 `compare` get #createdAt m2) selectedMessages
         submitAction = if timecardActivity == CreatingEntry then createAction else updateAction
         createAction = CommunicationsCreateTimecardEntryAction
-        updateAction = CommunicationsUpdateTimecardEntryAction $ get #id timecardEntry
+        updateAction =
+            CommunicationsUpdateTimecardEntryAction
+                { timecardEntryId = get #id timecardEntry
+                }
+        cancelAction =
+            CommunicationsPersonSelectionAction
+                { selectedPersonId = get #id selectedPerson
+                , column = Just $ columnToParam TimecardsColumn
+                }
 
 assembleMessageBodies :: Text -> [Twilio.Query.Row] -> Text
 assembleMessageBodies existingText messages =
     if existingText == ""
         then intercalate "\n\n" (get #body <$> messages)
         else existingText
+
+buildColumnNavigation :: PersonSelection -> Column -> ColumnNavigation
+buildColumnNavigation personSelection currentColumn =
+    ColumnNavigation
+        { peopleLinkClass = linkClass PeopleColumn
+        , peopleAction = action PeopleColumn
+        , messagesLinkClass = linkClass MessagesColumn
+        , messagesAction = action MessagesColumn
+        , timecardsLinkClass = linkClass TimecardsColumn
+        , timecardsAction = action TimecardsColumn
+        }
+  where
+    linkClass column = if column == currentColumn then "text-dark" else "text-muted"
+    action column = case personSelection of
+        NoPersonSelected -> CommunicationsAction
+        PersonSelected {..} -> CommunicationsPersonSelectionAction (get #id selectedPerson) (Just $ columnToParam column)
+
+columnToParam :: Column -> Text
+columnToParam PeopleColumn = "people"
+columnToParam MessagesColumn = "messages"
+columnToParam TimecardsColumn = "timecards"
+
+renderPage :: Page -> Html
+renderPage Page {..} =
+    [hsx|
+        <div class="d-flex flex-column">
+            {renderSectionNavigation Communications selectedPerson}
+            {renderColumnNavigation columnNavigation}
+            
+            <div class="d-flex flex-row">
+                <div class={"mr-lg-3 flex-column " <> peopleNavigationClasses}>
+                    {renderPeopleNavigation peopleNavigation}
+                </div>
+                <div class={"flex-lg-grow-1 flex-column-reverse flex-lg-column " <> messagesColumnClasses}>
+                    {renderMessagesColumn messagesColumn}
+                </div>
+                <div class={"ml-lg-3 flex-column " <> timecardColumnClasses}>
+                    {renderTimecardsColumn timecardColumn}
+                </div>
+            </div>
+        </div>
+
+        {styles}
+    |]
 
 renderMessagesColumn :: MessagesColumn -> Html
 renderMessagesColumn messagesColumn =
@@ -515,35 +555,21 @@ renderMessagesColumn messagesColumn =
             [hsx||]
         MessagesColumnVisible {..} ->
             [hsx|
-                <div class="messages-list scroll-to-end">
+                <div class="messages-list">
                     {renderMessageItems messageItems scheduledMessageItems}
                 </div>
-                <div class="message-input pt-2 mb-2">
+                <div class="message-input pt-0 pt-lg-2 mb-0 mb-lg-2">
                     {renderSendMessageForm sendMessageForm}
-                </div>
-            |]
-
-renderMobileMessagesColumn :: MessagesColumn -> Html
-renderMobileMessagesColumn messagesColumn =
-    case messagesColumn of
-        MessagesColumnNotVisible ->
-            [hsx||]
-        MessagesColumnVisible {..} ->
-            [hsx|
-                <div class="message-input pb-2">
-                    {renderSendMessageForm sendMessageForm}
-                </div>
-                <div class="messages-list">
-                    {renderMessageItems (reverse messageItems) (reverse scheduledMessageItems)}
                 </div>
             |]
 
 renderMessageItems :: [MessageItem] -> [ScheduledMessageItem] -> Html
 renderMessageItems messageItems scheduledMessageItems =
     [hsx|
-        <div class="list-group-flush">
+        <div class="list-group-flush d-flex flex-column-reverse flex-lg-column">
             {forEach messageItems renderMessageItem}
             {forEach scheduledMessageItems renderScheduledMessageItem}
+            <div class="scroll-to-pinned"></div>
         </div>
     |]
 
@@ -561,7 +587,7 @@ renderMessageItem MessageItem {..} =
 
             <div class="d-flex w-100 justify-content-between">
                 <span class={statusClass}>{status}</span>
-                <a href={pathTo linkButtonAction <> "#timecards"}
+                <a href={linkButtonAction}
                     class={"btn btn-outline-primary btn-sm " <> linkButtonActiveClass}>
                     {linkButtonText}
                 </a>
@@ -826,32 +852,36 @@ renderFieldError (Just errorMessage) =
         <div class="invalid-feedback">{errorMessage}</div>
     |]
 
-renderColumnNavigation :: Column -> Html
-renderColumnNavigation currentColumn =
+renderColumnNavigation :: ColumnNavigation -> Html
+renderColumnNavigation ColumnNavigation {..} =
     [hsx|
-        <ul class="bottom-nav m-0 p-0 border-top bg-light d-flex">
-            <li class="bottom-nav-item flex-even border-right d-flex justify-content-center">
-                <a class={"bottom-nav-link text-center " <> linkClass PeopleColumn} href="#people">People</a>
+        <ul class="column-nav m-0 p-0 mb-2 d-flex d-lg-none">
+            <li class="column-nav-item flex-even d-flex justify-content-center">
+                <a class={"column-nav-link text-center " <> peopleLinkClass} href={peopleAction}>People</a>
             </li>
-            <li class="bottom-nav-item flex-even d-flex justify-content-center">
-                <a class={"bottom-nav-link text-center " <> linkClass MessagesColumn} href="#messages">Messages</a>
+            <li class="column-nav-item flex-even d-flex justify-content-center">
+                <a class={"column-nav-link text-center " <> messagesLinkClass} href={messagesAction}>Messages</a>
             </li>
-            <li class="bottom-nav-item flex-even border-left d-flex justify-content-center">
-                <a class={"bottom-nav-link text-center " <> linkClass TimecardsColumn} href="#timecards">Timecards</a>
+            <li class="column-nav-item flex-even d-flex justify-content-center">
+                <a class={"column-nav-link text-center " <> timecardsLinkClass} href={timecardsAction}>Timecards</a>
             </li>
         </ul>
     |]
-  where
-    linkClass column = if column == currentColumn then "text-dark" :: Text else "text-muted"
 
 styles :: Html
 styles =
     [hsx|
         <style>
-            @media only screen and (min-width: 1200px) {
+            :root {
+                --top-nav-height: 7.25rem;
+                --total-nav-height: calc(var(--top-nav-height) + var(--column-nav-height));
+                --message-input-height: 7rem;
+                --screen-height: 100vh;
+            }
+
+            @media only screen and (min-width: 992px) {
                 :root {
-                    --bottom-nav-height: 0rem;
-                    --browser-nav-height: 0rem;
+                    --column-nav-height: 0rem;
                 }
 
                 .timecards-block {
@@ -859,35 +889,23 @@ styles =
                 }
             }
 
-            @media only screen and (max-width: 1200px) {
+            @media only screen and (max-width: 992px) {
                 :root {
-                    --bottom-nav-height: 3rem;
-                    --browser-nav-height: 7rem;
+                    --column-nav-height: 3rem;
                 }
             }
 
-            :root {
-                --top-nav-height: 7.25rem;
-                --total-nav-height: calc(var(--top-nav-height) + var(--bottom-nav-height) + var(--browser-nav-height));
-                --message-input-height: 7.0rem;
-                --screen-height: 100vh;
+            .column-nav {
+                height: var(--column-nav-height);
             }
 
-            .bottom-nav {
-                height: var(--bottom-nav-height);
-            }
-
-            .bottom-nav-item {
+            .column-nav-item {
                 list-style-type: none;
             }
 
-            .bottom-nav-link {
+            .column-nav-link {
                 width: 100%;
                 line-height: 2.5rem;
-            }
-
-            .browser-nav {
-                height: var(--browser-nav-height);
             }
 
             .people-list {
