@@ -571,7 +571,6 @@ renderMessageItems messageItems scheduledMessageItems =
             {forEach scheduledMessageItems renderScheduledMessageItem}
             <div class="scroll-to-pinned d-none d-lg-block"></div>
         </div>
-        <div class="mobile-buffer d-lg-none"></div>
     |]
 
 renderMessageItem :: MessageItem -> Html
@@ -702,7 +701,6 @@ renderTimecardsColumn timecardColumn =
     [hsx|
         <div class="timecards-column">
             {renderTimecardsColumn' timecardColumn}
-            <div class="mobile-buffer d-lg-none"></div>
         </div>
     |]
 
@@ -845,7 +843,6 @@ renderTimecardEntryForm TimecardEntryForm {..} =
             <button class="btn btn-primary">{submitLabel}</button>
             <a href={cancelAction} class="btn btn-secondary ml-2" role="button">Cancel</a>
         </form>
-        <div class="mobile-buffer d-lg-none"></div>
     |]
 
 renderFieldError :: Maybe Text -> Html
@@ -878,6 +875,7 @@ styles =
             @media only screen and (min-width: 992px) {
                 :root {
                     --column-nav-height: 0rem;
+                    --mobile-browser-bar-height: 0rem;
                 }
 
                 .timecards-column {
@@ -888,12 +886,13 @@ styles =
             @media only screen and (max-width: 992px) {
                 :root {
                     --column-nav-height: 3rem;
+                    --mobile-browser-bar-height: 6rem;
                 }
             }
 
             :root {
                 --section-nav-height: 7.25rem;
-                --total-nav-height: calc(var(--section-nav-height) + var(--column-nav-height));
+                --total-nav-height: calc(var(--section-nav-height) + var(--column-nav-height) + var(--mobile-browser-bar-height));
                 --message-input-height: 7rem;
                 --screen-height: 100vh;
             }
