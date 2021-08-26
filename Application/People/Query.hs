@@ -4,10 +4,8 @@ module Application.People.Query (
 ) where
 
 import Application.People.Person (botGoesBy)
-import Data.ByteString.UTF8 (toString)
 import "string-interpolate" Data.String.Interpolate (i)
 import Database.PostgreSQL.Simple (Query)
-import Database.PostgreSQL.Simple.FromField (FromField, ResultError (..), fromField, returnError)
 import Database.PostgreSQL.Simple.FromRow (field, fromRow)
 import qualified Generated.Types as Types
 import IHP.ModelSupport
