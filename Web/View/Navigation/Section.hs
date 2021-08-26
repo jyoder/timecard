@@ -30,7 +30,11 @@ renderSectionNavigation currentSection selectedPerson =
     |]
   where
     timecardsAction = case selectedPerson of
-        Just selectedPerson -> TimecardPersonSelectionAction (get #id selectedPerson)
+        Just selectedPerson ->
+            TimecardPersonSelectionAction
+                { selectedPersonId = get #id selectedPerson
+                , column = Nothing
+                }
         Nothing -> TimecardsAction
     communicationsAction = case selectedPerson of
         Just selectedPerson ->

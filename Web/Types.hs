@@ -92,6 +92,7 @@ data TimecardsController
     = TimecardsAction
     | TimecardPersonSelectionAction
         { selectedPersonId :: !(Id Person)
+        , column :: !(Maybe Text)
         }
     | TimecardEditTimecardEntryAction
         { timecardEntryId :: !(Id TimecardEntry)

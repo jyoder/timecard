@@ -231,6 +231,7 @@ buildPage view =
         NoPersonSelected -> Nothing
         PersonSelected {..} -> Just selectedPerson
 
+-- TODO: DRY this up
 columnClasses :: Column -> Column -> Text
 columnClasses column currentColumn =
     if currentColumn == column
@@ -518,7 +519,11 @@ buildColumnNavigation personSelection currentColumn =
     linkClass column = if column == currentColumn then "text-dark" else "text-muted"
     action column = case personSelection of
         NoPersonSelected -> CommunicationsAction
-        PersonSelected {..} -> CommunicationsPersonSelectionAction (get #id selectedPerson) (Just $ columnToParam column)
+        PersonSelected {..} ->
+            CommunicationsPersonSelectionAction
+                { selectedPersonId = get #id selectedPerson
+                , column = Just $ columnToParam column
+                }
 
 columnToParam :: Column -> Text
 columnToParam PeopleColumn = "people"

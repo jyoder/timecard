@@ -21,6 +21,7 @@ instance Controller TimecardsController where
     beforeAction = ensureIsUser
 
     action TimecardsAction = do
+        let currentColumn = PeopleColumn
         people <-
             People.View.buildPeople
                 <$> People.Query.fetchActiveWorkers
@@ -44,6 +45,7 @@ instance Controller TimecardsController where
         render IndexView {..}
     --
     action TimecardPersonSelectionAction {..} = do
+        let currentColumn = maybe PeopleColumn paramToColumn column
         people <-
             People.View.buildPeople
                 <$> People.Query.fetchActiveWorkers
@@ -61,6 +63,7 @@ instance Controller TimecardsController where
         render IndexView {..}
     --
     action TimecardEditTimecardEntryAction {..} = do
+        let currentColumn = TimecardsColumn
         people <-
             People.View.buildPeople
                 <$> People.Query.fetchActiveWorkers
@@ -82,6 +85,7 @@ instance Controller TimecardsController where
         render IndexView {..}
     --
     action TimecardDownloadTimecardAction {..} = do
+        let currentColumn = TimecardsColumn
         people <-
             People.View.buildPeople
                 <$> People.Query.fetchActiveWorkers
@@ -111,6 +115,8 @@ instance Controller TimecardsController where
 
     --
     action TimecardUpdateTimecardEntryAction {..} = do
+        let currentColumn = TimecardsColumn
+        let column = Just $ columnToParam currentColumn
         let invoiceTranslation = param @Text "invoiceTranslation"
 
         timecardEntry <- fetch timecardEntryId
@@ -140,3 +146,8 @@ instance Controller TimecardsController where
                 Right timecardEntry -> do
                     updateRecord timecardEntry
                     redirectTo TimecardPersonSelectionAction {..}
+
+paramToColumn :: Text -> Column
+paramToColumn "people" = PeopleColumn
+paramToColumn "timecards" = TimecardsColumn
+paramToColumn _ = PeopleColumn

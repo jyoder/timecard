@@ -12,6 +12,7 @@ import Web.View.Timecards.Status
 data IndexView = IndexView
     { people :: ![V.Person]
     , personSelection :: !PersonSelection
+    , currentColumn :: !Column
     }
 
 data PersonSelection
@@ -30,8 +31,11 @@ data PersonActivity
 
 data Page = Page
     { selectedPerson :: !(Maybe Person)
+    , peopleNavigationClasses :: !Text
     , peopleNavigation :: !(PeopleNavigation TimecardsController)
+    , timecardColumnClasses :: !Text
     , timecardColumn :: !TimecardColumn
+    , columnNavigation :: !ColumnNavigation
     }
     deriving (Eq, Show)
 
@@ -85,6 +89,14 @@ data InvoiceTranslationCell
         }
     deriving (Eq, Show)
 
+data ColumnNavigation = ColumnNavigation
+    { peopleLinkClass :: !Text
+    , peopleAction :: !TimecardsController
+    , timecardsLinkClass :: !Text
+    , timecardsAction :: !TimecardsController
+    }
+    deriving (Eq, Show)
+
 data Column
     = PeopleColumn
     | TimecardsColumn
@@ -95,20 +107,35 @@ instance View IndexView where
 
 buildPage :: IndexView -> Page
 buildPage view =
-    Page
-        { selectedPerson = selectedPerson
-        , peopleNavigation =
-            buildPeopleNavigation
-                BadgesHidden
-                TimecardPersonSelectionAction
-                selectedPerson
-                (get #people view)
-        , timecardColumn = buildTimecardColumn view
-        }
+    let IndexView {..} = view
+     in Page
+            { selectedPerson = selectedPerson
+            , peopleNavigationClasses = columnClasses PeopleColumn currentColumn
+            , peopleNavigation =
+                buildPeopleNavigation
+                    BadgesHidden
+                    ( \selectedPersonId ->
+                        TimecardPersonSelectionAction
+                            { selectedPersonId
+                            , column = Just $ columnToParam TimecardsColumn
+                            }
+                    )
+                    selectedPerson
+                    people
+            , timecardColumnClasses = columnClasses TimecardsColumn currentColumn
+            , timecardColumn = buildTimecardColumn view
+            , columnNavigation = buildColumnNavigation personSelection currentColumn
+            }
   where
     selectedPerson = case get #personSelection view of
         NoPersonSelected -> Nothing
         PersonSelected {..} -> Just selectedPerson
+
+columnClasses :: Column -> Column -> Text
+columnClasses column currentColumn =
+    if currentColumn == column
+        then "d-flex flex-grow-1 flex-lg-grow-0"
+        else "d-none d-lg-flex"
 
 buildTimecardColumn :: IndexView -> TimecardColumn
 buildTimecardColumn IndexView {..} =
@@ -176,7 +203,10 @@ buildInvoiceTranslationCell
             Viewing ->
                 ShowInvoiceTranslation
                     { invoiceTranslation = get #invoiceTranslation timecardEntry
-                    , editAction = TimecardEditTimecardEntryAction $ get #id timecardEntry
+                    , editAction =
+                        TimecardEditTimecardEntryAction
+                            { timecardEntryId = get #id timecardEntry
+                            }
                     }
             EditingInvoiceTranslation {..} ->
                 if get #id timecardEntry == get #id selectedTimecardEntry
@@ -185,12 +215,19 @@ buildInvoiceTranslationCell
                             { invoiceTranslation = get #invoiceTranslation timecardEntry
                             , timecardEntryId = show $ get #id timecardEntry
                             , saveAction = TimecardUpdateTimecardEntryAction $ get #id timecardEntry
-                            , cancelAction = TimecardPersonSelectionAction $ get #id selectedPerson
+                            , cancelAction =
+                                TimecardPersonSelectionAction
+                                    { selectedPersonId = get #id selectedPerson
+                                    , column = Just $ columnToParam TimecardsColumn
+                                    }
                             }
                     else
                         ShowInvoiceTranslation
                             { invoiceTranslation = get #invoiceTranslation timecardEntry
-                            , editAction = TimecardEditTimecardEntryAction $ get #id timecardEntry
+                            , editAction =
+                                TimecardEditTimecardEntryAction
+                                    { timecardEntryId = get #id timecardEntry
+                                    }
                             }
 
 buildTotalHoursRow :: [V.TimecardEntry] -> TotalHoursRow
@@ -199,37 +236,47 @@ buildTotalHoursRow timecardEntries =
         { totalHours = show $ sum $ get #hoursWorked <$> timecardEntries
         }
 
+buildColumnNavigation :: PersonSelection -> Column -> ColumnNavigation
+buildColumnNavigation personSelection currentColumn =
+    ColumnNavigation
+        { peopleLinkClass = linkClass PeopleColumn
+        , peopleAction = action PeopleColumn
+        , timecardsLinkClass = linkClass TimecardsColumn
+        , timecardsAction = action TimecardsColumn
+        }
+  where
+    linkClass column = if column == currentColumn then "text-dark" else "text-muted"
+    action column = case personSelection of
+        NoPersonSelected -> TimecardsAction
+        PersonSelected {..} ->
+            TimecardPersonSelectionAction
+                { selectedPersonId = get #id selectedPerson
+                , column = Just $ columnToParam column
+                }
+
+columnToParam :: Column -> Text
+columnToParam PeopleColumn = "people"
+columnToParam TimecardsColumn = "timecards"
+
 renderPage :: Page -> Html
 renderPage Page {..} =
     [hsx|
-            <div class="d-none d-xl-block">
-                {renderSectionNavigation Timecards selectedPerson}
-
-                <div class="d-flex flex-row">
+        <div class="d-flex flex-column">
+            {renderSectionNavigation Timecards selectedPerson}
+            {renderColumnNavigation columnNavigation}
+            
+            <div class="d-flex flex-row">
+                <div class={"mr-lg-3 flex-column " <> peopleNavigationClasses}>
                     {renderPeopleNavigation peopleNavigation}
+                </div>
+                <div class={"ml-lg-3 flex-column " <> timecardColumnClasses}>
                     {renderTimecardColumn timecardColumn}
                 </div>
             </div>
+        </div>
 
-            <div class="d-block d-xl-none">
-                <div class="d-flex flex-column">
-                    <div id="people" class="d-flex flex-column">
-                        {renderSectionNavigation Timecards selectedPerson}
-                        {renderPeopleNavigation peopleNavigation}
-                        {renderColumnNavigation PeopleColumn}
-                        <div class="browser-nav bg-light"></div>
-                    </div>
-                    <div id="timecards" class="d-flex flex-column">
-                        {renderSectionNavigation Timecards selectedPerson}
-                        {renderTimecardColumn timecardColumn}
-                        {renderColumnNavigation TimecardsColumn}
-                        <div class="browser-nav bg-light"></div>
-                    </div>
-                </div>
-            </div>
-
-            {styles}
-        |]
+        {styles}
+    |]
 
 renderTimecardColumn :: TimecardColumn -> Html
 renderTimecardColumn timecardColumn =
@@ -348,54 +395,52 @@ renderTotalHoursRow TotalHoursRow {..} =
         </tr>
     |]
 
-renderColumnNavigation :: Column -> Html
-renderColumnNavigation currentColumn =
+renderColumnNavigation :: ColumnNavigation -> Html
+renderColumnNavigation ColumnNavigation {..} =
     [hsx|
-        <ul class="bottom-nav m-0 p-0 border-top bg-light d-flex">
-            <li class="bottom-nav-item flex-even border-right d-flex justify-content-center">
-                <a class={"bottom-nav-link text-center " <> linkClass PeopleColumn} href="#people">People</a>
+        <ul class="column-nav m-0 p-0 mb-2 d-flex d-lg-none">
+            <li class="column-nav-item flex-even d-flex justify-content-center">
+                <a class={"column-nav-link text-center " <> peopleLinkClass} href={peopleAction}>People</a>
             </li>
-            <li class="bottom-nav-item flex-even border-left d-flex justify-content-center">
-                <a class={"bottom-nav-link text-center " <> linkClass TimecardsColumn} href="#timecards">Timecards</a>
+            <li class="column-nav-item flex-even d-flex justify-content-center">
+                <a class={"column-nav-link text-center " <> timecardsLinkClass} href={timecardsAction}>Timecards</a>
             </li>
         </ul>
     |]
-  where
-    linkClass column = if column == currentColumn then "text-dark" :: Text else "text-muted"
 
 styles :: Html
 styles =
     [hsx|
         <style>
-            @media only screen and (min-width: 1200px) {
+            @media only screen and (min-width: 992px) {
                 :root {
-                    --bottom-nav-height: 0rem;
-                    --browser-nav-height: 0rem;
+                    --column-nav-height: 0rem;
+                    --mobile-browser-bar-height: 0rem;
                 }
             }
 
-            @media only screen and (max-width: 1200px) {
+            @media only screen and (max-width: 992px) {
                 :root {
-                    --bottom-nav-height: 3rem;
-                    --browser-nav-height: 7rem;
+                    --column-nav-height: 3rem;
+                    --mobile-browser-bar-height: 8rem;
                 }
             }
 
             :root {
-                --top-nav-height: 7.25rem;
-                --total-nav-height: calc(var(--top-nav-height) + var(--bottom-nav-height) + var(--browser-nav-height));
+                --section-nav-height: 7.25rem;
+                --total-nav-height: calc(var(--section-nav-height) + var(--column-nav-height) + var(--mobile-browser-bar-height));
                 --screen-height: 100vh;
             }
 
-            .bottom-nav {
-                height: var(--bottom-nav-height);
+            .column-nav {
+                height: var(--column-nav-height);
             }
 
-            .bottom-nav-item {
+            .column-nav-item {
                 list-style-type: none;
             }
 
-            .bottom-nav-link {
+            .column-nav-link {
                 width: 100%;
                 line-height: 2.5rem;
             }

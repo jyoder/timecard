@@ -53,9 +53,12 @@ spec = do
 
             let personSelection = Index.NoPersonSelected
 
+            let currentColumn = Index.PeopleColumn
+
             Index.buildPage Index.IndexView {..}
                 `shouldBe` Index.Page
                     { selectedPerson = Nothing
+                    , peopleNavigationClasses = "d-flex flex-grow-1 flex-lg-grow-0"
                     , peopleNavigation =
                         PeopleNavigation
                             { personItems =
@@ -63,6 +66,7 @@ spec = do
                                     { selectionAction =
                                         TimecardPersonSelectionAction
                                             { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                                            , column = Just "timecards"
                                             }
                                     , activeClass = ""
                                     , ariaCurrent = "false"
@@ -72,8 +76,26 @@ spec = do
                                     }
                                 ]
                             }
+                    , timecardColumnClasses = "d-none d-lg-flex"
                     , timecardColumn = Index.TimecardColumnNotVisible
+                    , columnNavigation =
+                        Index.ColumnNavigation
+                            { peopleLinkClass = "text-dark"
+                            , peopleAction = TimecardsAction
+                            , timecardsLinkClass = "text-muted"
+                            , timecardsAction = TimecardsAction
+                            }
                     }
+
+    describe "columnClasses" do
+        context "when the given column is in view" do
+            it "returns classes that allow the column to expand to the whole width of the screen on mobile" do
+                Index.columnClasses Index.PeopleColumn Index.PeopleColumn
+                    `shouldBe` "d-flex flex-grow-1 flex-lg-grow-0"
+        context "when the given column is not in view" do
+            it "returns classes that hide the column on mobile" do
+                Index.columnClasses Index.PeopleColumn Index.TimecardsColumn
+                    `shouldBe` "d-none d-lg-flex"
 
     describe "buildTimecardColumn" do
         it "returns a non-visible timecard column when no person has been selected" do
@@ -113,6 +135,8 @@ spec = do
             let personActivity = Index.Viewing
 
             let personSelection = Index.NoPersonSelected
+
+            let currentColumn = Index.TimecardsColumn
 
             Index.buildTimecardColumn Index.IndexView {..}
                 `shouldBe` Index.TimecardColumnNotVisible
@@ -165,6 +189,8 @@ spec = do
                         , timecards = [timecard]
                         , personActivity = personActivity
                         }
+
+            let currentColumn = Index.TimecardsColumn
 
             Index.buildTimecardColumn Index.IndexView {..}
                 `shouldBe` Index.TimecardColumnVisible
@@ -501,6 +527,7 @@ spec = do
                     , cancelAction =
                         TimecardPersonSelectionAction
                             { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                            , column = Just "timecards"
                             }
                     }
 
@@ -538,3 +565,38 @@ spec = do
                 `shouldBe` Index.TotalHoursRow
                     { totalHours = "14.8"
                     }
+
+    describe "buildColumnNavigation" do
+        it "uses dark text for the currently selected column" do
+            let selectedPerson =
+                    newRecord @Person
+                        |> set #id "10000000-0000-0000-0000-000000000000"
+
+            let personSelection =
+                    Index.PersonSelected
+                        { selectedPerson = selectedPerson
+                        , personActivity = Index.Viewing
+                        , timecards = []
+                        }
+
+            Index.buildColumnNavigation personSelection Index.PeopleColumn
+                `shouldBe` Index.ColumnNavigation
+                    { peopleLinkClass = "text-dark"
+                    , peopleAction =
+                        TimecardPersonSelectionAction
+                            { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                            , column = Just "people"
+                            }
+                    , timecardsLinkClass = "text-muted"
+                    , timecardsAction =
+                        TimecardPersonSelectionAction
+                            { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                            , column = Just "timecards"
+                            }
+                    }
+
+    describe "columnToParam" do
+        it "returns 'people' for the people column" do
+            Index.columnToParam Index.PeopleColumn `shouldBe` "people"
+        it "returns 'timecards' for the people column" do
+            Index.columnToParam Index.TimecardsColumn `shouldBe` "timecards"
