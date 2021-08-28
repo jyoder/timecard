@@ -14,6 +14,7 @@ let
             hlint
             hspec
             hspec-discover
+            jwt
             lens-aeson
             memory
             monad-loops

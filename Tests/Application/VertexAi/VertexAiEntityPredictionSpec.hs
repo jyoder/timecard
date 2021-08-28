@@ -3,9 +3,7 @@ module Tests.Application.VertexAi.VertexAiEntityPredictionSpec where
 import Application.VertexAi.VertexAiEntityPrediction
 import Generated.Types
 import IHP.ControllerPrelude
-import IHP.Test.Mocking
 import Test.Hspec
-import Tests.Support
 
 spec :: Spec
 spec = do

@@ -5,7 +5,7 @@ module Application.Twilio.TwilioMessage (
 ) where
 
 import Application.Service.Validation (validateAndCreate)
-import qualified Application.Twilio.TwilioClient as TwilioClient
+import qualified Application.Twilio.Client as Client
 import Data.ByteString.UTF8 (toString)
 import Database.PostgreSQL.Simple (Query)
 import Database.PostgreSQL.Simple.FromField (FromField, ResultError (..), fromField, returnError)
@@ -33,9 +33,9 @@ send ::
     Text ->
     IO TwilioMessage
 send fromPhoneNumber toPhoneNumber body = do
-    TwilioClient.Response {..} <-
-        TwilioClient.sendPhoneMessage
-            TwilioClient.config
+    Client.Response {..} <-
+        Client.sendPhoneMessage
+            Client.config
             (get #number fromPhoneNumber)
             (get #number toPhoneNumber)
             body

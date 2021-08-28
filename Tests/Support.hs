@@ -6,7 +6,8 @@ module Tests.Support (
     toTimeOfDay,
 ) where
 
-import qualified Application.Twilio.TwilioClient as TwilioClient
+import qualified Application.Twilio.Client as Twilio.Client
+import qualified Application.VertexAi.Client as VertexAi.Client
 import IHP.ApplicationContext (ApplicationContext (..))
 import IHP.ControllerPrelude
 import IHP.Environment
@@ -30,7 +31,8 @@ testConfig :: IO ConfigBuilder
 testConfig = pure do
     option Development
     option (AppHostname "localhost")
-    option TwilioClient.DisabledConfig
+    option Twilio.Client.DisabledConfig
+    option VertexAi.Client.DisabledConfig
 
 itIO ::
     Example (MockContext application -> IO ()) =>

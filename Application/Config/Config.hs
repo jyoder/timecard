@@ -1,13 +1,19 @@
 module Application.Config.Config (
+    T (..),
     load,
 ) where
 
 import Application.Config.Environment (findVar, loadEnvVars)
-import qualified Application.Twilio.TwilioClient as TwilioClient
-import qualified Application.VertexAi.VertexAiClient as VertexAiClient
+import qualified Application.Twilio.Client as Twilio.Client
+import qualified Application.VertexAi.Client as VertexAi.Client
 import IHP.Prelude
 
-load :: IO TwilioClient.Config
+data T = T
+    { twilioConfig :: Twilio.Client.Config
+    , vertexAiConfig :: VertexAi.Client.Config
+    }
+
+load :: IO T
 load = do
     vars <- loadEnvVars envVarNames
     case vars of
@@ -15,31 +21,37 @@ load = do
             putStrLn message
             error message
         Right vars ->
-            pure $ buildTwilioConfig vars
+            pure $
+                T
+                    { twilioConfig = buildTwilioConfig vars
+                    , vertexAiConfig = buildVertexAiConfig vars
+                    }
 
-buildTwilioConfig :: [(Text, Text)] -> TwilioClient.Config
+buildTwilioConfig :: [(Text, Text)] -> Twilio.Client.Config
 buildTwilioConfig vars =
     let enableIntegrations = findVar vars timecardEnableIntegrationsVarName
      in if enableIntegrations == "0"
-            then TwilioClient.DisabledConfig
+            then Twilio.Client.DisabledConfig
             else
-                TwilioClient.EnabledConfig
+                Twilio.Client.EnabledConfig
                     { accountId = findVar vars twilioAccountIdVarName
                     , authToken = findVar vars twilioAuthTokenVarName
                     , statusCallbackUrl = findVar vars twilioStatusCallbackUrlVarName
                     }
 
-buildVertexAiConfig :: [(Text, Text)] -> VertexAiClient.Config
+buildVertexAiConfig :: [(Text, Text)] -> VertexAi.Client.Config
 buildVertexAiConfig vars =
     let enableIntegrations = findVar vars timecardEnableIntegrationsVarName
      in if enableIntegrations == "0"
-            then VertexAiClient.DisabledConfig
+            then VertexAi.Client.DisabledConfig
             else
-                VertexAiClient.EnabledConfig
+                VertexAi.Client.EnabledConfig
                     { endpointRegion = findVar vars vertexAiEndpointRegionVarName
                     , endpointProjectName = findVar vars vertexAiEndpointProjectNameVarName
                     , endpointId = findVar vars vertexAiEndpointIdVarName
-                    , authToken = findVar vars vertexAiAuthTokenVarName
+                    , serviceAccountEmail = findVar vars vertexAiServiceAccountEmailVarName
+                    , privateKeyId = findVar vars vertexAiPrivateKeyIdVarName
+                    , privateKey = findVar vars vertexAiPrivateKeyVarName
                     }
 
 envVarNames :: [Text]
@@ -51,7 +63,9 @@ envVarNames =
     , vertexAiEndpointRegionVarName
     , vertexAiEndpointProjectNameVarName
     , vertexAiEndpointIdVarName
-    , vertexAiAuthTokenVarName
+    , vertexAiServiceAccountEmailVarName
+    , vertexAiPrivateKeyIdVarName
+    , vertexAiPrivateKeyVarName
     ]
 
 timecardEnableIntegrationsVarName :: Text
@@ -75,5 +89,11 @@ vertexAiEndpointProjectNameVarName = "VERTEX_AI_ENDPOINT_PROJECT_NAME"
 vertexAiEndpointIdVarName :: Text
 vertexAiEndpointIdVarName = "VERTEX_AI_ENDPOINT_ID"
 
-vertexAiAuthTokenVarName :: Text
-vertexAiAuthTokenVarName = "VERTEX_AI_AUTH_TOKEN"
+vertexAiServiceAccountEmailVarName :: Text
+vertexAiServiceAccountEmailVarName = "VERTEX_AI_SERVICE_ACCOUNT_EMAIL"
+
+vertexAiPrivateKeyIdVarName :: Text
+vertexAiPrivateKeyIdVarName = "VERTEX_AI_PRIVATE_KEY_ID"
+
+vertexAiPrivateKeyVarName :: Text
+vertexAiPrivateKeyVarName = "VERTEX_AI_PRIVATE_KEY"

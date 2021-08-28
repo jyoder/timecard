@@ -12,7 +12,7 @@ import qualified Application.Action.ActionRunState as ActionRunState
 import qualified Application.Action.ActionRunTime as ActionRunTime
 import Application.Service.Transaction (withTransactionOrSavepoint)
 import Application.Service.Validation (validateAndCreate)
-import qualified Application.Twilio.TwilioClient as TwilioClient
+import qualified Application.Twilio.Client as Client
 import "string-interpolate" Data.String.Interpolate (i)
 import Database.PostgreSQL.Simple (Only (..), Query)
 import Database.PostgreSQL.Simple.FromRow (FromRow, field, fromRow)
@@ -108,9 +108,9 @@ schedule fromId toId body runsAt = do
 
 perform :: (?modelContext :: ModelContext, ?context :: FrameworkConfig) => T -> IO TwilioMessage
 perform sendMessageAction = do
-    TwilioClient.Response {..} <-
-        TwilioClient.sendPhoneMessage
-            TwilioClient.config
+    Client.Response {..} <-
+        Client.sendPhoneMessage
+            Client.config
             (get #fromNumber sendMessageAction)
             (get #toNumber sendMessageAction)
             (get #body sendMessageAction)

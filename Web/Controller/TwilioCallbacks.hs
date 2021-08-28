@@ -1,9 +1,10 @@
 module Web.Controller.TwilioCallbacks where
 
+import qualified Application.Base.FetchEntityPredictionJob as FetchEntityPredictionJob
 import qualified Application.Brain.Process as Brain.Process
 import Application.Service.Transaction (withTransactionOrSavepoint)
-import Application.Service.Validation (validateAndUpdate)
-import qualified Application.Twilio.TwilioClient as TwilioClient
+import Application.Service.Validation (validateAndCreate, validateAndUpdate)
+import qualified Application.Twilio.Client as Client
 import qualified Application.Twilio.TwilioMessage as TwilioMessage
 import Data.Text.Encoding (encodeUtf8)
 import qualified IHP.Log as Log
@@ -58,10 +59,12 @@ instance Controller TwilioCallbacksController where
                     Log.error ("Failed to save incoming message: " <> show twilioMessage)
                     pure ()
                 Right twilioMessage -> do
-                    createRecord twilioMessage
+                    twilioMessage <- createRecord twilioMessage
+                    Brain.Process.processState $ get #id fromPhoneNumber
+                    newRecord @FetchEntityPredictionJob
+                        |> set #twilioMessageId (get #id twilioMessage)
+                        |> validateAndCreate FetchEntityPredictionJob.validate
                     pure ()
-
-        Brain.Process.processState $ get #id fromPhoneNumber
 
         renderPlain ""
 
@@ -70,8 +73,8 @@ validateCallbackSignature = do
     case (getHeader "Host", getHeader "X-Twilio-Signature") of
         (Just host, Just receivedSignature) -> do
             let requestUrl = "https://" <> host <> getRequestPath
-            let authToken = encodeUtf8 (get #authToken TwilioClient.config)
-            let computedSignature = TwilioClient.callbackSignature authToken requestUrl allParams
+            let authToken = encodeUtf8 (get #authToken Client.config)
+            let computedSignature = Client.callbackSignature authToken requestUrl allParams
             if receivedSignature == computedSignature
                 then pure ()
                 else do

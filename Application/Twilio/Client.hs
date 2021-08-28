@@ -1,4 +1,4 @@
-module Application.Twilio.TwilioClient (
+module Application.Twilio.Client (
     sendPhoneMessage,
     callbackSignature,
     config,
@@ -38,6 +38,16 @@ data Response = Response
     }
     deriving (Show)
 
+config :: (?context :: context, ConfigProvider context) => Config
+config =
+    ?context
+        |> getFrameworkConfig
+        |> get #appConfig
+        |> TMap.lookup @Config
+        |> \case
+            Just config -> config
+            Nothing -> error "Missing configuration Twilio.Client.Config"
+
 sendPhoneMessage ::
     Config ->
     Text ->
@@ -53,7 +63,7 @@ sendPhoneMessage
             post
                 accountId
                 authToken
-                (twilioEndpoint accountId)
+                (endpoint accountId)
                 (ReqBodyUrlEnc payload)
         case parseResponse httpResponse of
             Just response -> pure response
@@ -111,16 +121,6 @@ post accountId authToken url body = req POST url body bsResponse auth
   where
     auth = Network.HTTP.Req.basicAuth (encodeUtf8 accountId) (encodeUtf8 authToken)
 
-twilioEndpoint :: Text -> Url 'Https
-twilioEndpoint accountId =
+endpoint :: Text -> Url 'Https
+endpoint accountId =
     https "api.twilio.com" /: "2010-04-01" /: "Accounts" /: accountId /: "Messages.json"
-
-config :: (?context :: context, ConfigProvider context) => Config
-config =
-    ?context
-        |> getFrameworkConfig
-        |> get #appConfig
-        |> TMap.lookup @Config
-        |> \case
-            Just config -> config
-            Nothing -> error "Missing configuration TwilioClient.Config"

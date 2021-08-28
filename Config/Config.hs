@@ -21,5 +21,8 @@ config = do
                     }
     option logger
 
-    twilioConfig <- liftIO Config.load
+    config <- liftIO Config.load
+    let Config.T {..} = config
+
     option twilioConfig
+    option vertexAiConfig
