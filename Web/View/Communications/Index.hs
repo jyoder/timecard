@@ -776,7 +776,7 @@ renderTimecardEntryCard TimecardEntryCard {..} =
 
             <div class="card-body">
                 <h5 class="card-title">{jobName}</h5>
-                <p class="card-text">{invoiceTranslation}</p>
+                <p class="card-text">{nl2br invoiceTranslation}</p>
                 <a href={editAction} class="btn btn-primary">Edit</a>
             </div>
         </div>

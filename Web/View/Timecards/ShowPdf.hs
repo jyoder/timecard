@@ -163,7 +163,7 @@ renderJobRow JobRow {..} =
             <td class="clock-in">{clockedInAt}</td>
             <td class="clock-out">{clockedOutAt}</td>
             <td>{lunchDuration}</td>
-            <td class="work-done">{workDone}</td>
+            <td class="work-done">{nl2br workDone}</td>
             <td>{hoursWorked}</td>
         </tr>
     |]

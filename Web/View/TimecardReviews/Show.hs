@@ -242,7 +242,7 @@ renderTimecardEntryCard TimecardEntryCard {..} =
                 <h5 class="card-title">{hoursWorked} hours - {jobName}</h5>
                 <div class="card-text">
                     {renderClockDetails clockDetails}
-                    <p>{workDone}</p>
+                    <p>{nl2br workDone}</p>
                 </div>
             </div>
         </div>

@@ -348,7 +348,7 @@ renderJobRow JobRow {..} =
             <td class="d-none d-md-table-cell">{clockedInAt}</td>
             <td class="d-none d-md-table-cell">{clockedOutAt}</td>
             <td class="d-none d-md-table-cell">{lunchDuration}</td>
-            <td class="work-done d-none d-md-table-cell">{workDone}</td>
+            <td class="work-done d-none d-md-table-cell">{nl2br workDone}</td>
             {renderInvoiceTranslationCell invoiceTranslationCell}
             <td>{hoursWorked}</td>
         </tr>
@@ -360,7 +360,7 @@ renderInvoiceTranslationCell invoiceTranslationCell =
         ShowInvoiceTranslation {..} ->
             [hsx|
                 <td class="invoice-translation d-none d-md-table-cell">
-                    {invoiceTranslation} (<a href={editAction}>Edit</a>)
+                    {nl2br invoiceTranslation} (<a href={editAction}>Edit</a>)
                 </td>
             |]
         EditInvoiceTranslation {..} ->
