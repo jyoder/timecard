@@ -6,6 +6,7 @@ import qualified Application.People.Person as Person
 import qualified Application.People.View as V
 import qualified Application.Timecard.View as V
 import qualified Application.Twilio.Query as Twilio.Query
+import qualified Application.Twilio.View as V
 import Web.View.Navigation.People
 import Web.View.Navigation.Section (Section (Communications), renderSectionNavigation)
 import Web.View.Prelude hiding (Page)
@@ -23,7 +24,7 @@ data PersonSelection
     = NoPersonSelected
     | PersonSelected
         { selectedPerson :: !Person
-        , messages :: ![Twilio.Query.Row]
+        , messages :: ![V.Message]
         , toPhoneNumber :: !PhoneNumber
         , scheduledMessages :: ![SendMessageAction.T]
         , editingScheduledMessage :: !Bool
@@ -37,7 +38,7 @@ data PersonActivity
         }
     | WorkingOnTimecardEntry
         { timecardEntry :: !TimecardEntry
-        , selectedMessages :: ![Twilio.Query.Row]
+        , selectedMessages :: ![V.Message]
         , timecardActivity :: TimecardActivity
         }
 
@@ -252,7 +253,7 @@ buildMessagesColumn IndexView {..} =
                 , sendMessageForm = buildSendMessageForm toPhoneNumber
                 }
 
-buildMessageItems :: Person -> PersonActivity -> [Twilio.Query.Row] -> [MessageItem]
+buildMessageItems :: Person -> PersonActivity -> [V.Message] -> [MessageItem]
 buildMessageItems selectedPerson personActivity messages =
     let selectedMessageIds = case personActivity of
             SendingMessage {..} -> []
@@ -263,7 +264,7 @@ buildMessageItem ::
     Person ->
     PersonActivity ->
     [Id TwilioMessage] ->
-    Twilio.Query.Row ->
+    V.Message ->
     MessageItem
 buildMessageItem selectedPerson personActivity selectedMessageIds message =
     MessageItem
@@ -436,7 +437,7 @@ buildTimecardEntryCard selectedPerson timecardEntry =
 
 buildTimecardEntryForm ::
     Person ->
-    [Twilio.Query.Row] ->
+    [V.Message] ->
     TimecardActivity ->
     TimecardEntry ->
     TimecardEntryForm
@@ -498,7 +499,7 @@ buildTimecardEntryForm
                 , column = Just $ columnToParam TimecardsColumn
                 }
 
-assembleMessageBodies :: Text -> [Twilio.Query.Row] -> Text
+assembleMessageBodies :: Text -> [V.Message] -> Text
 assembleMessageBodies existingText messages =
     if existingText == ""
         then intercalate "\n\n" (get #body <$> messages)

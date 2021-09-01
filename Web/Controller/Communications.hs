@@ -17,6 +17,8 @@ import qualified Application.Timecard.Timecard as Timecard
 import qualified Application.Timecard.View as Timecard.View
 import qualified Application.Twilio.Query as Twilio.Query
 import qualified Application.Twilio.TwilioMessage as TwilioMessage
+import qualified Application.Twilio.View as Twilio.View
+import Data.Functor ((<&>))
 import Data.Text (strip)
 import Text.Read (read)
 import Web.Controller.Prelude
@@ -37,7 +39,9 @@ instance Controller CommunicationsController where
                 let selectedPersonId = get #id firstPerson
                 selectedPerson <- fetch selectedPersonId
 
-                messages <- Twilio.Query.fetchByPeople botId selectedPersonId
+                messages <-
+                    Twilio.Query.fetchByPeople2 botId selectedPersonId
+                        <&> Twilio.View.buildMessages
                 toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
                 scheduledMessages <-
                     SendMessageAction.fetchNotStartedOrSuspendedByPhoneNumber
@@ -64,7 +68,9 @@ instance Controller CommunicationsController where
                 <$> People.Query.fetchActiveWorkers
         selectedPerson <- fetch selectedPersonId
 
-        messages <- Twilio.Query.fetchByPeople botId selectedPersonId
+        messages <-
+            Twilio.Query.fetchByPeople2 botId selectedPersonId
+                <&> Twilio.View.buildMessages
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
         scheduledMessages <-
             SendMessageAction.fetchNotStartedOrSuspendedByPhoneNumber
@@ -92,7 +98,9 @@ instance Controller CommunicationsController where
                 <$> People.Query.fetchActiveWorkers
         selectedPerson <- fetch selectedPersonId
 
-        messages <- Twilio.Query.fetchByPeople botId selectedPersonId
+        messages <-
+            Twilio.Query.fetchByPeople2 botId selectedPersonId
+                <&> Twilio.View.buildMessages
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
 
         let selectedMessageIds' = textToId <$> selectedMessageIds
@@ -127,7 +135,9 @@ instance Controller CommunicationsController where
         selectedPerson <- fetch selectedPersonId
 
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
-        messages <- Twilio.Query.fetchByPeople botId selectedPersonId
+        messages <-
+            Twilio.Query.fetchByPeople2 botId selectedPersonId
+                <&> Twilio.View.buildMessages
         timecardEntryMessages <- Timecard.EntryMessage.fetchByTimecardEntry timecardEntryId
         let selectedMessageIds = map (get #twilioMessageId) timecardEntryMessages
         let selectedMessages = findSelectedMessages messages selectedMessageIds
@@ -157,7 +167,9 @@ instance Controller CommunicationsController where
         selectedPerson <- fetch selectedPersonId
 
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
-        messages <- Twilio.Query.fetchByPeople botId selectedPersonId
+        messages <-
+            Twilio.Query.fetchByPeople2 botId selectedPersonId
+                <&> Twilio.View.buildMessages
 
         let selectedMessageIds' = textToId <$> selectedMessageIds
         let selectedMessages = findSelectedMessages messages selectedMessageIds'
@@ -195,7 +207,9 @@ instance Controller CommunicationsController where
                         people <-
                             People.View.buildPeople
                                 <$> People.Query.fetchActiveWorkers
-                        messages <- Twilio.Query.fetchByPeople botId selectedPersonId
+                        messages <-
+                            Twilio.Query.fetchByPeople2 botId selectedPersonId
+                                <&> Twilio.View.buildMessages
                         let selectedMessages = findSelectedMessages messages selectedMessageIds
                         scheduledMessages <-
                             SendMessageAction.fetchNotStartedOrSuspendedByPhoneNumber
@@ -240,7 +254,9 @@ instance Controller CommunicationsController where
                                 <$> People.Query.fetchActiveWorkers
                         selectedPerson <- fetch selectedPersonId
 
-                        messages <- Twilio.Query.fetchByPeople botId selectedPersonId
+                        messages <-
+                            Twilio.Query.fetchByPeople2 botId selectedPersonId
+                                <&> Twilio.View.buildMessages
                         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
                         let selectedMessages = findSelectedMessages messages selectedMessageIds
                         scheduledMessages <-
@@ -288,7 +304,9 @@ instance Controller CommunicationsController where
                 <$> People.Query.fetchActiveWorkers
         selectedPerson <- fetch selectedPersonId
 
-        messages <- Twilio.Query.fetchByPeople botId selectedPersonId
+        messages <-
+            Twilio.Query.fetchByPeople2 botId selectedPersonId
+                <&> Twilio.View.buildMessages
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
         scheduledMessages <-
             SendMessageAction.fetchNotStartedOrSuspendedByPhoneNumber
@@ -351,9 +369,9 @@ instance Controller CommunicationsController where
         redirectTo CommunicationsPersonSelectionAction {..}
 
 findSelectedMessages ::
-    [Twilio.Query.Row] ->
+    [Twilio.View.Message] ->
     [Id TwilioMessage] ->
-    [Twilio.Query.Row]
+    [Twilio.View.Message]
 findSelectedMessages messages selectedMessageIds =
     catMaybes $ findMessage <$> selectedMessageIds
   where

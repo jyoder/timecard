@@ -5,11 +5,11 @@ import qualified Application.Action.SendMessageAction as SendMessageAction
 import qualified Application.People.View as People.View
 import qualified Application.Timecard.View as Timecard.View
 import qualified Application.Twilio.Query as Twilio.Query
+import qualified Application.Twilio.View as Twilio.View
 import Generated.Types
 import IHP.ControllerPrelude
 import Test.Hspec
 import Tests.Support
-import Text.Read (read)
 import Web.Types
 import qualified Web.View.Communications.Index as Index
 import Web.View.Navigation.People
@@ -144,7 +144,7 @@ spec = do
             let personActivity = Index.SendingMessage {timecards = []}
 
             let twilioMessage1 =
-                    Twilio.Query.Row
+                    Twilio.View.Message
                         { id = "40000000-0000-0000-0000-000000000000"
                         , fromPhoneNumber = "+15555555555"
                         , fromFirstName = "Barbara"
@@ -155,10 +155,11 @@ spec = do
                         , createdAt = toUtc "2021-06-23 15:29:00 PDT"
                         , status = Twilio.Query.Delivered
                         , body = "What's up?"
+                        , entities = []
                         }
 
             let twilioMessage2 =
-                    Twilio.Query.Row
+                    Twilio.View.Message
                         { id = "50000000-0000-0000-0000-000000000000"
                         , fromPhoneNumber = "+16666666666"
                         , fromFirstName = "Jackie"
@@ -169,6 +170,7 @@ spec = do
                         , createdAt = toUtc "2021-06-23 15:30:00 PDT"
                         , status = Twilio.Query.Delivered
                         , body = "Not much."
+                        , entities = []
                         }
 
             let scheduledMessage =
@@ -293,7 +295,7 @@ spec = do
             let personActivity = Index.SendingMessage {timecards = []}
 
             let twilioMessage1 =
-                    Twilio.Query.Row
+                    Twilio.View.Message
                         { id = "30000000-0000-0000-0000-000000000000"
                         , fromPhoneNumber = "+15555555555"
                         , fromFirstName = "Barbara"
@@ -304,10 +306,11 @@ spec = do
                         , createdAt = toUtc "2021-06-23 15:29:00 PDT"
                         , status = Twilio.Query.Delivered
                         , body = "What's up?"
+                        , entities = []
                         }
 
             let twilioMessage2 =
-                    Twilio.Query.Row
+                    Twilio.View.Message
                         { id = "40000000-0000-0000-0000-000000000000"
                         , fromPhoneNumber = "+16666666666"
                         , fromFirstName = "Jackie"
@@ -318,6 +321,7 @@ spec = do
                         , createdAt = toUtc "2021-06-23 15:30:00 PDT"
                         , status = Twilio.Query.Delivered
                         , body = "Not much."
+                        , entities = []
                         }
 
             Index.buildMessageItems
@@ -368,7 +372,7 @@ spec = do
                         |> set #id "20000000-0000-0000-0000-000000000000"
 
             let twilioMessage1 =
-                    Twilio.Query.Row
+                    Twilio.View.Message
                         { id = "30000000-0000-0000-0000-000000000000"
                         , fromPhoneNumber = "+15555555555"
                         , fromFirstName = "Barbara"
@@ -379,10 +383,11 @@ spec = do
                         , createdAt = toUtc "2021-06-23 15:29:00 PDT"
                         , status = Twilio.Query.Delivered
                         , body = "What's up?"
+                        , entities = []
                         }
 
             let twilioMessage2 =
-                    Twilio.Query.Row
+                    Twilio.View.Message
                         { id = "40000000-0000-0000-0000-000000000000"
                         , fromPhoneNumber = "+16666666666"
                         , fromFirstName = "Jackie"
@@ -393,6 +398,7 @@ spec = do
                         , createdAt = toUtc "2021-06-23 15:30:00 PDT"
                         , status = Twilio.Query.Delivered
                         , body = "Not much."
+                        , entities = []
                         }
 
             let personActivity =
@@ -450,7 +456,7 @@ spec = do
                         |> set #id "20000000-0000-0000-0000-000000000000"
 
             let twilioMessage =
-                    Twilio.Query.Row
+                    Twilio.View.Message
                         { id = "30000000-0000-0000-0000-000000000000"
                         , fromPhoneNumber = "+15555555555"
                         , fromFirstName = "Barbara"
@@ -461,6 +467,7 @@ spec = do
                         , createdAt = toUtc "2021-06-23 15:29:00 PDT"
                         , status = Twilio.Query.Delivered
                         , body = "What's up?"
+                        , entities = []
                         }
 
             let personActivity = Index.SendingMessage {timecards = []}
@@ -496,7 +503,7 @@ spec = do
                         |> set #id "20000000-0000-0000-0000-000000000000"
 
             let twilioMessage =
-                    Twilio.Query.Row
+                    Twilio.View.Message
                         { id = "30000000-0000-0000-0000-000000000000"
                         , fromPhoneNumber = "+15555555555"
                         , fromFirstName = "Barbara"
@@ -507,6 +514,7 @@ spec = do
                         , createdAt = toUtc "2021-06-23 15:29:00 PDT"
                         , status = Twilio.Query.Delivered
                         , body = "What's up?"
+                        , entities = []
                         }
 
             let personActivity =
@@ -550,7 +558,7 @@ spec = do
                         |> set #id "20000000-0000-0000-0000-000000000000"
 
             let twilioMessage =
-                    Twilio.Query.Row
+                    Twilio.View.Message
                         { id = "30000000-0000-0000-0000-000000000000"
                         , fromPhoneNumber = "+15555555555"
                         , fromFirstName = "Barbara"
@@ -561,6 +569,7 @@ spec = do
                         , createdAt = toUtc "2021-06-23 15:29:00 PDT"
                         , status = Twilio.Query.Delivered
                         , body = "What's up?"
+                        , entities = []
                         }
 
             let personActivity =
@@ -821,7 +830,7 @@ spec = do
                         |> set #date (toDay "2021-06-21")
 
             let twilioMessage =
-                    Twilio.Query.Row
+                    Twilio.View.Message
                         { id = "30000000-0000-0000-0000-000000000000"
                         , fromPhoneNumber = "+15555555555"
                         , fromFirstName = "Barbara"
@@ -832,6 +841,7 @@ spec = do
                         , createdAt = toUtc "2021-06-23 15:29:00 PDT"
                         , status = Twilio.Query.Delivered
                         , body = "What's up?"
+                        , entities = []
                         }
 
             let personSelection =
@@ -1124,7 +1134,7 @@ spec = do
                         |> set #id "10000000-0000-0000-0000-000000000000"
 
             let twilioMessage =
-                    Twilio.Query.Row
+                    Twilio.View.Message
                         { id = "20000000-0000-0000-0000-000000000000"
                         , fromPhoneNumber = "+15555555555"
                         , fromFirstName = "Barbara"
@@ -1135,6 +1145,7 @@ spec = do
                         , createdAt = toUtc "2021-06-23 15:29:00 PDT"
                         , status = Twilio.Query.Delivered
                         , body = "What's up?"
+                        , entities = []
                         }
 
             let timecardActivity = Index.CreatingEntry
@@ -1200,7 +1211,7 @@ spec = do
                         |> set #id "10000000-0000-0000-0000-000000000000"
 
             let twilioMessage =
-                    Twilio.Query.Row
+                    Twilio.View.Message
                         { id = "20000000-0000-0000-0000-000000000000"
                         , fromPhoneNumber = "+15555555555"
                         , fromFirstName = "Barbara"
@@ -1211,6 +1222,7 @@ spec = do
                         , createdAt = toUtc "2021-06-23 15:29:00 PDT"
                         , status = Twilio.Query.Delivered
                         , body = "What's up?"
+                        , entities = []
                         }
 
             let timecardActivity = Index.CreatingEntry
@@ -1281,7 +1293,7 @@ spec = do
                         |> set #id "10000000-0000-0000-0000-000000000000"
 
             let twilioMessage =
-                    Twilio.Query.Row
+                    Twilio.View.Message
                         { id = "20000000-0000-0000-0000-000000000000"
                         , fromPhoneNumber = "+15555555555"
                         , fromFirstName = "Barbara"
@@ -1292,6 +1304,7 @@ spec = do
                         , createdAt = toUtc "2021-06-23 15:29:00 PDT"
                         , status = Twilio.Query.Delivered
                         , body = "What's up?"
+                        , entities = []
                         }
 
             let timecardActivity = Index.EditingEntry
@@ -1358,7 +1371,7 @@ spec = do
                         |> set #id "10000000-0000-0000-0000-000000000000"
 
             let twilioMessage1 =
-                    Twilio.Query.Row
+                    Twilio.View.Message
                         { id = "20000000-0000-0000-0000-000000000000"
                         , fromPhoneNumber = "+15555555555"
                         , fromFirstName = "Barbara"
@@ -1369,9 +1382,10 @@ spec = do
                         , createdAt = toUtc "2021-06-23 15:29:00 PDT"
                         , status = Twilio.Query.Delivered
                         , body = "What's up?"
+                        , entities = []
                         }
             let twilioMessage2 =
-                    Twilio.Query.Row
+                    Twilio.View.Message
                         { id = "30000000-0000-0000-0000-000000000000"
                         , fromPhoneNumber = "+16666666666"
                         , fromFirstName = "Jackie"
@@ -1382,6 +1396,7 @@ spec = do
                         , createdAt = toUtc "2021-06-23 15:30:00 PDT"
                         , status = Twilio.Query.Received
                         , body = "Nothing much."
+                        , entities = []
                         }
 
             let timecardActivity = Index.CreatingEntry
@@ -1441,7 +1456,7 @@ spec = do
     describe "assembleMessageBodies" do
         it "returns the concatenated bodies of all of the twilio messages if the existing text is blank" do
             let twilioMessage1 =
-                    Twilio.Query.Row
+                    Twilio.View.Message
                         { id = "10000000-0000-0000-0000-000000000000"
                         , fromPhoneNumber = "+15555555555"
                         , fromFirstName = "Barbara"
@@ -1452,9 +1467,10 @@ spec = do
                         , createdAt = toUtc "2021-06-23 15:29:00 PDT"
                         , status = Twilio.Query.Delivered
                         , body = "What's up?"
+                        , entities = []
                         }
             let twilioMessage2 =
-                    Twilio.Query.Row
+                    Twilio.View.Message
                         { id = "20000000-0000-0000-0000-000000000000"
                         , fromPhoneNumber = "+16666666666"
                         , fromFirstName = "Jackie"
@@ -1465,13 +1481,14 @@ spec = do
                         , createdAt = toUtc "2021-06-23 15:30:00 PDT"
                         , status = Twilio.Query.Received
                         , body = "Nothing much."
+                        , entities = []
                         }
             Index.assembleMessageBodies "" [twilioMessage1, twilioMessage2]
                 `shouldBe` "What's up?\n\nNothing much."
 
         it "returns the existing text and ignores the messages if the existing text is not blank" do
             let twilioMessage1 =
-                    Twilio.Query.Row
+                    Twilio.View.Message
                         { id = "10000000-0000-0000-0000-000000000000"
                         , fromPhoneNumber = "+15555555555"
                         , fromFirstName = "Barbara"
@@ -1482,9 +1499,10 @@ spec = do
                         , createdAt = toUtc "2021-06-23 15:29:00 PDT"
                         , status = Twilio.Query.Delivered
                         , body = "What's up?"
+                        , entities = []
                         }
             let twilioMessage2 =
-                    Twilio.Query.Row
+                    Twilio.View.Message
                         { id = "20000000-0000-0000-0000-000000000000"
                         , fromPhoneNumber = "+16666666666"
                         , fromFirstName = "Jackie"
@@ -1495,6 +1513,7 @@ spec = do
                         , createdAt = toUtc "2021-06-23 15:30:00 PDT"
                         , status = Twilio.Query.Received
                         , body = "Nothing much."
+                        , entities = []
                         }
             Index.assembleMessageBodies "Existing text" [twilioMessage1, twilioMessage2]
                 `shouldBe` "Existing text"
