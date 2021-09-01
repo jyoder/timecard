@@ -306,7 +306,7 @@ messagesQuery2 =
         where
             message_details.id = predictions.id
         order by
-            message_details.created_at desc,
+            message_details.created_at asc,
             message_details.id asc,
             predictions.row asc
 |]
