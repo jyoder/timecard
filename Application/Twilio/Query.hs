@@ -1,7 +1,10 @@
 module Application.Twilio.Query (
     Row (..),
+    Row2 (..),
     Status (..),
+    EntityType (..),
     fetchByPeople,
+    fetchByPeople2,
 ) where
 
 import Data.ByteString.UTF8 (toString)
@@ -25,6 +28,24 @@ data Row = Row
     , body :: !Text
     }
 
+data Row2 = Row2
+    { id :: !(Id Types.TwilioMessage)
+    , fromPhoneNumber :: !Text
+    , fromFirstName :: !Text
+    , fromLastName :: !Text
+    , toPhoneNumber :: !Text
+    , toFirstName :: !Text
+    , toLastName :: !Text
+    , createdAt :: !UTCTime
+    , status :: !Status
+    , body :: !(Maybe Text)
+    , entityType :: !(Maybe EntityType)
+    , entityStart :: !(Maybe Int)
+    , entityEnd :: !(Maybe Int)
+    , entityConfidence :: !(Maybe Double)
+    }
+    deriving (Eq, Show)
+
 data Status
     = Accepted
     | Scheduled
@@ -37,12 +58,30 @@ data Status
     | Undelivered
     | Failed
     | Read
-    deriving (Show)
+    deriving (Eq, Show)
 
 instance FromRow Row where
     fromRow =
         Row
             <$> field
+            <*> field
+            <*> field
+            <*> field
+            <*> field
+            <*> field
+            <*> field
+            <*> field
+            <*> field
+            <*> field
+
+instance FromRow Row2 where
+    fromRow =
+        Row2
+            <$> field
+            <*> field
+            <*> field
+            <*> field
+            <*> field
             <*> field
             <*> field
             <*> field
@@ -70,6 +109,28 @@ instance FromField Status where
             Just _data -> returnError ConversionFailed field (toString _data)
             Nothing -> returnError UnexpectedNull field ""
 
+data EntityType
+    = JobName
+    | HoursWorked
+    | ClockedInAt
+    | ClockedOutAt
+    | TimeOnTask
+    | WorkDone
+    | Unrecognized
+    deriving (Eq, Show)
+
+instance FromField EntityType where
+    fromField field maybeData =
+        case maybeData of
+            Just "job_name" -> pure JobName
+            Just "hours_worked" -> pure HoursWorked
+            Just "clocked_in_at" -> pure ClockedInAt
+            Just "clocked_out_at" -> pure ClockedOutAt
+            Just "time_on_task" -> pure TimeOnTask
+            Just "work_done" -> pure WorkDone
+            Just _data -> pure Unrecognized
+            Nothing -> returnError UnexpectedNull field ""
+
 fetchByPeople ::
     (?modelContext :: ModelContext) =>
     Id Types.Person ->
@@ -78,6 +139,16 @@ fetchByPeople ::
 fetchByPeople personIdA personIdB = do
     trackTableRead "twilio_messages"
     sqlQuery messagesQuery (personIdA, personIdB)
+
+fetchByPeople2 ::
+    (?modelContext :: ModelContext) =>
+    Id Types.Person ->
+    Id Types.Person ->
+    IO [Row2]
+fetchByPeople2 personIdA personIdB = do
+    trackTableRead "twilio_messages"
+    trackTableRead "twilio_message_entities"
+    sqlQuery messagesQuery2 (personIdA, personIdB)
 
 messagesQuery :: Query
 messagesQuery =
@@ -131,6 +202,111 @@ where
           or
           (twilio_messages.from_id = phone_numbers_b.id 
            and twilio_messages.to_id = phone_numbers_a.id))
-order by
-    twilio_messages.created_at asc;
+|]
+
+messagesQuery2 :: Query
+messagesQuery2 =
+    [i|
+        with
+            message_details as (
+                select
+                    twilio_messages.id id,
+                    (case when twilio_messages.from_id = phone_numbers_a.id
+                        then phone_numbers_a.number
+                        else phone_numbers_b.number
+                    end) from_phone_number,
+                    (case when twilio_messages.from_id = phone_numbers_a.id
+                        then people_a.first_name
+                        else people_b.first_name
+                    end) from_first_name,
+                    (case when twilio_messages.from_id = phone_numbers_a.id
+                        then people_a.last_name
+                        else people_b.last_name
+                    end) from_last_name,
+                    (case when twilio_messages.to_id = phone_numbers_a.id
+                        then phone_numbers_a.number
+                        else phone_numbers_b.number
+                    end) to_phone_number,
+                    (case when twilio_messages.to_id = phone_numbers_a.id
+                        then people_a.first_name
+                        else people_b.first_name
+                    end) to_first_name,
+                    (case when twilio_messages.to_id = phone_numbers_a.id
+                        then people_a.last_name
+                        else people_b.last_name
+                    end) to_last_name,
+                    twilio_messages.body body,
+                    twilio_messages.status status,
+                    twilio_messages.created_at created_at
+                from
+                    people people_a,
+                    phone_contacts phone_contacts_a,
+                    phone_numbers phone_numbers_a,
+                    people people_b,
+                    phone_contacts phone_contacts_b,
+                    phone_numbers phone_numbers_b,
+                    twilio_messages
+                where
+                    people_a.id = ?
+                    and phone_contacts_a.person_id = people_a.id
+                    and phone_contacts_a.phone_number_id = phone_numbers_a.id
+                    and people_b.id = ?
+                    and phone_contacts_b.person_id = people_b.id
+                    and phone_contacts_b.phone_number_id = phone_numbers_b.id
+                    and ((twilio_messages.from_id = phone_numbers_a.id
+                        and twilio_messages.to_id = phone_numbers_b.id)
+                        or
+                        (twilio_messages.from_id = phone_numbers_b.id
+                        and twilio_messages.to_id = phone_numbers_a.id))
+                order by
+                    twilio_messages.created_at desc
+            ),
+            predictions as (
+                select
+                    message_details.id id,
+                    vertex_ai_entity_predictions.display_name,
+                    vertex_ai_entity_predictions.segment_start_offset,
+                    vertex_ai_entity_predictions.segment_end_offset,
+                    vertex_ai_entity_predictions.confidence,
+                    vertex_ai_entity_predictions.deployed_model_id,
+                    row_number()
+                        over (
+                            partition by message_details.id 
+                        order by 
+                            vertex_ai_entity_predictions.segment_start_offset asc) as row
+                from
+                    message_details
+                    left join
+                        twilio_message_entities on
+                            (twilio_message_entities.twilio_message_id = message_details.id)
+                    left join
+                        vertex_ai_entity_predictions on
+                            (vertex_ai_entity_predictions.id = twilio_message_entities.vertex_ai_entity_prediction_id)
+                order by
+                    vertex_ai_entity_predictions.segment_start_offset asc
+            )
+        select
+            message_details.id,
+            message_details.from_phone_number,
+            message_details.from_first_name,
+            message_details.from_last_name,
+            message_details.to_phone_number,
+            message_details.to_first_name,
+            message_details.to_last_name,
+            message_details.created_at,
+            message_details.status,
+            (case when predictions.row = 1 then message_details.body else null end),
+            predictions.display_name,
+            predictions.segment_start_offset,
+            predictions.segment_end_offset,
+            predictions.confidence
+        from
+            message_details,
+            predictions
+        where
+            message_details.id = predictions.id
+        order by
+            message_details.created_at desc,
+            message_details.id asc,
+            predictions.row asc
 |]
