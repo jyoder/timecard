@@ -79,7 +79,3 @@ createAssociations ::
     [TwilioMessageEntity] ->
     IO [TwilioMessageEntity]
 createAssociations = mapM (validateAndCreate TwilioMessageEntity.validate)
-
--- Update production environment variables
--- Update production Config.hs files
--- Ensure production is migrated (we changed some of the check constraints)
