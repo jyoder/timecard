@@ -72,12 +72,19 @@ data MessagesColumn
 data MessageItem = MessageItem
     { fromName :: !Text
     , sentAt :: !Text
-    , body :: !Text
+    , entities :: ![Entity]
     , statusClass :: !Text
     , status :: !Text
     , linkButtonActiveClass :: !Text
     , linkButtonText :: !Text
     , linkButtonAction :: !CommunicationsController
+    }
+    deriving (Eq, Show)
+
+data Entity = Entity
+    { classes :: !Text
+    , content :: !Text
+    , confidence :: !Text
     }
     deriving (Eq, Show)
 
@@ -270,7 +277,7 @@ buildMessageItem selectedPerson personActivity selectedMessageIds message =
     MessageItem
         { fromName = get #fromFirstName message <> " " <> get #fromLastName message
         , sentAt = formatDateTime $ get #createdAt message
-        , body = get #body message
+        , entities = buildEntity <$> get #entities message
         , statusClass = messageStatusClass'
         , status = messageStatus
         , linkButtonActiveClass = if isSelected then "active" else ""
@@ -310,6 +317,25 @@ buildMessageItem selectedPerson personActivity selectedMessageIds message =
     excludeMessageId = filter (/= messageId) selectedMessageIds
     includeMessageId = messageId : selectedMessageIds
     messageId = get #id message
+
+buildEntity :: V.Entity -> Entity
+buildEntity V.Entity {..} =
+    Entity
+        { classes = entityClass entityType
+        , content = rawText
+        , confidence = show confidence
+        }
+
+entityClass :: Twilio.Query.EntityType -> Text
+entityClass entityType =
+    case entityType of
+        Twilio.Query.JobName -> "entity job-name"
+        Twilio.Query.HoursWorked -> "entity hours-worked"
+        Twilio.Query.ClockedInAt -> "entity clocked-in-at"
+        Twilio.Query.ClockedOutAt -> "entity clocked-out-at"
+        Twilio.Query.TimeOnTask -> "entity time-on-task"
+        Twilio.Query.WorkDone -> "entity work-done"
+        Twilio.Query.Unrecognized -> "entity unrecognized"
 
 messageStatusClass :: Twilio.Query.Status -> Text
 messageStatusClass status =
@@ -588,7 +614,7 @@ renderMessageItem MessageItem {..} =
                     <time class="date-time" datetime={sentAt}>{sentAt}</time>
                 </span>
             </div>
-            <p class="message-body mb-1">{body}</p>
+            <p class="message-body mb-1">{forEach entities renderEntity}</p>
 
             <div class="d-flex w-100 justify-content-between">
                 <span class={statusClass}>{status}</span>
@@ -598,6 +624,12 @@ renderMessageItem MessageItem {..} =
                 </a>
             </div>
         </div>
+    |]
+
+renderEntity :: Entity -> Html
+renderEntity Entity {..} =
+    [hsx|
+        <span class={classes}>{content}</span>
     |]
 
 renderScheduledMessageItem :: ScheduledMessageItem -> Html
@@ -953,6 +985,30 @@ styles =
                 white-space: pre-line;
                 word-wrap: break-word;
                 word-break: break-word;
+            }
+
+            .entity.job-name {
+                background-color: #d1e3ff;
+            }
+
+            .entity.hours-worked {
+                background-color: #ffddd1;
+            }
+
+            .entity.clocked-in-at {
+                background-color: #d1ffd4;
+            }
+
+            .entity.clocked-out-at {
+                background-color: #d1d6ff;
+            }
+
+            .entity.time-on-task {
+                background-color: #fdd1ff;
+            }
+
+            .entity.work-done {
+                background-color: #faffd1;
             }
 
             .message-sent-at {

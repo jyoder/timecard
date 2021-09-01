@@ -205,7 +205,7 @@ spec = do
                         [ Index.MessageItem
                             { fromName = "Barbara Bush"
                             , sentAt = "2021-06-23T22:29:00+0000"
-                            , body = "What's up?"
+                            , entities = []
                             , statusClass = "message-status delivered"
                             , status = "Delivered"
                             , linkButtonActiveClass = ""
@@ -221,7 +221,7 @@ spec = do
                         , Index.MessageItem
                             { fromName = "Jackie Kennedy"
                             , sentAt = "2021-06-23T22:30:00+0000"
-                            , body = "Not much."
+                            , entities = []
                             , statusClass = "message-status delivered"
                             , status = "Delivered"
                             , linkButtonActiveClass = ""
@@ -331,7 +331,7 @@ spec = do
                 `shouldBe` [ Index.MessageItem
                                 { fromName = "Barbara Bush"
                                 , sentAt = "2021-06-23T22:29:00+0000"
-                                , body = "What's up?"
+                                , entities = []
                                 , statusClass = "message-status delivered"
                                 , status = "Delivered"
                                 , linkButtonActiveClass = ""
@@ -347,7 +347,7 @@ spec = do
                            , Index.MessageItem
                                 { fromName = "Jackie Kennedy"
                                 , sentAt = "2021-06-23T22:30:00+0000"
-                                , body = "Not much."
+                                , entities = []
                                 , statusClass = "message-status delivered"
                                 , status = "Delivered"
                                 , linkButtonActiveClass = ""
@@ -415,7 +415,7 @@ spec = do
                 `shouldBe` [ Index.MessageItem
                                 { fromName = "Barbara Bush"
                                 , sentAt = "2021-06-23T22:29:00+0000"
-                                , body = "What's up?"
+                                , entities = []
                                 , statusClass = "message-status delivered"
                                 , status = "Delivered"
                                 , linkButtonActiveClass = ""
@@ -432,7 +432,7 @@ spec = do
                            , Index.MessageItem
                                 { fromName = "Jackie Kennedy"
                                 , sentAt = "2021-06-23T22:30:00+0000"
-                                , body = "Not much."
+                                , entities = []
                                 , statusClass = "message-status delivered"
                                 , status = "Delivered"
                                 , linkButtonActiveClass = "active"
@@ -467,7 +467,13 @@ spec = do
                         , createdAt = toUtc "2021-06-23 15:29:00 PDT"
                         , status = Twilio.Query.Delivered
                         , body = "What's up?"
-                        , entities = []
+                        , entities =
+                            [ Twilio.View.Entity
+                                { entityType = Twilio.Query.JobName
+                                , rawText = "barfed"
+                                , confidence = 1.0
+                                }
+                            ]
                         }
 
             let personActivity = Index.SendingMessage {timecards = []}
@@ -481,7 +487,13 @@ spec = do
                 `shouldBe` Index.MessageItem
                     { fromName = "Barbara Bush"
                     , sentAt = "2021-06-23T22:29:00+0000"
-                    , body = "What's up?"
+                    , entities =
+                        [ Index.Entity
+                            { classes = "entity job-name"
+                            , content = "barfed"
+                            , confidence = "1.0"
+                            }
+                        ]
                     , statusClass = "message-status delivered"
                     , status = "Delivered"
                     , linkButtonActiveClass = "active"
@@ -533,7 +545,7 @@ spec = do
                 `shouldBe` Index.MessageItem
                     { fromName = "Barbara Bush"
                     , sentAt = "2021-06-23T22:29:00+0000"
-                    , body = "What's up?"
+                    , entities = []
                     , statusClass = "message-status delivered"
                     , status = "Delivered"
                     , linkButtonActiveClass = ""
@@ -548,7 +560,7 @@ spec = do
                             }
                     }
 
-        it "returns a message to unlink the message if it is currently linked" do
+        it "returns a message item to unlink the message if it is currently linked" do
             let person =
                     newRecord @Person
                         |> set #id "10000000-0000-0000-0000-000000000000"
@@ -589,7 +601,7 @@ spec = do
                 `shouldBe` Index.MessageItem
                     { fromName = "Barbara Bush"
                     , sentAt = "2021-06-23T22:29:00+0000"
-                    , body = "What's up?"
+                    , entities = []
                     , statusClass = "message-status delivered"
                     , status = "Delivered"
                     , linkButtonActiveClass = "active"
@@ -602,6 +614,36 @@ spec = do
                                 ]
                             }
                     }
+
+    describe "buildEntity" do
+        it "returns an entity based on the given parameter" do
+            Index.buildEntity
+                Twilio.View.Entity
+                    { entityType = Twilio.Query.JobName
+                    , rawText = "barfed"
+                    , confidence = 1.0
+                    }
+                `shouldBe` Index.Entity
+                    { classes = "entity job-name"
+                    , content = "barfed"
+                    , confidence = "1.0"
+                    }
+
+    describe "entityClass" do
+        it "translates job name to css classes" do
+            Index.entityClass Twilio.Query.JobName `shouldBe` "entity job-name"
+        it "translates hours worked to css classes" do
+            Index.entityClass Twilio.Query.HoursWorked `shouldBe` "entity hours-worked"
+        it "translates clocked in at to css classes" do
+            Index.entityClass Twilio.Query.ClockedInAt `shouldBe` "entity clocked-in-at"
+        it "translates clocked out at to css classes" do
+            Index.entityClass Twilio.Query.ClockedOutAt `shouldBe` "entity clocked-out-at"
+        it "translates time on task to css classes" do
+            Index.entityClass Twilio.Query.TimeOnTask `shouldBe` "entity time-on-task"
+        it "translates work done to css classes" do
+            Index.entityClass Twilio.Query.WorkDone `shouldBe` "entity work-done"
+        it "translates unrecognized to css classes" do
+            Index.entityClass Twilio.Query.Unrecognized `shouldBe` "entity unrecognized"
 
     describe "messageStatusClass" do
         it "returns a delivered message status class when the message has been delivered" do
