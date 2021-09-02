@@ -38,6 +38,18 @@ function initTimePicker() {
     });
 }
 
+function initTooltip() {
+    $('[data-toggle="tooltip"]')
+        .tooltip('dispose')
+        .click(function () {
+            let self = $(this);
+            self.tooltip('show');
+            self.mouseout(function () {
+                self.tooltip('dispose');
+            });
+        });
+}
+
 function initApp() {
     // For anything with class 'scroll-to-pinned', scroll to that element
     scrollToPinned();
@@ -45,6 +57,9 @@ function initApp() {
     // Reformat time elements based on locale whenever page changes occur
     initTime();
     initTimePicker();
+
+    // Initialize tooltips on tooltip elements
+    initTooltip();
 }
 
 $(document).on('ready turbolinks:load', function () {

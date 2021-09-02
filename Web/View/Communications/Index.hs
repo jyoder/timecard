@@ -81,11 +81,15 @@ data MessageItem = MessageItem
     }
     deriving (Eq, Show)
 
-data Entity = Entity
-    { classes :: !Text
-    , content :: !Text
-    , confidence :: !Text
-    }
+data Entity
+    = RecognizedEntity
+        { classes :: !Text
+        , content :: !Text
+        , tooltip :: !Text
+        }
+    | UnrecognizedEntity
+        { content :: !Text
+        }
     deriving (Eq, Show)
 
 data ScheduledMessageItem
@@ -319,12 +323,19 @@ buildMessageItem selectedPerson personActivity selectedMessageIds message =
     messageId = get #id message
 
 buildEntity :: V.Entity -> Entity
-buildEntity V.Entity {..} =
-    Entity
-        { classes = entityClass entityType
-        , content = rawText
-        , confidence = show confidence
-        }
+buildEntity entity =
+    let V.Entity {..} = entity
+     in case entityType of
+            Twilio.Query.Unrecognized ->
+                UnrecognizedEntity
+                    { content = rawText
+                    }
+            _ ->
+                RecognizedEntity
+                    { classes = entityClass entityType
+                    , content = rawText
+                    , tooltip = entityTooltip entity
+                    }
 
 entityClass :: Twilio.Query.EntityType -> Text
 entityClass entityType =
@@ -336,6 +347,12 @@ entityClass entityType =
         Twilio.Query.TimeOnTask -> "entity time-on-task"
         Twilio.Query.WorkDone -> "entity work-done"
         Twilio.Query.Unrecognized -> "entity unrecognized"
+
+entityTooltip :: V.Entity -> Text
+entityTooltip V.Entity {..} =
+    show entityType <> ": " <> show confidencePercent <> "%"
+  where
+    confidencePercent = round (confidence * 100)
 
 messageStatusClass :: Twilio.Query.Status -> Text
 messageStatusClass status =
@@ -627,9 +644,15 @@ renderMessageItem MessageItem {..} =
     |]
 
 renderEntity :: Entity -> Html
-renderEntity Entity {..} =
+renderEntity RecognizedEntity {..} =
     [hsx|
-        <span class={classes}>{content}</span>
+        <span class={classes} tabindex="0" role="button" data-toggle="tooltip" data-placement="top" title={tooltip}>
+            {content}
+        </span>
+    |]
+renderEntity UnrecognizedEntity {..} =
+    [hsx|
+        {content}
     |]
 
 renderScheduledMessageItem :: ScheduledMessageItem -> Html

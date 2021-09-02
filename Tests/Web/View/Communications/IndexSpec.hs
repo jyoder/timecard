@@ -488,10 +488,10 @@ spec = do
                     { fromName = "Barbara Bush"
                     , sentAt = "2021-06-23T22:29:00+0000"
                     , entities =
-                        [ Index.Entity
+                        [ Index.RecognizedEntity
                             { classes = "entity job-name"
                             , content = "barfed"
-                            , confidence = "1.0"
+                            , tooltip = "JobName: 100%"
                             }
                         ]
                     , statusClass = "message-status delivered"
@@ -616,17 +616,27 @@ spec = do
                     }
 
     describe "buildEntity" do
-        it "returns an entity based on the given parameter" do
+        it "returns a recognized entity when the entity type is recognized" do
             Index.buildEntity
                 Twilio.View.Entity
                     { entityType = Twilio.Query.JobName
                     , rawText = "barfed"
                     , confidence = 1.0
                     }
-                `shouldBe` Index.Entity
+                `shouldBe` Index.RecognizedEntity
                     { classes = "entity job-name"
                     , content = "barfed"
-                    , confidence = "1.0"
+                    , tooltip = "JobName: 100%"
+                    }
+        it "returns an unrecognized entity when the entity type is not recognized" do
+            Index.buildEntity
+                Twilio.View.Entity
+                    { entityType = Twilio.Query.Unrecognized
+                    , rawText = "barfed"
+                    , confidence = 1.0
+                    }
+                `shouldBe` Index.UnrecognizedEntity
+                    { content = "barfed"
                     }
 
     describe "entityClass" do
@@ -644,6 +654,17 @@ spec = do
             Index.entityClass Twilio.Query.WorkDone `shouldBe` "entity work-done"
         it "translates unrecognized to css classes" do
             Index.entityClass Twilio.Query.Unrecognized `shouldBe` "entity unrecognized"
+
+    describe "entityTooltip" do
+        it "returns tooltip text to describe the entity" do
+            Index.entityTooltip
+                ( Twilio.View.Entity
+                    { entityType = Twilio.Query.JobName
+                    , rawText = "barfed"
+                    , confidence = 1.0
+                    }
+                )
+                `shouldBe` "JobName: 100%"
 
     describe "messageStatusClass" do
         it "returns a delivered message status class when the message has been delivered" do
