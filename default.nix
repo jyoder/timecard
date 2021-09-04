@@ -20,6 +20,7 @@ let
             monad-loops
             p.ihp
             raw-strings-qq
+            regex-tdfa
             req
             string-interpolate
             text
