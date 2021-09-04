@@ -74,7 +74,8 @@ CREATE TABLE process_events_jobs (
     last_error TEXT DEFAULT NULL,
     attempts_count INT DEFAULT 0 NOT NULL,
     locked_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
-    locked_by UUID DEFAULT NULL
+    locked_by UUID DEFAULT NULL,
+    run_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
 );
 CREATE TABLE action_run_times (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
@@ -181,7 +182,8 @@ CREATE TABLE fetch_entity_prediction_jobs (
     attempts_count INT DEFAULT 0 NOT NULL,
     locked_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
     locked_by UUID DEFAULT NULL,
-    twilio_message_id UUID NOT NULL
+    twilio_message_id UUID NOT NULL,
+    run_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
 );
 CREATE FUNCTION trigger_validate_timecard_entry_date_matches_timecard() RETURNS TRIGGER AS $$
 BEGIN
