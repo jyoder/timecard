@@ -1,6 +1,7 @@
 module Tests.Web.View.TimecardReviews.ShowSpec where
 
 import qualified Application.Timecard.View as V
+import Data.Dynamic (toDyn)
 import Generated.Types
 import IHP.ModelSupport
 import IHP.Prelude
@@ -66,6 +67,13 @@ spec = do
                         |> set #name "first last"
                         |> set #signedAt (toUtc "2021-08-14 10:30:05 UTC")
                         |> set #ipAddress "192.168.1.1"
+                        |> set
+                            #meta
+                            MetaBag
+                                { annotations = []
+                                , touchedFields = []
+                                , originalDatabaseRecord = Just $ newRecord @Signing |> toDyn
+                                }
 
             let person =
                     newRecord @Person
@@ -292,6 +300,13 @@ spec = do
                         |> set #name "Bon Jovi"
                         |> set #signedAt (toUtc "2021-08-14 10:30:05 UTC")
                         |> set #ipAddress "192.168.1.1"
+                        |> set
+                            #meta
+                            MetaBag
+                                { annotations = []
+                                , touchedFields = []
+                                , originalDatabaseRecord = Just $ newRecord @Signing |> toDyn
+                                }
 
             buildSignatureBlock accessToken signing
                 `shouldBe` Signed
