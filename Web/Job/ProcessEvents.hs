@@ -29,7 +29,9 @@ initSingleton configBuilder = do
 
     processEventsJobs <- query @ProcessEventsJob |> fetch
     deleteRecords processEventsJobs
-    newRecord @ProcessEventsJob |> create
+
+    runAt <- addUTCTime startupDelay <$> getCurrentTime
+    newRecord @ProcessEventsJob |> set #runAt runAt |> createRecord
 
     pure ()
 
@@ -76,6 +78,9 @@ runSendMessageAction sendMessageAction = do
     actionRunState <- fetch (get #actionRunStateId sendMessageAction)
     ActionRunState.updateFinished actionRunState
     pure ()
+
+startupDelay :: NominalDiffTime
+startupDelay = secondsToNominalDiffTime (60 * 2)
 
 runInterval :: Int
 runInterval = 60 * 1000000
