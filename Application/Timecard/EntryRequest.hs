@@ -2,6 +2,7 @@ module Application.Timecard.EntryRequest (
     nextRequestTime,
     scheduleNextRequest,
     requestBody,
+    nextWorkingDay,
 ) where
 
 import qualified Application.Action.SendMessageAction as SendMessageAction
@@ -81,7 +82,6 @@ requestBody person lastEntry =
         <> get #jobName lastEntry
         <> " today. Let me know what hours you worked and what you did when you have a chance. Thanks!"
 
--- TODO: remove asOf
 scheduledRequestExists ::
     (?modelContext :: ModelContext) =>
     Id PhoneNumber ->
