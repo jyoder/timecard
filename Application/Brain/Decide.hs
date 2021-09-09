@@ -29,19 +29,19 @@ data Plan
 
 decide :: Orient.Situation -> Plan
 decide Orient.Situation {..} =
-    case update of
-        Orient.UpdateIsForASingleJob Orient.Job {..} ->
-            case reminder of
-                Orient.ReminderIsNotScheduled ->
+    case reminder of
+        Orient.ReminderIsNotScheduled ->
+            case update of
+                Orient.UpdateIsForASingleJob Orient.Job {..} ->
                     CreateTimecardEntryAndScheduleReminder
                         { jobName = name
                         , linkedMessageId = twilioMessageId
                         , ..
                         }
-                Orient.ReminderIsScheduled {..} ->
-                    SuspendReminder {..}
-                Orient.ReminderIsSuspended ->
-                    DoNothing
-        Orient.UpdateIsForMultipleJobs -> DoNothing
-        Orient.UpdateDetailsDoNotMatch -> DoNothing
-        Orient.MessageIsNotAnUpdate -> DoNothing
+                Orient.UpdateIsForMultipleJobs -> DoNothing
+                Orient.UpdateDetailsDoNotMatch -> DoNothing
+                Orient.MessageIsNotAnUpdate -> DoNothing
+        Orient.ReminderIsScheduled {..} ->
+            SuspendReminder {..}
+        Orient.ReminderIsSuspended ->
+            DoNothing

@@ -9,8 +9,8 @@ import Tests.Support
 spec :: Spec
 spec = do
     describe "decide" do
-        context "when the situation is an update for a single job" do
-            context "and there is no scheduled reminder" do
+        context "when the situation does not have a scheduled reminder" do
+            context "and the update is for a single job" do
                 it "returns a plan to create a timecard entry and schedule a reminder" do
                     Decide.decide
                         Orient.Situation
@@ -51,7 +51,53 @@ spec = do
                             , invoiceTranslation = "Trim some boards."
                             }
 
-            context "and there is a scheduled reminder" do
+            context "and the update is for multiple jobs" do
+                it "returns a plan to do nothing" do
+                    Decide.decide
+                        Orient.Situation
+                            { now = toUtc "2021-08-30 15:20:00 PDT"
+                            , companyTimeZone = toTimeZone "PDT"
+                            , workerId = "10000000-0000-0000-0000-000000000000"
+                            , botPhoneNumberId = "20000000-0000-0000-0000-000000000000"
+                            , workerPhoneNumberId = "30000000-0000-0000-0000-000000000000"
+                            , twilioMessageId = "40000000-0000-0000-0000-000000000000"
+                            , update = Orient.UpdateIsForMultipleJobs
+                            , reminder = Orient.ReminderIsNotScheduled
+                            }
+                        `shouldBe` Decide.DoNothing
+
+            context "and the details don't match in the update" do
+                it "returns a plan to do nothing" do
+                    Decide.decide
+                        Orient.Situation
+                            { now = toUtc "2021-08-30 15:20:00 PDT"
+                            , companyTimeZone = toTimeZone "PDT"
+                            , workerId = "10000000-0000-0000-0000-000000000000"
+                            , botPhoneNumberId = "20000000-0000-0000-0000-000000000000"
+                            , workerPhoneNumberId = "30000000-0000-0000-0000-000000000000"
+                            , twilioMessageId = "40000000-0000-0000-0000-000000000000"
+                            , update = Orient.UpdateDetailsDoNotMatch
+                            , reminder = Orient.ReminderIsNotScheduled
+                            }
+                        `shouldBe` Decide.DoNothing
+
+            context "and the message is not an update" do
+                it "returns a plan to do nothing" do
+                    Decide.decide
+                        Orient.Situation
+                            { now = toUtc "2021-08-30 15:20:00 PDT"
+                            , companyTimeZone = toTimeZone "PDT"
+                            , workerId = "10000000-0000-0000-0000-000000000000"
+                            , botPhoneNumberId = "20000000-0000-0000-0000-000000000000"
+                            , workerPhoneNumberId = "30000000-0000-0000-0000-000000000000"
+                            , twilioMessageId = "40000000-0000-0000-0000-000000000000"
+                            , update = Orient.MessageIsNotAnUpdate
+                            , reminder = Orient.ReminderIsNotScheduled
+                            }
+                        `shouldBe` Decide.DoNothing
+
+        context "when the situation does have a scheduled reminder" do
+            context "and the update is for a single job" do
                 it "returns a plan to suspend the scheduled reminder" do
                     Decide.decide
                         Orient.Situation
@@ -82,7 +128,68 @@ spec = do
                             { actionRunStateId = "50000000-0000-0000-0000-000000000000"
                             }
 
-            context "and there is a suspended reminder" do
+            context "and the update is for multiple jobs" do
+                it "returns a plan to suspend the scheduled reminder" do
+                    Decide.decide
+                        Orient.Situation
+                            { now = toUtc "2021-08-30 15:20:00 PDT"
+                            , companyTimeZone = toTimeZone "PDT"
+                            , workerId = "10000000-0000-0000-0000-000000000000"
+                            , botPhoneNumberId = "20000000-0000-0000-0000-000000000000"
+                            , workerPhoneNumberId = "30000000-0000-0000-0000-000000000000"
+                            , twilioMessageId = "40000000-0000-0000-0000-000000000000"
+                            , update = Orient.UpdateIsForMultipleJobs
+                            , reminder =
+                                Orient.ReminderIsScheduled
+                                    { actionRunStateId = "50000000-0000-0000-0000-000000000000"
+                                    }
+                            }
+                        `shouldBe` Decide.SuspendReminder
+                            { actionRunStateId = "50000000-0000-0000-0000-000000000000"
+                            }
+
+            context "and the details don't match in the update" do
+                it "returns a plan to suspend the scheduled reminder" do
+                    Decide.decide
+                        Orient.Situation
+                            { now = toUtc "2021-08-30 15:20:00 PDT"
+                            , companyTimeZone = toTimeZone "PDT"
+                            , workerId = "10000000-0000-0000-0000-000000000000"
+                            , botPhoneNumberId = "20000000-0000-0000-0000-000000000000"
+                            , workerPhoneNumberId = "30000000-0000-0000-0000-000000000000"
+                            , twilioMessageId = "40000000-0000-0000-0000-000000000000"
+                            , update = Orient.UpdateDetailsDoNotMatch
+                            , reminder =
+                                Orient.ReminderIsScheduled
+                                    { actionRunStateId = "50000000-0000-0000-0000-000000000000"
+                                    }
+                            }
+                        `shouldBe` Decide.SuspendReminder
+                            { actionRunStateId = "50000000-0000-0000-0000-000000000000"
+                            }
+
+            context "and the message is not an update" do
+                it "returns a plan to suspend the scheduled reminder" do
+                    Decide.decide
+                        Orient.Situation
+                            { now = toUtc "2021-08-30 15:20:00 PDT"
+                            , companyTimeZone = toTimeZone "PDT"
+                            , workerId = "10000000-0000-0000-0000-000000000000"
+                            , botPhoneNumberId = "20000000-0000-0000-0000-000000000000"
+                            , workerPhoneNumberId = "30000000-0000-0000-0000-000000000000"
+                            , twilioMessageId = "40000000-0000-0000-0000-000000000000"
+                            , update = Orient.MessageIsNotAnUpdate
+                            , reminder =
+                                Orient.ReminderIsScheduled
+                                    { actionRunStateId = "50000000-0000-0000-0000-000000000000"
+                                    }
+                            }
+                        `shouldBe` Decide.SuspendReminder
+                            { actionRunStateId = "50000000-0000-0000-0000-000000000000"
+                            }
+
+        context "when the situation has a suspended reminder" do
+            context "and the update is for a single job" do
                 it "returns a plan to do nothing" do
                     Decide.decide
                         Orient.Situation
@@ -104,56 +211,51 @@ spec = do
                                         , workDone = "Saw some boards."
                                         , invoiceTranslation = "Trim some boards."
                                         }
-                            , reminder =
-                                Orient.ReminderIsScheduled
-                                    { actionRunStateId = "50000000-0000-0000-0000-000000000000"
-                                    }
+                            , reminder = Orient.ReminderIsSuspended
                             }
-                        `shouldBe` Decide.SuspendReminder
-                            { actionRunStateId = "50000000-0000-0000-0000-000000000000"
+                        `shouldBe` Decide.DoNothing
+
+            context "and the update is for multiple jobs" do
+                it "returns a plan to do nothing" do
+                    Decide.decide
+                        Orient.Situation
+                            { now = toUtc "2021-08-30 15:20:00 PDT"
+                            , companyTimeZone = toTimeZone "PDT"
+                            , workerId = "10000000-0000-0000-0000-000000000000"
+                            , botPhoneNumberId = "20000000-0000-0000-0000-000000000000"
+                            , workerPhoneNumberId = "30000000-0000-0000-0000-000000000000"
+                            , twilioMessageId = "40000000-0000-0000-0000-000000000000"
+                            , update = Orient.UpdateIsForMultipleJobs
+                            , reminder = Orient.ReminderIsSuspended
                             }
+                        `shouldBe` Decide.DoNothing
 
-        context "when the situation is an update for multiple jobs" do
-            it "returns a plan to do nothing" do
-                Decide.decide
-                    Orient.Situation
-                        { now = toUtc "2021-08-30 15:20:00 PDT"
-                        , companyTimeZone = toTimeZone "PDT"
-                        , workerId = "10000000-0000-0000-0000-000000000000"
-                        , botPhoneNumberId = "20000000-0000-0000-0000-000000000000"
-                        , workerPhoneNumberId = "30000000-0000-0000-0000-000000000000"
-                        , twilioMessageId = "40000000-0000-0000-0000-000000000000"
-                        , update = Orient.UpdateIsForMultipleJobs
-                        , reminder = Orient.ReminderIsNotScheduled
-                        }
-                    `shouldBe` Decide.DoNothing
+            context "and the details don't match in the update" do
+                it "returns a plan to do nothing" do
+                    Decide.decide
+                        Orient.Situation
+                            { now = toUtc "2021-08-30 15:20:00 PDT"
+                            , companyTimeZone = toTimeZone "PDT"
+                            , workerId = "10000000-0000-0000-0000-000000000000"
+                            , botPhoneNumberId = "20000000-0000-0000-0000-000000000000"
+                            , workerPhoneNumberId = "30000000-0000-0000-0000-000000000000"
+                            , twilioMessageId = "40000000-0000-0000-0000-000000000000"
+                            , update = Orient.UpdateIsForMultipleJobs
+                            , reminder = Orient.ReminderIsSuspended
+                            }
+                        `shouldBe` Decide.DoNothing
 
-        context "when the situation is an update where the details don't match" do
-            it "returns a plan to do nothing" do
-                Decide.decide
-                    Orient.Situation
-                        { now = toUtc "2021-08-30 15:20:00 PDT"
-                        , companyTimeZone = toTimeZone "PDT"
-                        , workerId = "10000000-0000-0000-0000-000000000000"
-                        , botPhoneNumberId = "20000000-0000-0000-0000-000000000000"
-                        , workerPhoneNumberId = "30000000-0000-0000-0000-000000000000"
-                        , twilioMessageId = "40000000-0000-0000-0000-000000000000"
-                        , update = Orient.UpdateDetailsDoNotMatch
-                        , reminder = Orient.ReminderIsNotScheduled
-                        }
-                    `shouldBe` Decide.DoNothing
-
-        context "when the situation is a message that does not appear to be an update" do
-            it "returns a plan to do nothing" do
-                Decide.decide
-                    Orient.Situation
-                        { now = toUtc "2021-08-30 15:20:00 PDT"
-                        , companyTimeZone = toTimeZone "PDT"
-                        , workerId = "10000000-0000-0000-0000-000000000000"
-                        , botPhoneNumberId = "20000000-0000-0000-0000-000000000000"
-                        , workerPhoneNumberId = "30000000-0000-0000-0000-000000000000"
-                        , twilioMessageId = "40000000-0000-0000-0000-000000000000"
-                        , update = Orient.MessageIsNotAnUpdate
-                        , reminder = Orient.ReminderIsNotScheduled
-                        }
-                    `shouldBe` Decide.DoNothing
+            context "and the message is not an update" do
+                it "returns a plan to do nothing" do
+                    Decide.decide
+                        Orient.Situation
+                            { now = toUtc "2021-08-30 15:20:00 PDT"
+                            , companyTimeZone = toTimeZone "PDT"
+                            , workerId = "10000000-0000-0000-0000-000000000000"
+                            , botPhoneNumberId = "20000000-0000-0000-0000-000000000000"
+                            , workerPhoneNumberId = "30000000-0000-0000-0000-000000000000"
+                            , twilioMessageId = "40000000-0000-0000-0000-000000000000"
+                            , update = Orient.UpdateIsForMultipleJobs
+                            , reminder = Orient.ReminderIsSuspended
+                            }
+                        `shouldBe` Decide.DoNothing
