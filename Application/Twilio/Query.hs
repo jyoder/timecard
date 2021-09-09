@@ -4,7 +4,7 @@ module Application.Twilio.Query (
     Status (..),
     EntityType (..),
     fetchById,
-    fetchByPeople2,
+    fetchByPeople,
 ) where
 
 import Data.ByteString.UTF8 (toString)
@@ -139,12 +139,12 @@ fetchById twilioMessageId = do
     trackTableRead "twilio_messages"
     sqlQuery messageQuery (Only twilioMessageId)
 
-fetchByPeople2 ::
+fetchByPeople ::
     (?modelContext :: ModelContext) =>
     Id Types.Person ->
     Id Types.Person ->
     IO [Row2]
-fetchByPeople2 personIdA personIdB = do
+fetchByPeople personIdA personIdB = do
     trackTableRead "twilio_messages"
     trackTableRead "twilio_message_entities"
     sqlQuery messagesQuery2 (personIdA, personIdB)

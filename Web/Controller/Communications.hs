@@ -40,7 +40,7 @@ instance Controller CommunicationsController where
                 selectedPerson <- fetch selectedPersonId
 
                 messages <-
-                    Twilio.Query.fetchByPeople2 botId selectedPersonId
+                    Twilio.Query.fetchByPeople botId selectedPersonId
                         <&> Twilio.View.buildMessages
                 toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
                 scheduledMessages <-
@@ -69,7 +69,7 @@ instance Controller CommunicationsController where
         selectedPerson <- fetch selectedPersonId
 
         messages <-
-            Twilio.Query.fetchByPeople2 botId selectedPersonId
+            Twilio.Query.fetchByPeople botId selectedPersonId
                 <&> Twilio.View.buildMessages
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
         scheduledMessages <-
@@ -99,7 +99,7 @@ instance Controller CommunicationsController where
         selectedPerson <- fetch selectedPersonId
 
         messages <-
-            Twilio.Query.fetchByPeople2 botId selectedPersonId
+            Twilio.Query.fetchByPeople botId selectedPersonId
                 <&> Twilio.View.buildMessages
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
 
@@ -136,7 +136,7 @@ instance Controller CommunicationsController where
 
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
         messages <-
-            Twilio.Query.fetchByPeople2 botId selectedPersonId
+            Twilio.Query.fetchByPeople botId selectedPersonId
                 <&> Twilio.View.buildMessages
         timecardEntryMessages <- Timecard.EntryMessage.fetchByTimecardEntry timecardEntryId
         let selectedMessageIds = map (get #twilioMessageId) timecardEntryMessages
@@ -168,7 +168,7 @@ instance Controller CommunicationsController where
 
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
         messages <-
-            Twilio.Query.fetchByPeople2 botId selectedPersonId
+            Twilio.Query.fetchByPeople botId selectedPersonId
                 <&> Twilio.View.buildMessages
 
         let selectedMessageIds' = textToId <$> selectedMessageIds
@@ -208,7 +208,7 @@ instance Controller CommunicationsController where
                             People.View.buildPeople
                                 <$> People.Query.fetchActiveWorkers
                         messages <-
-                            Twilio.Query.fetchByPeople2 botId selectedPersonId
+                            Twilio.Query.fetchByPeople botId selectedPersonId
                                 <&> Twilio.View.buildMessages
                         let selectedMessages = findSelectedMessages messages selectedMessageIds
                         scheduledMessages <-
@@ -255,7 +255,7 @@ instance Controller CommunicationsController where
                         selectedPerson <- fetch selectedPersonId
 
                         messages <-
-                            Twilio.Query.fetchByPeople2 botId selectedPersonId
+                            Twilio.Query.fetchByPeople botId selectedPersonId
                                 <&> Twilio.View.buildMessages
                         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
                         let selectedMessages = findSelectedMessages messages selectedMessageIds
@@ -305,7 +305,7 @@ instance Controller CommunicationsController where
         selectedPerson <- fetch selectedPersonId
 
         messages <-
-            Twilio.Query.fetchByPeople2 botId selectedPersonId
+            Twilio.Query.fetchByPeople botId selectedPersonId
                 <&> Twilio.View.buildMessages
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
         scheduledMessages <-

@@ -278,7 +278,7 @@ spec = do
                         |> set #messageSid "2"
                         |> createRecord
 
-                rows <- Query.fetchByPeople2 (get #id bob) (get #id alice)
+                rows <- Query.fetchByPeople (get #id bob) (get #id alice)
 
                 rows
                     `shouldBe` [ Query.Row2
@@ -356,7 +356,7 @@ spec = do
                         |> set #messageSid "2"
                         |> createRecord
 
-                rows <- Query.fetchByPeople2 (get #id bob) (get #id alice)
+                rows <- Query.fetchByPeople (get #id bob) (get #id alice)
 
                 rows
                     `shouldBe` [ Query.Row2
@@ -467,7 +467,7 @@ spec = do
                     |> set #vertexAiEntityPredictionId (get #id prediction2)
                     |> createRecord
 
-                rows <- Query.fetchByPeople2 (get #id bob) (get #id alice)
+                rows <- Query.fetchByPeople (get #id bob) (get #id alice)
 
                 rows
                     `shouldBe` [ Query.Row2
