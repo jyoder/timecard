@@ -4,7 +4,6 @@ module Application.Twilio.Query (
     Status (..),
     EntityType (..),
     fetchById,
-    fetchByPeople,
     fetchByPeople2,
 ) where
 
@@ -139,15 +138,6 @@ fetchById ::
 fetchById twilioMessageId = do
     trackTableRead "twilio_messages"
     sqlQuery messageQuery (Only twilioMessageId)
-
-fetchByPeople ::
-    (?modelContext :: ModelContext) =>
-    Id Types.Person ->
-    Id Types.Person ->
-    IO [Row]
-fetchByPeople personIdA personIdB = do
-    trackTableRead "twilio_messages"
-    sqlQuery messagesQuery (personIdA, personIdB)
 
 fetchByPeople2 ::
     (?modelContext :: ModelContext) =>
@@ -328,57 +318,3 @@ mainQuery =
             message_details.id asc,
             predictions.row asc
     |]
-
-messagesQuery :: Query
-messagesQuery =
-    [i|
-select
-    twilio_messages.id,
-    (case when twilio_messages.from_id = phone_numbers_a.id
-          then phone_numbers_a.number
-          else phone_numbers_b.number
-    end) from_phone_number,
-    (case when twilio_messages.from_id = phone_numbers_a.id
-          then people_a.first_name
-          else people_b.first_name
-    end) from_first_name,
-    (case when twilio_messages.from_id = phone_numbers_a.id
-          then people_a.last_name
-          else people_b.last_name
-    end) from_last_name,
-    (case when twilio_messages.to_id = phone_numbers_a.id
-          then phone_numbers_a.number
-          else phone_numbers_b.number
-    end) to_phone_number,
-    (case when twilio_messages.to_id = phone_numbers_a.id
-          then people_a.first_name
-          else people_b.first_name
-    end) to_first_name,
-    (case when twilio_messages.to_id = phone_numbers_a.id
-          then people_a.last_name
-          else people_b.last_name
-    end) to_last_name,
-    twilio_messages.created_at,
-    twilio_messages.status,
-    twilio_messages.body
-from
-    people people_a,
-    phone_contacts phone_contacts_a,
-    phone_numbers phone_numbers_a,
-    people people_b,
-    phone_contacts phone_contacts_b,
-    phone_numbers phone_numbers_b,
-    twilio_messages
-where
-    people_a.id = ?
-    and phone_contacts_a.person_id = people_a.id 
-    and phone_contacts_a.phone_number_id = phone_numbers_a.id 
-    and people_b.id = ?
-    and phone_contacts_b.person_id = people_b.id 
-    and phone_contacts_b.phone_number_id = phone_numbers_b.id 
-    and ((twilio_messages.from_id = phone_numbers_a.id 
-          and twilio_messages.to_id = phone_numbers_b.id)
-          or
-          (twilio_messages.from_id = phone_numbers_b.id 
-           and twilio_messages.to_id = phone_numbers_a.id))
-|]
