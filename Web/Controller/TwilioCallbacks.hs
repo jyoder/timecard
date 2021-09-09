@@ -60,7 +60,6 @@ instance Controller TwilioCallbacksController where
                     pure ()
                 Right twilioMessage -> do
                     twilioMessage <- createRecord twilioMessage
-                    Brain.Process.processState $ get #id fromPhoneNumber
                     newRecord @FetchEntityPredictionJob
                         |> set #twilioMessageId (get #id twilioMessage)
                         |> validateAndCreate FetchEntityPredictionJob.validate

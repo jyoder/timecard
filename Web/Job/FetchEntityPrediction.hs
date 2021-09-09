@@ -22,7 +22,7 @@ instance Job FetchEntityPredictionJob where
         Log.info ("Fetching entity predictions for TwilioMessage: " <> show twilioMessageId)
         fetchEntityPredictions now Client.config twilioMessage >> pure ()
 
-        Brain.Process.processState $ get #fromId twilioMessage
+        Brain.Process.processIncomingMessage twilioMessage
 
 fetchEntityPredictions ::
     (?modelContext :: ModelContext) =>
