@@ -5,6 +5,7 @@ import qualified Application.Timecard.Query as Timecard.Query
 import qualified Application.Twilio.View as Twilio.View
 import Generated.Types
 import IHP.Prelude
+import Text.Read (read)
 
 data Event = IncomingMessage
     { message :: !Twilio.View.Message
@@ -12,6 +13,7 @@ data Event = IncomingMessage
     , workerPhoneNumberId :: !(Id PhoneNumber)
     , botPhoneNumberId :: !(Id PhoneNumber)
     }
+    deriving (Eq, Show)
 
 data Observations = Observations
     { now :: !UTCTime
@@ -21,6 +23,25 @@ data Observations = Observations
     , timecardEntryRows :: ![Timecard.Query.Row]
     , scheduledReminders :: ![SendMessageAction.T]
     }
+    deriving (Eq, Show)
 
-observe :: Event -> IO Observations
-observe = undefined
+observe :: (?modelContext :: ModelContext) => Event -> IO Observations
+observe event = do
+    now <- getCurrentTime
+    let today = localDay $ utcToLocalTime companyTimeZone' now
+    let companyTimeZone = companyTimeZone'
+    let IncomingMessage {..} = event
+
+    timecardEntryRows <-
+        Timecard.Query.fetchByPerson
+            Timecard.Query.EntriesDateDescending
+            workerId
+
+    scheduledReminders <-
+        SendMessageAction.fetchNotStartedOrSuspendedByPhoneNumber
+            workerPhoneNumberId
+
+    pure Observations {..}
+
+companyTimeZone' :: TimeZone
+companyTimeZone' = read "PDT"

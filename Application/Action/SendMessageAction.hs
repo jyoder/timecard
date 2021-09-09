@@ -33,6 +33,7 @@ data T = T
     , toId :: !(Id PhoneNumber)
     , toNumber :: !Text
     }
+    deriving (Eq, Show)
 
 instance FromRow T where
     fromRow =
