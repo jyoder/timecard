@@ -4,6 +4,7 @@ import qualified Application.Action.ActionRunState as ActionRunState
 import qualified Application.Action.SendMessageAction as SendMessageAction
 import qualified Application.Brain.Normalize as Normalize
 import qualified Application.Brain.Observe as Observe
+import Application.Service.Time (nextWorkingDay)
 import qualified Application.Timecard.EntryRequest as EntryRequest
 import qualified Application.Timecard.Query as Timecard.Query
 import qualified Application.Twilio.Query as Twilio.Query
@@ -118,8 +119,7 @@ inferHoursWorked clockedInAt clockedOutAt hoursWorked =
 
 nextTimecardEntryDay :: Day -> [Day] -> Day
 nextTimecardEntryDay today timecardEntryDays =
-    -- TODO: move EntryRequest.nextWorkingDay into more general module? Service?
-    maybe today EntryRequest.nextWorkingDay lastTimecardEntryDay
+    maybe today nextWorkingDay lastTimecardEntryDay
   where
     lastTimecardEntryDay = head timecardEntryDays
 

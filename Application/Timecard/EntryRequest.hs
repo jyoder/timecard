@@ -2,10 +2,10 @@ module Application.Timecard.EntryRequest (
     nextRequestTime,
     scheduleNextRequest,
     requestBody,
-    nextWorkingDay,
 ) where
 
 import qualified Application.Action.SendMessageAction as SendMessageAction
+import Application.Service.Time (nextWorkingDay)
 import qualified Application.Timecard.Query as Timecard.Query
 import Data.Time.Calendar.WeekDate (toWeekDate)
 import Generated.Types
@@ -105,10 +105,3 @@ nextTimecardEntryDay nextWorkingDay entryDays =
 
 requestTime :: TimeOfDay -> Day -> LocalTime
 requestTime requestTimeOfDay day = LocalTime day requestTimeOfDay
-
-nextWorkingDay :: Day -> Day
-nextWorkingDay today =
-    case toWeekDate today of
-        (_, _, 5) -> addDays 3 today -- Friday we add 3 days to get to Monday
-        (_, _, 6) -> addDays 2 today -- Saturday we add 2 days to get to Monday
-        _ -> addDays 1 today -- All other days we need only look to tomorrow
