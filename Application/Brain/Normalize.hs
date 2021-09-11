@@ -249,10 +249,10 @@ hoursWithHalfHour (_, _, _, groups) =
         _ -> Nothing
 
 hoursWorkedRegex :: Text
-hoursWorkedRegex = "\\`([0-9]+\\.?[0-9]*) *((h)|(hr)|(hrs)|(hours))?\\'"
+hoursWorkedRegex = "\\`([0-9]+\\.?[0-9]*) *((h)|(H)|(hr)|(Hr)|(hrs)|(Hrs)|(hours)|(Hours))?\\'"
 
 hoursWorkedWithHalfHourRegex :: Text
-hoursWorkedWithHalfHourRegex = "\\`([0-9]+) *(1/2) *((h)|(hr)|(hrs)|(hours))?\\'"
+hoursWorkedWithHalfHourRegex = "\\`([0-9]+) *(1/2) *((h)|(H)|(hr)|(Hr)|(hrs)|(Hrs)|(hours)|(Hours))?\\'"
 
 jobName :: Maybe Text -> Maybe Text -> Maybe Text
 jobName (Just previous) Nothing = Just previous

@@ -609,6 +609,8 @@ spec = do
                 Normalize.hoursWorked "8.0 hours" `shouldBe` Just 8.0
             it "interprets '8h' as 8.0 hours" do
                 Normalize.hoursWorked "8h" `shouldBe` Just 8.0
+            it "interprets '8 Hrs' as 8.0 hours" do
+                Normalize.hoursWorked "8 Hrs" `shouldBe` Just 8.0
             it "interprets '8hours' as 8.0 hours" do
                 Normalize.hoursWorked "8hours" `shouldBe` Just 8.0
             it "interprets '8x' as nothing" do
@@ -637,6 +639,8 @@ spec = do
                 Normalize.hoursWorked "81/2h" `shouldBe` Just 8.5
             it "interprets '8 1/2h' as 8.5 hours" do
                 Normalize.hoursWorked "8 1/2h" `shouldBe` Just 8.5
+            it "interprets '8 1/2 Hrs' as 8.5 hours" do
+                Normalize.hoursWorked "8 1/2 Hrs" `shouldBe` Just 8.5
             it "interprets '81/2hours' as 8.0 hours" do
                 Normalize.hoursWorked "81/2hours" `shouldBe` Just 8.5
             it "interprets '8 1/4' as nothing" do
