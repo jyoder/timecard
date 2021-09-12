@@ -1,4 +1,4 @@
-module Application.Service.Pdf (render) where
+module Application.Service.Pdf where
 
 import Control.Exception (bracket)
 import qualified Data.ByteString.Lazy as Lazy
