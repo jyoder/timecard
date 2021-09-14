@@ -12,16 +12,7 @@ import Web.Controller.Prelude
 instance Job ProcessEventsJob where
     perform ProcessEventsJob {..} = do
         whileM_ (pure True) do
-            Log.debug ("Running scheduled actions" :: Text)
-            newestJob <-
-                query @ProcessEventsJob
-                    |> orderByDesc #createdAt
-                    |> limit 1
-                    |> fetchOne
-
-            if get #id newestJob /= id
-                then error ("Job has been superseeded by another (" <> show (get #id newestJob) <> ")")
-                else pure ()
+            Log.info ("Running scheduled actions" :: Text)
 
             now <- getCurrentTime
             updateTimestamp id now
@@ -37,9 +28,8 @@ initSingleton configBuilder = do
     modelContext <- initModelContext frameworkConfig
     let ?modelContext = modelContext
 
-    -- TODO: remove
-    -- processEventsJobs <- query @ProcessEventsJob |> fetch
-    -- deleteRecords processEventsJobs
+    processEventsJobs <- query @ProcessEventsJob |> fetch
+    deleteRecords processEventsJobs
 
     runAt <- addUTCTime startupDelay <$> getCurrentTime
     newRecord @ProcessEventsJob |> set #runAt runAt |> createRecord
