@@ -140,7 +140,7 @@ spec = do
             it "interprets '2430' as nothing" do
                 Normalize.clockedInAt "2430" `shouldBe` Nothing
 
-        context "digits with am" do
+        context "no minutes with am" do
             it "interprets '1a' as 1:00 AM" do
                 Normalize.clockedInAt "1a" `shouldBe` Just (toTimeOfDay "01:00:00")
             it "interprets '2a' as 2:00 AM" do
@@ -176,7 +176,7 @@ spec = do
             it "interprets '1 AM' as 1:00 AM" do
                 Normalize.clockedInAt "1 AM" `shouldBe` Just (toTimeOfDay "01:00:00")
 
-        context "digits with pm" do
+        context "no minutes with pm" do
             it "interprets '1p' as 1:00 PM" do
                 Normalize.clockedInAt "1p" `shouldBe` Just (toTimeOfDay "13:00:00")
             it "interprets '2p' as 2:00 PM" do
@@ -212,7 +212,7 @@ spec = do
             it "interprets '1 PM' as 1:00 PM" do
                 Normalize.clockedInAt "1 PM" `shouldBe` Just (toTimeOfDay "13:00:00")
 
-        context "multiple digits with am" do
+        context "minutes with am" do
             it "interprets '1:30a' as 1:30 AM" do
                 Normalize.clockedInAt "1:30a" `shouldBe` Just (toTimeOfDay "01:30:00")
             it "interprets '2:30a' as 2:30 AM" do
@@ -252,7 +252,7 @@ spec = do
             it "interprets '13:30 AM' as nothing" do
                 Normalize.clockedInAt "13:30 AM" `shouldBe` Nothing
 
-        context "multiple digits with pm" do
+        context "minutes with pm" do
             it "interprets '1:30p' as 1:30 PM" do
                 Normalize.clockedInAt "1:30p" `shouldBe` Just (toTimeOfDay "13:30:00")
             it "interprets '2:30p' as 2:30 PM" do
@@ -427,7 +427,7 @@ spec = do
                 it "interprets '2430' as nothing" do
                     Normalize.clockedOutAt "2430" `shouldBe` Nothing
 
-            context "digits with am" do
+            context "no minutes with am" do
                 it "interprets '1a' as 1:00 AM" do
                     Normalize.clockedOutAt "1a" `shouldBe` Just (toTimeOfDay "01:00:00")
                 it "interprets '2a' as 2:00 AM" do
@@ -463,7 +463,7 @@ spec = do
                 it "interprets '1 AM' as 1:00 AM" do
                     Normalize.clockedOutAt "1 AM" `shouldBe` Just (toTimeOfDay "01:00:00")
 
-            context "digits with pm" do
+            context "no minutes with pm" do
                 it "interprets '1p' as 1:00 PM" do
                     Normalize.clockedOutAt "1p" `shouldBe` Just (toTimeOfDay "13:00:00")
                 it "interprets '2p' as 2:00 PM" do
@@ -499,7 +499,7 @@ spec = do
                 it "interprets '1 PM' as 1:00 PM" do
                     Normalize.clockedOutAt "1 PM" `shouldBe` Just (toTimeOfDay "13:00:00")
 
-            context "multiple digits with am" do
+            context "minutes with am" do
                 it "interprets '1:30a' as 1:30 AM" do
                     Normalize.clockedOutAt "1:30a" `shouldBe` Just (toTimeOfDay "01:30:00")
                 it "interprets '2:30a' as 2:30 AM" do
@@ -534,12 +534,14 @@ spec = do
                     Normalize.clockedOutAt "1:30 am" `shouldBe` Just (toTimeOfDay "01:30:00")
                 it "interprets '1:30 AM' as 1:30 AM" do
                     Normalize.clockedOutAt "1:30 AM" `shouldBe` Just (toTimeOfDay "01:30:00")
+                it "interprets '130a' as 1:30 AM" do
+                    Normalize.clockedOutAt "130a" `shouldBe` Just (toTimeOfDay "01:30:00")
                 it "interprets '01:30 AM' as nothing" do
                     Normalize.clockedOutAt "01:30 AM" `shouldBe` Nothing
                 it "interprets '13:30 AM' as nothing" do
                     Normalize.clockedOutAt "13:30 AM" `shouldBe` Nothing
 
-            context "multiple digits with pm" do
+            context "minutes with pm" do
                 it "interprets '1:30p' as 1:30 PM" do
                     Normalize.clockedOutAt "1:30p" `shouldBe` Just (toTimeOfDay "13:30:00")
                 it "interprets '2:30p' as 2:30 PM" do
@@ -576,6 +578,8 @@ spec = do
                     Normalize.clockedOutAt "1:30 pm" `shouldBe` Just (toTimeOfDay "13:30:00")
                 it "interprets '1:30 PM' as 1:30 PM" do
                     Normalize.clockedOutAt "1:30 PM" `shouldBe` Just (toTimeOfDay "13:30:00")
+                it "interprets '130p' as 1:30 PM" do
+                    Normalize.clockedOutAt "130p" `shouldBe` Just (toTimeOfDay "13:30:00")
                 it "interprets '01:30 PM' as nothing" do
                     Normalize.clockedOutAt "01:30 PM" `shouldBe` Nothing
                 it "interprets '13:30 PM' as nothing" do

@@ -13,10 +13,10 @@ clockedInAt text
     | text =~ twoDigitsRegex = twoDigits (text =~ twoDigitsRegex :: Text)
     | text =~ threeDigitsRegex = threeDigitsClockIn (text =~ threeDigitsRegex :: (Text, Text, Text, [Text]))
     | text =~ fourDigitsRegex = fourDigits (text =~ fourDigitsRegex :: (Text, Text, Text, [Text]))
-    | text =~ oneDigitWithAmRegex = oneDigitWithAm (text =~ oneDigitWithAmRegex :: (Text, Text, Text, [Text]))
-    | text =~ oneDigitWithPmRegex = oneDigitWithPm (text =~ oneDigitWithPmRegex :: (Text, Text, Text, [Text]))
-    | text =~ digitsWithAmRegex = digitsWithAm (text =~ digitsWithAmRegex :: (Text, Text, Text, [Text]))
-    | text =~ digitsWithPmRegex = digitsWithPm (text =~ digitsWithPmRegex :: (Text, Text, Text, [Text]))
+    | text =~ noMinutesWithAmRegex = noMinutesWithAm (text =~ noMinutesWithAmRegex :: (Text, Text, Text, [Text]))
+    | text =~ noMinutesWithPmRegex = noMinutesWithPm (text =~ noMinutesWithPmRegex :: (Text, Text, Text, [Text]))
+    | text =~ minutesWithAmRegex = minutesWithAm (text =~ minutesWithAmRegex :: (Text, Text, Text, [Text]))
+    | text =~ minutesWithPmRegex = minutesWithPm (text =~ minutesWithPmRegex :: (Text, Text, Text, [Text]))
     | otherwise = Nothing
 
 clockedOutAt :: Text -> Maybe TimeOfDay
@@ -25,10 +25,10 @@ clockedOutAt text
     | text =~ twoDigitsRegex = twoDigits (text =~ twoDigitsRegex :: Text)
     | text =~ threeDigitsRegex = threeDigitsClockOut (text =~ threeDigitsRegex :: (Text, Text, Text, [Text]))
     | text =~ fourDigitsRegex = fourDigits (text =~ fourDigitsRegex :: (Text, Text, Text, [Text]))
-    | text =~ oneDigitWithAmRegex = oneDigitWithAm (text =~ oneDigitWithAmRegex :: (Text, Text, Text, [Text]))
-    | text =~ oneDigitWithPmRegex = oneDigitWithPm (text =~ oneDigitWithPmRegex :: (Text, Text, Text, [Text]))
-    | text =~ digitsWithAmRegex = digitsWithAm (text =~ digitsWithAmRegex :: (Text, Text, Text, [Text]))
-    | text =~ digitsWithPmRegex = digitsWithPm (text =~ digitsWithPmRegex :: (Text, Text, Text, [Text]))
+    | text =~ noMinutesWithAmRegex = noMinutesWithAm (text =~ noMinutesWithAmRegex :: (Text, Text, Text, [Text]))
+    | text =~ noMinutesWithPmRegex = noMinutesWithPm (text =~ noMinutesWithPmRegex :: (Text, Text, Text, [Text]))
+    | text =~ minutesWithAmRegex = minutesWithAm (text =~ minutesWithAmRegex :: (Text, Text, Text, [Text]))
+    | text =~ minutesWithPmRegex = minutesWithPm (text =~ minutesWithPmRegex :: (Text, Text, Text, [Text]))
     | otherwise = Nothing
 
 oneDigitClockIn :: Text -> Maybe TimeOfDay
@@ -125,8 +125,8 @@ fourDigits (_, _, _, groups) =
                     else Nothing
         _ -> Nothing
 
-oneDigitWithAm :: (Text, Text, Text, [Text]) -> Maybe TimeOfDay
-oneDigitWithAm (_, _, _, groups) =
+noMinutesWithAm :: (Text, Text, Text, [Text]) -> Maybe TimeOfDay
+noMinutesWithAm (_, _, _, groups) =
     case groups of
         ["1"] -> Just $ TimeOfDay 1 0 0
         ["2"] -> Just $ TimeOfDay 2 0 0
@@ -142,8 +142,8 @@ oneDigitWithAm (_, _, _, groups) =
         ["12"] -> Just $ TimeOfDay 0 0 0
         _ -> Nothing
 
-oneDigitWithPm :: (Text, Text, Text, [Text]) -> Maybe TimeOfDay
-oneDigitWithPm (_, _, _, groups) =
+noMinutesWithPm :: (Text, Text, Text, [Text]) -> Maybe TimeOfDay
+noMinutesWithPm (_, _, _, groups) =
     case groups of
         ["1"] -> Just $ TimeOfDay 13 0 0
         ["2"] -> Just $ TimeOfDay 14 0 0
@@ -159,8 +159,8 @@ oneDigitWithPm (_, _, _, groups) =
         ["12"] -> Just $ TimeOfDay 12 0 0
         _ -> Nothing
 
-digitsWithAm :: (Text, Text, Text, [Text]) -> Maybe TimeOfDay
-digitsWithAm (_, _, _, groups) =
+minutesWithAm :: (Text, Text, Text, [Text]) -> Maybe TimeOfDay
+minutesWithAm (_, _, _, groups) =
     case (groups, minutes) of
         (["1", _], Just minutes) -> Just $ TimeOfDay 1 minutes 0
         (["2", _], Just minutes) -> Just $ TimeOfDay 2 minutes 0
@@ -180,8 +180,8 @@ digitsWithAm (_, _, _, groups) =
         [_, minutesText] -> Just (Text.Read.read (unpack minutesText) :: Int)
         _ -> Nothing
 
-digitsWithPm :: (Text, Text, Text, [Text]) -> Maybe TimeOfDay
-digitsWithPm (_, _, _, groups) =
+minutesWithPm :: (Text, Text, Text, [Text]) -> Maybe TimeOfDay
+minutesWithPm (_, _, _, groups) =
     case (groups, minutes) of
         (["1", _], Just minutes) -> Just $ TimeOfDay 13 minutes 0
         (["2", _], Just minutes) -> Just $ TimeOfDay 14 minutes 0
@@ -213,17 +213,17 @@ threeDigitsRegex = "\\`([0-9]):?([0-9][0-9])\\'"
 fourDigitsRegex :: Text
 fourDigitsRegex = "\\`([0-9][0-9]):?([0-9][0-9])\\'"
 
-oneDigitWithAmRegex :: Text
-oneDigitWithAmRegex = "\\`([0-9]+) ?[aA][mM]?\\'"
+noMinutesWithAmRegex :: Text
+noMinutesWithAmRegex = "\\`([0-9][0-9]?) ?[aA][mM]?\\'"
 
-oneDigitWithPmRegex :: Text
-oneDigitWithPmRegex = "\\`([0-9]+) ?[pP][mM]?\\'"
+noMinutesWithPmRegex :: Text
+noMinutesWithPmRegex = "\\`([0-9][0-9]?) ?[pP][mM]?\\'"
 
-digitsWithAmRegex :: Text
-digitsWithAmRegex = "\\`([0-9][0-9]?):?([0-9][0-9]) ?[aA][mM]?\\'"
+minutesWithAmRegex :: Text
+minutesWithAmRegex = "\\`([0-9][0-9]?):?([0-9][0-9]) ?[aA][mM]?\\'"
 
-digitsWithPmRegex :: Text
-digitsWithPmRegex = "\\`([0-9][0-9]?):?([0-9][0-9]) ?[pP][mM]?\\'"
+minutesWithPmRegex :: Text
+minutesWithPmRegex = "\\`([0-9][0-9]?):?([0-9][0-9]) ?[pP][mM]?\\'"
 
 hoursWorked :: Text -> Maybe Double
 hoursWorked text
