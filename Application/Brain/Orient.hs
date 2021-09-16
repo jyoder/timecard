@@ -27,6 +27,7 @@ data Situation = Situation
 data Update
     = UpdateIsForASingleJob Job
     | UpdateIsForMultipleJobs
+    | UpdateDetailsAreLowConfidence
     | UpdateDetailsDoNotMatch
     | MessageIsNotAnUpdate
     deriving (Eq, Show)
@@ -73,19 +74,23 @@ orient Observe.Observations {..} =
                 }
 
 buildUpdate :: Day -> [Timecard.Query.Row] -> Twilio.View.Message -> Update
-buildUpdate today timecardEntryRows message =
-    case jobs of
-        [job] ->
-            if jobDetailsMatch job
-                then UpdateIsForASingleJob job
-                else UpdateDetailsDoNotMatch
-        _ : _ -> UpdateIsForMultipleJobs
-        [] -> MessageIsNotAnUpdate
+buildUpdate today timecardEntryRows message
+    | anyLowConfidenceEntities entities = UpdateDetailsAreLowConfidence
+    | hasMultipleJobNames entities = UpdateIsForMultipleJobs
+    | otherwise =
+        case jobs of
+            [job] ->
+                if jobDetailsMatch job
+                    then UpdateIsForASingleJob job
+                    else UpdateDetailsDoNotMatch
+            _ : _ -> UpdateIsForMultipleJobs
+            [] -> MessageIsNotAnUpdate
   where
     jobs = message |> normalizedMessage previousJobName |> buildJobs date
     previousJobName = get #timecardEntryJobName <$> head timecardEntryRows
     date = nextTimecardEntryDay today timecardEntryDays
     timecardEntryDays = get #timecardEntryDate <$> timecardEntryRows
+    entities = get #entities message
 
 buildReminder :: [SendMessageAction.T] -> Reminder
 buildReminder (SendMessageAction.T {..} : _)
@@ -165,9 +170,16 @@ normalizedHoursWorked entities = catMaybes $ Normalize.hoursWorked <$> hoursWork
     hoursWorkeds = get #rawText <$> hoursWorkedEntities
     hoursWorkedEntities = findEntities Twilio.Query.HoursWorked entities
 
+anyLowConfidenceEntities :: [Twilio.View.Entity] -> Bool
+anyLowConfidenceEntities = any (\entity -> get #confidence entity < entityConfidenceThreshold)
+
+hasMultipleJobNames :: [Twilio.View.Entity] -> Bool
+hasMultipleJobNames entities = length (findEntities Twilio.Query.JobName entities) > 1
+
 findEntities :: Twilio.Query.EntityType -> [Twilio.View.Entity] -> [Twilio.View.Entity]
 findEntities entityType = filter (\entity -> get #entityType entity == entityType)
 
+--TODO: remove
 highConfidenceEntities :: [Twilio.View.Entity] -> [Twilio.View.Entity]
 highConfidenceEntities = filter (\entity -> get #confidence entity >= entityConfidenceThreshold)
 

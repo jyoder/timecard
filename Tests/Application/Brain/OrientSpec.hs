@@ -249,6 +249,87 @@ spec = do
                         }
                     `shouldBe` Orient.UpdateIsForMultipleJobs
 
+            it "returns UpdateIsForMultipleJobs if the message had information for multiple jobs" do
+                Orient.buildUpdate
+                    (toDay "2021-09-07")
+                    []
+                    Twilio.View.Message
+                        { id = "50000000-0000-0000-0000-000000000000"
+                        , fromFirstName = "Bob"
+                        , fromLastName = "Ross"
+                        , fromPhoneNumber = "+14444444444"
+                        , toPhoneNumber = "+15555555555"
+                        , toFirstName = "Michael"
+                        , toLastName = "Phelps"
+                        , createdAt = toUtc "2021-09-07 14:00:00 PDT"
+                        , status = Twilio.Query.Received
+                        , body = "Did some stuff."
+                        , entities =
+                            [ Twilio.View.Entity
+                                { entityType = Twilio.Query.JobName
+                                , rawText = "416 Meadowbrook"
+                                , confidence = 1.0
+                                }
+                            , Twilio.View.Entity
+                                { entityType = Twilio.Query.ClockedInAt
+                                , rawText = "830"
+                                , confidence = 1.0
+                                }
+                            , Twilio.View.Entity
+                                { entityType = Twilio.Query.JobName
+                                , rawText = "262 middle"
+                                , confidence = 1.0
+                                }
+                            , Twilio.View.Entity
+                                { entityType = Twilio.Query.ClockedOutAt
+                                , rawText = "4"
+                                , confidence = 1.0
+                                }
+                            ]
+                        }
+                    `shouldBe` Orient.UpdateIsForMultipleJobs
+
+        context "UpdateDetailsAreLowConfidence" do
+            it "returns UpdateDetailsAreLowConfidence if any of the entities are lower than the confidence threshold" do
+                Orient.buildUpdate
+                    (toDay "2021-09-07")
+                    []
+                    Twilio.View.Message
+                        { id = "50000000-0000-0000-0000-000000000000"
+                        , fromFirstName = "Bob"
+                        , fromLastName = "Ross"
+                        , fromPhoneNumber = "+14444444444"
+                        , toPhoneNumber = "+15555555555"
+                        , toFirstName = "Michael"
+                        , toLastName = "Phelps"
+                        , createdAt = toUtc "2021-09-07 14:00:00 PDT"
+                        , status = Twilio.Query.Received
+                        , body = "Did some stuff."
+                        , entities =
+                            [ Twilio.View.Entity
+                                { entityType = Twilio.Query.JobName
+                                , rawText = "the good job"
+                                , confidence = 1.0
+                                }
+                            , Twilio.View.Entity
+                                { entityType = Twilio.Query.ClockedInAt
+                                , rawText = "7am"
+                                , confidence = 1.0
+                                }
+                            , Twilio.View.Entity
+                                { entityType = Twilio.Query.ClockedOutAt
+                                , rawText = "4pm"
+                                , confidence = 0.0
+                                }
+                            , Twilio.View.Entity
+                                { entityType = Twilio.Query.HoursWorked
+                                , rawText = "7.5 hours"
+                                , confidence = 1.0
+                                }
+                            ]
+                        }
+                    `shouldBe` Orient.UpdateDetailsAreLowConfidence
+
         context "UpdateDetailsDoNotMatch" do
             it "returns UpdateDetailsDoNotMatch if the clock information does not match the hours worked" do
                 Orient.buildUpdate
@@ -740,6 +821,83 @@ spec = do
                     }
                 ]
                 `shouldBe` [8.5]
+
+    describe "anyLowConfidenceEntities" do
+        it "returns true if any of the given entities are low confidence" do
+            Orient.anyLowConfidenceEntities
+                [ Twilio.View.Entity
+                    { entityType = Twilio.Query.HoursWorked
+                    , rawText = "8.5"
+                    , confidence = 0.4
+                    }
+                , Twilio.View.Entity
+                    { entityType = Twilio.Query.HoursWorked
+                    , rawText = "8.5"
+                    , confidence = 1.0
+                    }
+                ]
+                `shouldBe` True
+
+        it "returns false if none of the given entities are low confidence" do
+            Orient.anyLowConfidenceEntities
+                [ Twilio.View.Entity
+                    { entityType = Twilio.Query.HoursWorked
+                    , rawText = "8.5"
+                    , confidence = 0.8
+                    }
+                , Twilio.View.Entity
+                    { entityType = Twilio.Query.HoursWorked
+                    , rawText = "8.5"
+                    , confidence = 1.0
+                    }
+                ]
+                `shouldBe` False
+
+    describe "hasMultipleJobNames" do
+        it "returns true if there are multiple job names" do
+            Orient.hasMultipleJobNames
+                [ Twilio.View.Entity
+                    { entityType = Twilio.Query.JobName
+                    , rawText = "Job 1"
+                    , confidence = 1.0
+                    }
+                , Twilio.View.Entity
+                    { entityType = Twilio.Query.JobName
+                    , rawText = "Job 2"
+                    , confidence = 1.0
+                    }
+                ]
+                `shouldBe` True
+
+        it "returns false if there is only one job name" do
+            Orient.hasMultipleJobNames
+                [ Twilio.View.Entity
+                    { entityType = Twilio.Query.JobName
+                    , rawText = "Job 1"
+                    , confidence = 1.0
+                    }
+                , Twilio.View.Entity
+                    { entityType = Twilio.Query.HoursWorked
+                    , rawText = "8 hours"
+                    , confidence = 1.0
+                    }
+                ]
+                `shouldBe` False
+
+        it "returns false if there are no job names" do
+            Orient.hasMultipleJobNames
+                [ Twilio.View.Entity
+                    { entityType = Twilio.Query.HoursWorked
+                    , rawText = "8 hours"
+                    , confidence = 1.0
+                    }
+                , Twilio.View.Entity
+                    { entityType = Twilio.Query.HoursWorked
+                    , rawText = "8 hours"
+                    , confidence = 1.0
+                    }
+                ]
+                `shouldBe` False
 
     describe "findEntities" do
         it "returns entities that match the given entity type" do

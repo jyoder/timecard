@@ -39,6 +39,7 @@ decide Orient.Situation {..} =
                         , ..
                         }
                 Orient.UpdateIsForMultipleJobs -> DoNothing
+                Orient.UpdateDetailsAreLowConfidence -> DoNothing
                 Orient.UpdateDetailsDoNotMatch -> DoNothing
                 Orient.MessageIsNotAnUpdate -> DoNothing
         Orient.ReminderIsScheduled {..} ->
