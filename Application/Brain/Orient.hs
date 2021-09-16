@@ -131,15 +131,13 @@ nextTimecardEntryDay today timecardEntryDays =
 normalizedMessage :: Maybe Text -> Twilio.View.Message -> Message
 normalizedMessage previousJobName Twilio.View.Message {..} =
     Message
-        { jobName = normalizedJobNames previousJobName highConfidenceEntities'
-        , clockedInAt = normalizedClockedInAts highConfidenceEntities'
-        , clockedOutAt = normalizedClockedOutAts highConfidenceEntities'
-        , hoursWorked = normalizedHoursWorked highConfidenceEntities'
+        { jobName = normalizedJobNames previousJobName entities
+        , clockedInAt = normalizedClockedInAts entities
+        , clockedOutAt = normalizedClockedOutAts entities
+        , hoursWorked = normalizedHoursWorked entities
         , workDone = body
         , invoiceTranslation = body
         }
-  where
-    highConfidenceEntities' = highConfidenceEntities entities
 
 normalizedJobNames :: Maybe Text -> [Twilio.View.Entity] -> [Text]
 normalizedJobNames previousJobName entities =
@@ -178,10 +176,6 @@ hasMultipleJobNames entities = length (findEntities Twilio.Query.JobName entitie
 
 findEntities :: Twilio.Query.EntityType -> [Twilio.View.Entity] -> [Twilio.View.Entity]
 findEntities entityType = filter (\entity -> get #entityType entity == entityType)
-
---TODO: remove
-highConfidenceEntities :: [Twilio.View.Entity] -> [Twilio.View.Entity]
-highConfidenceEntities = filter (\entity -> get #confidence entity >= entityConfidenceThreshold)
 
 jobDetailsMatch :: Job -> Bool
 jobDetailsMatch Job {..} =
