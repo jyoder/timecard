@@ -98,7 +98,7 @@ spec = do
 
         context "when the situation does have a scheduled reminder" do
             context "and the update is for a single job" do
-                it "returns a plan to suspend the scheduled reminder" do
+                it "returns a plan to suspend scheduled messages" do
                     Decide.decide
                         Orient.Situation
                             { now = toUtc "2021-08-30 15:20:00 PDT"
@@ -124,12 +124,12 @@ spec = do
                                     { actionRunStateId = "50000000-0000-0000-0000-000000000000"
                                     }
                             }
-                        `shouldBe` Decide.SuspendReminder
+                        `shouldBe` Decide.SuspendScheduledMessages
                             { actionRunStateId = "50000000-0000-0000-0000-000000000000"
                             }
 
             context "and the update is for multiple jobs" do
-                it "returns a plan to suspend the scheduled reminder" do
+                it "returns a plan to suspend scheduled messages" do
                     Decide.decide
                         Orient.Situation
                             { now = toUtc "2021-08-30 15:20:00 PDT"
@@ -144,12 +144,12 @@ spec = do
                                     { actionRunStateId = "50000000-0000-0000-0000-000000000000"
                                     }
                             }
-                        `shouldBe` Decide.SuspendReminder
+                        `shouldBe` Decide.SuspendScheduledMessages
                             { actionRunStateId = "50000000-0000-0000-0000-000000000000"
                             }
 
             context "and the details don't match in the update" do
-                it "returns a plan to suspend the scheduled reminder" do
+                it "returns a plan to suspend scheduled messages" do
                     Decide.decide
                         Orient.Situation
                             { now = toUtc "2021-08-30 15:20:00 PDT"
@@ -164,12 +164,12 @@ spec = do
                                     { actionRunStateId = "50000000-0000-0000-0000-000000000000"
                                     }
                             }
-                        `shouldBe` Decide.SuspendReminder
+                        `shouldBe` Decide.SuspendScheduledMessages
                             { actionRunStateId = "50000000-0000-0000-0000-000000000000"
                             }
 
             context "and the message is not an update" do
-                it "returns a plan to suspend the scheduled reminder" do
+                it "returns a plan to suspend scheduled messages" do
                     Decide.decide
                         Orient.Situation
                             { now = toUtc "2021-08-30 15:20:00 PDT"
@@ -184,7 +184,7 @@ spec = do
                                     { actionRunStateId = "50000000-0000-0000-0000-000000000000"
                                     }
                             }
-                        `shouldBe` Decide.SuspendReminder
+                        `shouldBe` Decide.SuspendScheduledMessages
                             { actionRunStateId = "50000000-0000-0000-0000-000000000000"
                             }
 

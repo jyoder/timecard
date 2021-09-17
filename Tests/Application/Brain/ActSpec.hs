@@ -120,14 +120,14 @@ spec = do
                     get #runsAt actionRunTime `shouldBe` toUtc "2021-08-31 15:30:00 PDT"
 
             context "when the plan says to suspend an existing scheduled reminder" do
-                itIO "suspend the existing scheduled reminder" do
+                itIO "suspends scheduled messages" do
                     actionRunState <-
                         newRecord @ActionRunState
                             |> set #state ActionRunState.notStarted
                             |> createRecord
 
                     Act.act
-                        Decide.SuspendReminder
+                        Decide.SuspendScheduledMessages
                             { actionRunStateId = get #id actionRunState
                             }
 

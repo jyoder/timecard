@@ -9,7 +9,7 @@ import IHP.ControllerPrelude
 import IHP.Prelude
 
 act :: (?modelContext :: ModelContext) => Decide.Plan -> IO ()
-act Decide.SuspendReminder {..} = do
+act Decide.SuspendScheduledMessages {..} = do
     actionRunState <- fetch actionRunStateId
     ActionRunState.updateSuspended actionRunState
     pure ()

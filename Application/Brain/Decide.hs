@@ -21,7 +21,7 @@ data Plan
         , workDone :: !Text
         , invoiceTranslation :: !Text
         }
-    | SuspendReminder
+    | SuspendScheduledMessages
         { actionRunStateId :: !(Id ActionRunState)
         }
     | DoNothing
@@ -43,6 +43,6 @@ decide Orient.Situation {..} =
                 Orient.UpdateDetailsDoNotMatch -> DoNothing
                 Orient.MessageIsNotAnUpdate -> DoNothing
         Orient.ReminderIsScheduled {..} ->
-            SuspendReminder {..}
+            SuspendScheduledMessages {..}
         Orient.ReminderIsSuspended ->
             DoNothing
