@@ -22,7 +22,7 @@ data Plan
         , invoiceTranslation :: !Text
         }
     | SuspendScheduledMessages
-        { actionRunStateId :: !(Id ActionRunState)
+        { actionRunStateIds :: ![Id ActionRunState]
         }
     | DoNothing
     deriving (Eq, Show)

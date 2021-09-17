@@ -121,18 +121,29 @@ spec = do
 
             context "when the plan says to suspend an existing scheduled reminder" do
                 itIO "suspends scheduled messages" do
-                    actionRunState <-
+                    actionRunState1 <-
+                        newRecord @ActionRunState
+                            |> set #state ActionRunState.notStarted
+                            |> createRecord
+
+                    actionRunState2 <-
                         newRecord @ActionRunState
                             |> set #state ActionRunState.notStarted
                             |> createRecord
 
                     Act.act
                         Decide.SuspendScheduledMessages
-                            { actionRunStateId = get #id actionRunState
+                            { actionRunStateIds =
+                                [ get #id actionRunState1
+                                , get #id actionRunState2
+                                ]
                             }
 
-                    actionRunState <- fetch $ get #id actionRunState
-                    get #state actionRunState `shouldBe` ActionRunState.suspended
+                    actionRunState1 <- fetch $ get #id actionRunState1
+                    get #state actionRunState1 `shouldBe` ActionRunState.suspended
+
+                    actionRunState2 <- fetch $ get #id actionRunState2
+                    get #state actionRunState2 `shouldBe` ActionRunState.suspended
 
             context "when the plan says to do nothing" do
                 itIO "does nothing" do

@@ -87,7 +87,7 @@ spec = do
                                 }
                     , reminder =
                         Orient.ReminderIsScheduled
-                            { actionRunStateId = "20000000-0000-0000-0000-000000000000"
+                            { actionRunStateIds = ["20000000-0000-0000-0000-000000000000"]
                             }
                     }
 
@@ -403,25 +403,7 @@ spec = do
                     `shouldBe` Orient.MessageIsNotAnUpdate
 
     describe "buildReminder" do
-        it "returns ReminderIsScheduled when the first send message action is not started" do
-            Orient.buildReminder
-                [ SendMessageAction.T
-                    { id = "10000000-0000-0000-0000-000000000000"
-                    , actionRunStateId = "20000000-0000-0000-0000-000000000000"
-                    , state = ActionRunState.notStarted
-                    , runsAt = toUtc "2021-09-01 14:00:00 PDT"
-                    , body = "Did some good work."
-                    , fromId = "30000000-0000-0000-0000-000000000000"
-                    , fromNumber = "+15555555555"
-                    , toId = "40000000-0000-0000-0000-000000000000"
-                    , toNumber = "+16666666666"
-                    }
-                ]
-                `shouldBe` Orient.ReminderIsScheduled
-                    { actionRunStateId = "20000000-0000-0000-0000-000000000000"
-                    }
-
-        it "returns ReminderIsSuspended when the first send message action is suspended" do
+        it "returns ReminderIsScheduled when any message action is not suspended" do
             Orient.buildReminder
                 [ SendMessageAction.T
                     { id = "10000000-0000-0000-0000-000000000000"
@@ -434,10 +416,50 @@ spec = do
                     , toId = "40000000-0000-0000-0000-000000000000"
                     , toNumber = "+16666666666"
                     }
+                , SendMessageAction.T
+                    { id = "50000000-0000-0000-0000-000000000000"
+                    , actionRunStateId = "60000000-0000-0000-0000-000000000000"
+                    , state = ActionRunState.notStarted
+                    , runsAt = toUtc "2021-09-01 14:00:00 PDT"
+                    , body = "Did some good work."
+                    , fromId = "70000000-0000-0000-0000-000000000000"
+                    , fromNumber = "+15555555555"
+                    , toId = "80000000-0000-0000-0000-000000000000"
+                    , toNumber = "+16666666666"
+                    }
+                ]
+                `shouldBe` Orient.ReminderIsScheduled
+                    { actionRunStateIds = ["60000000-0000-0000-0000-000000000000"]
+                    }
+
+        it "returns ReminderIsSuspended when all send message actions are suspended" do
+            Orient.buildReminder
+                [ SendMessageAction.T
+                    { id = "10000000-0000-0000-0000-000000000000"
+                    , actionRunStateId = "20000000-0000-0000-0000-000000000000"
+                    , state = ActionRunState.suspended
+                    , runsAt = toUtc "2021-09-01 14:00:00 PDT"
+                    , body = "Did some good work."
+                    , fromId = "30000000-0000-0000-0000-000000000000"
+                    , fromNumber = "+15555555555"
+                    , toId = "40000000-0000-0000-0000-000000000000"
+                    , toNumber = "+16666666666"
+                    }
+                , SendMessageAction.T
+                    { id = "50000000-0000-0000-0000-000000000000"
+                    , actionRunStateId = "60000000-0000-0000-0000-000000000000"
+                    , state = ActionRunState.suspended
+                    , runsAt = toUtc "2021-09-01 14:00:00 PDT"
+                    , body = "Did some good work."
+                    , fromId = "70000000-0000-0000-0000-000000000000"
+                    , fromNumber = "+15555555555"
+                    , toId = "80000000-0000-0000-0000-000000000000"
+                    , toNumber = "+16666666666"
+                    }
                 ]
                 `shouldBe` Orient.ReminderIsSuspended
 
-        it "returns ReminderIsNotScheduled when the first send message action is canceled" do
+        it "returns ReminderIsNotScheduled when the only send message action is canceled" do
             Orient.buildReminder
                 [ SendMessageAction.T
                     { id = "10000000-0000-0000-0000-000000000000"
@@ -452,6 +474,9 @@ spec = do
                     }
                 ]
                 `shouldBe` Orient.ReminderIsNotScheduled
+
+        it "returns ReminderIsNotScheduled when there are no scheduled messages" do
+            Orient.buildReminder [] `shouldBe` Orient.ReminderIsNotScheduled
 
         it "ignores extra send message actions (we are choosing not to handle this case right now)" do
             Orient.buildReminder
@@ -479,7 +504,7 @@ spec = do
                     }
                 ]
                 `shouldBe` Orient.ReminderIsScheduled
-                    { actionRunStateId = "20000000-0000-0000-0000-000000000000"
+                    { actionRunStateIds = ["20000000-0000-0000-0000-000000000000"]
                     }
 
         it "returns ReminderIsNotScheduled when there are no send message actions" do

@@ -121,11 +121,17 @@ spec = do
                                         }
                             , reminder =
                                 Orient.ReminderIsScheduled
-                                    { actionRunStateId = "50000000-0000-0000-0000-000000000000"
+                                    { actionRunStateIds =
+                                        [ "50000000-0000-0000-0000-000000000000"
+                                        , "60000000-0000-0000-0000-000000000000"
+                                        ]
                                     }
                             }
                         `shouldBe` Decide.SuspendScheduledMessages
-                            { actionRunStateId = "50000000-0000-0000-0000-000000000000"
+                            { actionRunStateIds =
+                                [ "50000000-0000-0000-0000-000000000000"
+                                , "60000000-0000-0000-0000-000000000000"
+                                ]
                             }
 
             context "and the update is for multiple jobs" do
@@ -141,11 +147,17 @@ spec = do
                             , update = Orient.UpdateIsForMultipleJobs
                             , reminder =
                                 Orient.ReminderIsScheduled
-                                    { actionRunStateId = "50000000-0000-0000-0000-000000000000"
+                                    { actionRunStateIds =
+                                        [ "50000000-0000-0000-0000-000000000000"
+                                        , "60000000-0000-0000-0000-000000000000"
+                                        ]
                                     }
                             }
                         `shouldBe` Decide.SuspendScheduledMessages
-                            { actionRunStateId = "50000000-0000-0000-0000-000000000000"
+                            { actionRunStateIds =
+                                [ "50000000-0000-0000-0000-000000000000"
+                                , "60000000-0000-0000-0000-000000000000"
+                                ]
                             }
 
             context "and the details don't match in the update" do
@@ -161,11 +173,17 @@ spec = do
                             , update = Orient.UpdateDetailsDoNotMatch
                             , reminder =
                                 Orient.ReminderIsScheduled
-                                    { actionRunStateId = "50000000-0000-0000-0000-000000000000"
+                                    { actionRunStateIds =
+                                        [ "50000000-0000-0000-0000-000000000000"
+                                        , "60000000-0000-0000-0000-000000000000"
+                                        ]
                                     }
                             }
                         `shouldBe` Decide.SuspendScheduledMessages
-                            { actionRunStateId = "50000000-0000-0000-0000-000000000000"
+                            { actionRunStateIds =
+                                [ "50000000-0000-0000-0000-000000000000"
+                                , "60000000-0000-0000-0000-000000000000"
+                                ]
                             }
 
             context "and the message is not an update" do
@@ -181,11 +199,17 @@ spec = do
                             , update = Orient.MessageIsNotAnUpdate
                             , reminder =
                                 Orient.ReminderIsScheduled
-                                    { actionRunStateId = "50000000-0000-0000-0000-000000000000"
+                                    { actionRunStateIds =
+                                        [ "50000000-0000-0000-0000-000000000000"
+                                        , "60000000-0000-0000-0000-000000000000"
+                                        ]
                                     }
                             }
                         `shouldBe` Decide.SuspendScheduledMessages
-                            { actionRunStateId = "50000000-0000-0000-0000-000000000000"
+                            { actionRunStateIds =
+                                [ "50000000-0000-0000-0000-000000000000"
+                                , "60000000-0000-0000-0000-000000000000"
+                                ]
                             }
 
         context "when the situation has a suspended reminder" do

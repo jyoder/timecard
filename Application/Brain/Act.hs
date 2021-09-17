@@ -10,9 +10,8 @@ import IHP.Prelude
 
 act :: (?modelContext :: ModelContext) => Decide.Plan -> IO ()
 act Decide.SuspendScheduledMessages {..} = do
-    actionRunState <- fetch actionRunStateId
-    ActionRunState.updateSuspended actionRunState
-    pure ()
+    actionRunState <- fetch actionRunStateIds
+    mapM_ ActionRunState.updateSuspended actionRunState
 act Decide.CreateTimecardEntry {..} = do
     worker <- fetch workerId
 
