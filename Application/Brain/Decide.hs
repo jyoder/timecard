@@ -5,7 +5,7 @@ import Generated.Types
 import IHP.Prelude
 
 data Plan
-    = CreateTimecardEntryAndScheduleReminder
+    = CreateTimecardEntry
         { now :: !UTCTime
         , companyTimeZone :: !TimeZone
         , workerId :: !(Id Person)
@@ -33,7 +33,7 @@ decide Orient.Situation {..} =
         Orient.ReminderIsNotScheduled ->
             case update of
                 Orient.UpdateIsForASingleJob Orient.Job {..} ->
-                    CreateTimecardEntryAndScheduleReminder
+                    CreateTimecardEntry
                         { jobName = name
                         , linkedMessageId = twilioMessageId
                         , ..

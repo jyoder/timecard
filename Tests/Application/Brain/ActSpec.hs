@@ -65,7 +65,7 @@ spec = do
                             |> createRecord
 
                     Act.act
-                        Decide.CreateTimecardEntryAndScheduleReminder
+                        Decide.CreateTimecardEntry
                             { now = toUtc "2021-08-30 15:30:00 PDT"
                             , companyTimeZone = toTimeZone "PDT"
                             , workerId = get #id worker

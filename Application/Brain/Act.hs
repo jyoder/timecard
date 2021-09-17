@@ -13,7 +13,7 @@ act Decide.SuspendReminder {..} = do
     actionRunState <- fetch actionRunStateId
     ActionRunState.updateSuspended actionRunState
     pure ()
-act Decide.CreateTimecardEntryAndScheduleReminder {..} = do
+act Decide.CreateTimecardEntry {..} = do
     worker <- fetch workerId
 
     let timecardEntry =

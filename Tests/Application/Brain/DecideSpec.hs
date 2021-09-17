@@ -34,7 +34,7 @@ spec = do
                                         }
                             , reminder = Orient.ReminderIsNotScheduled
                             }
-                        `shouldBe` Decide.CreateTimecardEntryAndScheduleReminder
+                        `shouldBe` Decide.CreateTimecardEntry
                             { now = toUtc "2021-08-30 15:20:00 PDT"
                             , companyTimeZone = toTimeZone "PDT"
                             , workerId = "10000000-0000-0000-0000-000000000000"
