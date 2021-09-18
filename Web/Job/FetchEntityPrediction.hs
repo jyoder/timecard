@@ -9,8 +9,9 @@ import Application.Service.Validation (validateAndCreate)
 import qualified Application.Twilio.TwilioMessageEntity as TwilioMessageEntity
 import qualified Application.VertexAi.Client as Client
 import qualified Application.VertexAi.VertexAiEntityPrediction as VertexAiEntityPrediction
+import IHP.FrameworkConfig (baseUrl)
 import qualified IHP.Log as Log
-import Web.Controller.Prelude
+import Web.Controller.Prelude hiding (baseUrl)
 
 instance Job FetchEntityPredictionJob where
     maxAttempts = 1
@@ -22,7 +23,9 @@ instance Job FetchEntityPredictionJob where
         Log.info ("Fetching entity predictions for TwilioMessage: " <> show twilioMessageId)
         fetchEntityPredictions now Client.config twilioMessage >> pure ()
 
-        Brain.Process.processIncomingMessage twilioMessage
+        Brain.Process.processIncomingMessage
+            (baseUrl $ getFrameworkConfig ?context)
+            twilioMessage
 
 fetchEntityPredictions ::
     (?modelContext :: ModelContext) =>

@@ -3,6 +3,7 @@ module Tests.Application.Brain.ActSpec where
 import qualified Application.Action.ActionRunState as ActionRunState
 import qualified Application.Brain.Act as Act
 import qualified Application.Brain.Decide as Decide
+import qualified Application.Timecard.Entry as Timecard.Entry
 import Generated.Types
 import IHP.ControllerPrelude
 import IHP.Test.Mocking
@@ -65,6 +66,7 @@ spec = do
                             |> createRecord
 
                     Act.act
+                        "https://timecard.company.com"
                         Decide.CreateTimecardEntry
                             { now = toUtc "2021-08-30 15:30:00 PDT"
                             , companyTimeZone = toTimeZone "PDT"
@@ -119,6 +121,175 @@ spec = do
                     get #state actionRunState `shouldBe` ActionRunState.notStarted
                     get #runsAt actionRunTime `shouldBe` toUtc "2021-08-31 15:30:00 PDT"
 
+                itIO "creates a timecard entry, schedules a reminder, and schedules a review if the timecard is complete" do
+                    bot <-
+                        newRecord @Person
+                            |> set #firstName "Tim"
+                            |> set #lastName "Eckard"
+                            |> set #goesBy "Tim the Bot"
+                            |> createRecord
+
+                    botPhoneNumber <-
+                        newRecord @PhoneNumber
+                            |> set #number "+14444444444"
+                            |> createRecord
+
+                    botPhoneContact <-
+                        newRecord @PhoneContact
+                            |> set #personId (get #id bot)
+                            |> set #phoneNumberId (get #id botPhoneNumber)
+                            |> createRecord
+
+                    worker <-
+                        newRecord @Person
+                            |> set #firstName "Bill"
+                            |> set #lastName "Gates"
+                            |> set #goesBy "Billy"
+                            |> createRecord
+
+                    workerSettings <-
+                        newRecord @WorkerSetting
+                            |> set #personId (get #id worker)
+                            |> set #sendDailyReminderAt (toTimeOfDay "15:30:00")
+                            |> createRecord
+
+                    workerPhoneNumber <-
+                        newRecord @PhoneNumber
+                            |> set #number "+15555555555"
+                            |> createRecord
+
+                    workerPhoneContact <-
+                        newRecord @PhoneContact
+                            |> set #personId (get #id worker)
+                            |> set #phoneNumberId (get #id workerPhoneNumber)
+                            |> createRecord
+
+                    timecardEntryMonday <-
+                        newRecord @TimecardEntry
+                            |> set #date (toDay "2021-08-30")
+                            |> set #jobName "McDonald's"
+                            |> set #hoursWorked 8.0
+                            |> set #workDone "work"
+                            |> set #invoiceTranslation "invoice"
+                            |> Timecard.Entry.create
+                                (get #id worker)
+                                []
+
+                    timecardEntryTuesday <-
+                        newRecord @TimecardEntry
+                            |> set #date (toDay "2021-08-31")
+                            |> set #jobName "McDonald's"
+                            |> set #hoursWorked 8.0
+                            |> set #workDone "work"
+                            |> set #invoiceTranslation "invoice"
+                            |> Timecard.Entry.create
+                                (get #id worker)
+                                []
+
+                    timecardEntryWednesday <-
+                        newRecord @TimecardEntry
+                            |> set #date (toDay "2021-09-01")
+                            |> set #jobName "McDonald's"
+                            |> set #hoursWorked 8.0
+                            |> set #workDone "work"
+                            |> set #invoiceTranslation "invoice"
+                            |> Timecard.Entry.create
+                                (get #id worker)
+                                []
+
+                    timecardEntryThursday <-
+                        newRecord @TimecardEntry
+                            |> set #date (toDay "2021-09-02")
+                            |> set #jobName "McDonald's"
+                            |> set #hoursWorked 8.0
+                            |> set #workDone "work"
+                            |> set #invoiceTranslation "invoice"
+                            |> Timecard.Entry.create
+                                (get #id worker)
+                                []
+
+                    twilioMessage <-
+                        newRecord @TwilioMessage
+                            |> set #fromId (get #id workerPhoneNumber)
+                            |> set #toId (get #id botPhoneNumber)
+                            |> set #body "Let's do this."
+                            |> createRecord
+
+                    Act.act
+                        "https://timecard.company.com"
+                        Decide.CreateTimecardEntry
+                            { now = toUtc "2021-09-03 15:30:00 PDT"
+                            , companyTimeZone = toTimeZone "PDT"
+                            , workerId = get #id worker
+                            , workerPhoneNumberId = get #id workerPhoneNumber
+                            , botPhoneNumberId = get #id botPhoneNumber
+                            , linkedMessageId = get #id twilioMessage
+                            , date = toDay "2021-09-03"
+                            , jobName = "123 Something Rd."
+                            , hoursWorked = 7.5
+                            , clockedInAt = Just $ toTimeOfDay "07:00:00"
+                            , clockedOutAt = Just $ toTimeOfDay "15:30:00"
+                            , lunchDuration = 30
+                            , workDone = "some work done"
+                            , invoiceTranslation = "some invoice translation"
+                            }
+
+                    timecard <-
+                        query @Timecard
+                            |> filterWhere (#personId, get #id worker)
+                            |> fetchOne
+
+                    timecardEntryFriday <-
+                        query @TimecardEntry
+                            |> filterWhere (#date, toDay "2021-09-03")
+                            |> fetchOne
+
+                    entryActionRunTime <-
+                        query @ActionRunTime
+                            |> filterWhere (#runsAt, toUtc "2021-09-06 15:30:00 PDT")
+                            |> fetchOne
+
+                    entryRequest <-
+                        query @SendMessageAction
+                            |> filterWhere (#toId, get #id workerPhoneNumber)
+                            |> filterWhere (#actionRunStateId, get #actionRunStateId entryActionRunTime)
+                            |> fetchOne
+
+                    entryActionRunState <-
+                        fetch (get #actionRunStateId entryRequest)
+
+                    reviewActionRunTime <-
+                        query @ActionRunTime
+                            |> filterWhere (#runsAt, toUtc "2021-09-03 15:34:00 PDT")
+                            |> fetchOne
+
+                    reviewRequest <-
+                        query @SendMessageAction
+                            |> filterWhere (#toId, get #id workerPhoneNumber)
+                            |> filterWhere (#actionRunStateId, get #actionRunStateId reviewActionRunTime)
+                            |> fetchOne
+
+                    reviewActionRunState <-
+                        fetch (get #actionRunStateId reviewRequest)
+
+                    get #jobName timecardEntryFriday `shouldBe` "123 Something Rd."
+                    get #hoursWorked timecardEntryFriday `shouldBe` 7.5
+                    get #clockedInAt timecardEntryFriday `shouldBe` Just (toTimeOfDay "07:00:00")
+                    get #clockedOutAt timecardEntryFriday `shouldBe` Just (toTimeOfDay "15:30:00")
+                    get #lunchDuration timecardEntryFriday `shouldBe` Just 30
+                    get #workDone timecardEntryFriday `shouldBe` "some work done"
+                    get #invoiceTranslation timecardEntryFriday `shouldBe` "some invoice translation"
+
+                    get #body entryRequest `shouldBe` "Hey Billy - I've got you at 123 Something Rd. today. Let me know what hours you worked and what you did when you have a chance. Thanks!"
+                    get #toId entryRequest `shouldBe` get #id workerPhoneNumber
+                    get #fromId entryRequest `shouldBe` get #id botPhoneNumber
+                    get #state entryActionRunState `shouldBe` ActionRunState.notStarted
+
+                    get #body reviewRequest `shouldSatisfy` isPrefixOf "Thanks Billy. Here's your timecard to review and sign"
+                    get #toId reviewRequest `shouldBe` get #id workerPhoneNumber
+                    get #fromId reviewRequest `shouldBe` get #id botPhoneNumber
+                    get #state reviewActionRunState `shouldBe` ActionRunState.notStarted
+
             context "when the plan says to suspend an existing scheduled reminder" do
                 itIO "suspends scheduled messages" do
                     actionRunState1 <-
@@ -132,6 +303,7 @@ spec = do
                             |> createRecord
 
                     Act.act
+                        "https://timecard.company.com"
                         Decide.SuspendScheduledMessages
                             { actionRunStateIds =
                                 [ get #id actionRunState1
@@ -147,4 +319,4 @@ spec = do
 
             context "when the plan says to do nothing" do
                 itIO "does nothing" do
-                    Act.act Decide.DoNothing
+                    Act.act "https://timecard.company.com" Decide.DoNothing

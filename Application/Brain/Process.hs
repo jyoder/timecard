@@ -16,8 +16,12 @@ import qualified Application.Twilio.View as Twilio.View
 import Generated.Types
 import IHP.ControllerPrelude
 
-processIncomingMessage :: (?modelContext :: ModelContext) => TwilioMessage -> IO ()
-processIncomingMessage twilioMessage = do
+processIncomingMessage ::
+    (?modelContext :: ModelContext) =>
+    Text ->
+    TwilioMessage ->
+    IO ()
+processIncomingMessage baseUrl twilioMessage = do
     workerPhoneNumberId <- get #id <$> fetchOne (get #fromId twilioMessage)
     botPhoneNumberId <- get #id <$> fetchOne (get #toId twilioMessage)
     workerId <- get #id <$> Person.fetchByPhoneNumber workerPhoneNumberId
@@ -30,5 +34,5 @@ processIncomingMessage twilioMessage = do
             observations <- Observe.observe Observe.IncomingMessage {..}
             let situation = Orient.orient observations
             let plan = Decide.decide situation
-            Act.act plan
+            Act.act baseUrl plan
         [] -> pure ()
