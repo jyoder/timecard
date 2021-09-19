@@ -34,7 +34,7 @@ spec = do
                                         }
                             , reminder = Orient.ReminderIsNotScheduled
                             }
-                        `shouldBe` Decide.CreateTimecardEntryAndScheduleReminder
+                        `shouldBe` Decide.CreateTimecardEntry
                             { now = toUtc "2021-08-30 15:20:00 PDT"
                             , companyTimeZone = toTimeZone "PDT"
                             , workerId = "10000000-0000-0000-0000-000000000000"
@@ -98,7 +98,7 @@ spec = do
 
         context "when the situation does have a scheduled reminder" do
             context "and the update is for a single job" do
-                it "returns a plan to suspend the scheduled reminder" do
+                it "returns a plan to suspend scheduled messages" do
                     Decide.decide
                         Orient.Situation
                             { now = toUtc "2021-08-30 15:20:00 PDT"
@@ -121,15 +121,21 @@ spec = do
                                         }
                             , reminder =
                                 Orient.ReminderIsScheduled
-                                    { actionRunStateId = "50000000-0000-0000-0000-000000000000"
+                                    { actionRunStateIds =
+                                        [ "50000000-0000-0000-0000-000000000000"
+                                        , "60000000-0000-0000-0000-000000000000"
+                                        ]
                                     }
                             }
-                        `shouldBe` Decide.SuspendReminder
-                            { actionRunStateId = "50000000-0000-0000-0000-000000000000"
+                        `shouldBe` Decide.SuspendScheduledMessages
+                            { actionRunStateIds =
+                                [ "50000000-0000-0000-0000-000000000000"
+                                , "60000000-0000-0000-0000-000000000000"
+                                ]
                             }
 
             context "and the update is for multiple jobs" do
-                it "returns a plan to suspend the scheduled reminder" do
+                it "returns a plan to suspend scheduled messages" do
                     Decide.decide
                         Orient.Situation
                             { now = toUtc "2021-08-30 15:20:00 PDT"
@@ -141,15 +147,21 @@ spec = do
                             , update = Orient.UpdateIsForMultipleJobs
                             , reminder =
                                 Orient.ReminderIsScheduled
-                                    { actionRunStateId = "50000000-0000-0000-0000-000000000000"
+                                    { actionRunStateIds =
+                                        [ "50000000-0000-0000-0000-000000000000"
+                                        , "60000000-0000-0000-0000-000000000000"
+                                        ]
                                     }
                             }
-                        `shouldBe` Decide.SuspendReminder
-                            { actionRunStateId = "50000000-0000-0000-0000-000000000000"
+                        `shouldBe` Decide.SuspendScheduledMessages
+                            { actionRunStateIds =
+                                [ "50000000-0000-0000-0000-000000000000"
+                                , "60000000-0000-0000-0000-000000000000"
+                                ]
                             }
 
             context "and the details don't match in the update" do
-                it "returns a plan to suspend the scheduled reminder" do
+                it "returns a plan to suspend scheduled messages" do
                     Decide.decide
                         Orient.Situation
                             { now = toUtc "2021-08-30 15:20:00 PDT"
@@ -161,15 +173,21 @@ spec = do
                             , update = Orient.UpdateDetailsDoNotMatch
                             , reminder =
                                 Orient.ReminderIsScheduled
-                                    { actionRunStateId = "50000000-0000-0000-0000-000000000000"
+                                    { actionRunStateIds =
+                                        [ "50000000-0000-0000-0000-000000000000"
+                                        , "60000000-0000-0000-0000-000000000000"
+                                        ]
                                     }
                             }
-                        `shouldBe` Decide.SuspendReminder
-                            { actionRunStateId = "50000000-0000-0000-0000-000000000000"
+                        `shouldBe` Decide.SuspendScheduledMessages
+                            { actionRunStateIds =
+                                [ "50000000-0000-0000-0000-000000000000"
+                                , "60000000-0000-0000-0000-000000000000"
+                                ]
                             }
 
             context "and the message is not an update" do
-                it "returns a plan to suspend the scheduled reminder" do
+                it "returns a plan to suspend scheduled messages" do
                     Decide.decide
                         Orient.Situation
                             { now = toUtc "2021-08-30 15:20:00 PDT"
@@ -181,11 +199,17 @@ spec = do
                             , update = Orient.MessageIsNotAnUpdate
                             , reminder =
                                 Orient.ReminderIsScheduled
-                                    { actionRunStateId = "50000000-0000-0000-0000-000000000000"
+                                    { actionRunStateIds =
+                                        [ "50000000-0000-0000-0000-000000000000"
+                                        , "60000000-0000-0000-0000-000000000000"
+                                        ]
                                     }
                             }
-                        `shouldBe` Decide.SuspendReminder
-                            { actionRunStateId = "50000000-0000-0000-0000-000000000000"
+                        `shouldBe` Decide.SuspendScheduledMessages
+                            { actionRunStateIds =
+                                [ "50000000-0000-0000-0000-000000000000"
+                                , "60000000-0000-0000-0000-000000000000"
+                                ]
                             }
 
         context "when the situation has a suspended reminder" do

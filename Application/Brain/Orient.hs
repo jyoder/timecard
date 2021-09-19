@@ -35,7 +35,7 @@ data Update
 data Reminder
     = ReminderIsNotScheduled
     | ReminderIsScheduled
-        { actionRunStateId :: !(Id ActionRunState)
+        { actionRunStateIds :: ![Id ActionRunState]
         }
     | ReminderIsSuspended
     deriving (Eq, Show)
@@ -93,11 +93,18 @@ buildUpdate today timecardEntryRows message
     entities = get #entities message
 
 buildReminder :: [SendMessageAction.T] -> Reminder
-buildReminder (SendMessageAction.T {..} : _)
-    | state == ActionRunState.notStarted = ReminderIsScheduled {..}
-    | state == ActionRunState.suspended = ReminderIsSuspended
+buildReminder sendMessageActions
+    | null sendMessageActions = ReminderIsNotScheduled
+    | allActionsSuspended = ReminderIsSuspended
+    | anyActionsNotStarted = ReminderIsScheduled {..}
     | otherwise = ReminderIsNotScheduled
-buildReminder [] = ReminderIsNotScheduled
+  where
+    allActionsSuspended = all isActionSuspended sendMessageActions
+    anyActionsNotStarted = any isActionNotStarted sendMessageActions
+    isActionSuspended action = get #state action == ActionRunState.suspended
+    isActionNotStarted action = get #state action == ActionRunState.notStarted
+    actionRunStateIds = get #actionRunStateId <$> notStartedActions
+    notStartedActions = filter isActionNotStarted sendMessageActions
 
 buildJobs :: Day -> Message -> [Job]
 buildJobs date Message {..} =

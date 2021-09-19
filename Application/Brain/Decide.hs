@@ -5,7 +5,7 @@ import Generated.Types
 import IHP.Prelude
 
 data Plan
-    = CreateTimecardEntryAndScheduleReminder
+    = CreateTimecardEntry
         { now :: !UTCTime
         , companyTimeZone :: !TimeZone
         , workerId :: !(Id Person)
@@ -21,8 +21,8 @@ data Plan
         , workDone :: !Text
         , invoiceTranslation :: !Text
         }
-    | SuspendReminder
-        { actionRunStateId :: !(Id ActionRunState)
+    | SuspendScheduledMessages
+        { actionRunStateIds :: ![Id ActionRunState]
         }
     | DoNothing
     deriving (Eq, Show)
@@ -33,7 +33,7 @@ decide Orient.Situation {..} =
         Orient.ReminderIsNotScheduled ->
             case update of
                 Orient.UpdateIsForASingleJob Orient.Job {..} ->
-                    CreateTimecardEntryAndScheduleReminder
+                    CreateTimecardEntry
                         { jobName = name
                         , linkedMessageId = twilioMessageId
                         , ..
@@ -43,6 +43,6 @@ decide Orient.Situation {..} =
                 Orient.UpdateDetailsDoNotMatch -> DoNothing
                 Orient.MessageIsNotAnUpdate -> DoNothing
         Orient.ReminderIsScheduled {..} ->
-            SuspendReminder {..}
+            SuspendScheduledMessages {..}
         Orient.ReminderIsSuspended ->
             DoNothing

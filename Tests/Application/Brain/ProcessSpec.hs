@@ -81,7 +81,9 @@ spec = do
                         |> set #body "Hi!"
                         |> createRecord
 
-                Brain.Process.processIncomingMessage twilioMessage
+                Brain.Process.processIncomingMessage
+                    "https://timecard.company.com"
+                    twilioMessage
 
                 actionRunState <- fetch $ get #actionRunStateId sendMessageAction
                 get #state actionRunState `shouldBe` ActionRunState.suspended

@@ -13,6 +13,7 @@ import qualified Application.Timecard.Entry as Timecard.Entry
 import qualified Application.Timecard.EntryMessage as Timecard.EntryMessage
 import qualified Application.Timecard.EntryRequest as Timecard.EntryRequest
 import qualified Application.Timecard.Query as Timecard.Query
+import qualified Application.Timecard.ReviewRequest as ReviewRequest
 import qualified Application.Timecard.Timecard as Timecard
 import qualified Application.Timecard.View as Timecard.View
 import qualified Application.Twilio.Query as Twilio.Query
@@ -20,8 +21,9 @@ import qualified Application.Twilio.TwilioMessage as TwilioMessage
 import qualified Application.Twilio.View as Twilio.View
 import Data.Functor ((<&>))
 import Data.Text (strip)
+import IHP.FrameworkConfig (baseUrl)
 import Text.Read (read)
-import Web.Controller.Prelude
+import Web.Controller.Prelude hiding (baseUrl)
 import Web.View.Communications.Index
 
 instance Controller CommunicationsController where
@@ -362,9 +364,20 @@ instance Controller CommunicationsController where
         let timecardId = param @(Id Timecard) "timecardId"
         let column = Just $ columnToParam MessagesColumn
 
+        botId <- Person.fetchBotId
+        botPhoneNumber <- PhoneNumber.fetchByPerson botId
+
+        selectedPerson <- fetch selectedPersonId
+        selectedPersonPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
+
         now <- getCurrentTime
-        let expiresAt = Timecard.AccessToken.expirationFrom now
-        Timecard.AccessToken.create expiresAt timecardId
+        ReviewRequest.scheduleRequest
+            (baseUrl $ getFrameworkConfig ?context)
+            now
+            timecardId
+            (get #goesBy selectedPerson)
+            (get #id botPhoneNumber)
+            (get #id selectedPersonPhoneNumber)
 
         redirectTo CommunicationsPersonSelectionAction {..}
 
