@@ -192,7 +192,7 @@ spec = do
                         , messages = [twilioMessage1, twilioMessage2]
                         , toPhoneNumber = phoneNumber
                         , scheduledMessages = [scheduledMessage]
-                        , editingScheduledMessage = False
+                        , editingScheduledMessageId = Nothing
                         , newMessage = newRecord @TwilioMessage
                         , personActivity = personActivity
                         }
@@ -699,7 +699,7 @@ spec = do
                         }
 
             Index.buildScheduledMessageItem
-                False
+                Nothing
                 "50000000-0000-0000-0000-000000000000"
                 sendMessageAction
                 `shouldBe` Index.NotStartedScheduledMessageItem
@@ -730,7 +730,7 @@ spec = do
                         }
 
             Index.buildScheduledMessageItem
-                False
+                Nothing
                 "50000000-0000-0000-0000-000000000000"
                 sendMessageAction
                 `shouldBe` Index.SuspendedScheduledMessageItem
@@ -761,7 +761,7 @@ spec = do
                         }
 
             Index.buildScheduledMessageItem
-                True
+                (Just "10000000-0000-0000-0000-000000000000")
                 "50000000-0000-0000-0000-000000000000"
                 sendMessageAction
                 `shouldBe` Index.EditScheduledMessageForm
@@ -835,7 +835,7 @@ spec = do
                         , messages = []
                         , toPhoneNumber = newRecord @PhoneNumber
                         , scheduledMessages = []
-                        , editingScheduledMessage = False
+                        , editingScheduledMessageId = Nothing
                         , newMessage = newRecord @TwilioMessage
                         , personActivity =
                             Index.SendingMessage
@@ -913,7 +913,7 @@ spec = do
                         , messages = []
                         , toPhoneNumber = newRecord @PhoneNumber
                         , scheduledMessages = []
-                        , editingScheduledMessage = False
+                        , editingScheduledMessageId = Nothing
                         , newMessage = newRecord @TwilioMessage
                         , personActivity =
                             Index.WorkingOnTimecardEntry
@@ -1593,7 +1593,7 @@ spec = do
                         , messages = []
                         , toPhoneNumber = newRecord @PhoneNumber
                         , scheduledMessages = []
-                        , editingScheduledMessage = False
+                        , editingScheduledMessageId = Nothing
                         , newMessage = newRecord @TwilioMessage
                         , personActivity =
                             Index.SendingMessage

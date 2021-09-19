@@ -27,7 +27,7 @@ data PersonSelection
         , messages :: ![V.Message]
         , toPhoneNumber :: !PhoneNumber
         , scheduledMessages :: ![SendMessageAction.T]
-        , editingScheduledMessage :: !Bool
+        , editingScheduledMessageId :: !(Maybe (Id SendMessageAction))
         , newMessage :: !TwilioMessage
         , personActivity :: !PersonActivity
         }
@@ -258,7 +258,7 @@ buildMessagesColumn IndexView {..} =
                 { messageItems = buildMessageItems selectedPerson personActivity messages
                 , scheduledMessageItems =
                     buildScheduledMessageItem
-                        editingScheduledMessage
+                        editingScheduledMessageId
                         (get #id selectedPerson)
                         <$> scheduledMessages
                 , sendMessageForm = buildSendMessageForm toPhoneNumber
@@ -362,12 +362,16 @@ messageStatusClass status =
         Twilio.Query.Failed -> "message-status failed"
         _ -> "message-status sending"
 
-buildScheduledMessageItem :: Bool -> Id Person -> SendMessageAction.T -> ScheduledMessageItem
+buildScheduledMessageItem ::
+    Maybe (Id SendMessageAction) ->
+    Id Person ->
+    SendMessageAction.T ->
+    ScheduledMessageItem
 buildScheduledMessageItem
-    editingScheduledMessage
+    editingScheduledMessageId
     selectedPersonId
     scheduledMessage
-        | editingScheduledMessage =
+        | editingScheduledMessageId == Just (get #id scheduledMessage) =
             buildEditScheduledMessageForm selectedPersonId scheduledMessage
         | get #state scheduledMessage == ActionRunState.suspended =
             buildSuspendedScheduledMessageItem scheduledMessage

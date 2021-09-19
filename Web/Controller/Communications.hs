@@ -55,7 +55,7 @@ instance Controller CommunicationsController where
                             selectedPersonId
 
                 let newMessage = newRecord @TwilioMessage
-                let editingScheduledMessage = False
+                let editingScheduledMessageId = Nothing
                 let personActivity = SendingMessage {..}
                 pure PersonSelected {..}
             [] -> pure NoPersonSelected
@@ -85,7 +85,7 @@ instance Controller CommunicationsController where
                     Timecard.Query.EntriesDateDescending
                     selectedPersonId
 
-        let editingScheduledMessage = False
+        let editingScheduledMessageId = Nothing
         let personActivity = SendingMessage {..}
         let personSelection = PersonSelected {..}
 
@@ -117,7 +117,7 @@ instance Controller CommunicationsController where
         let timecardEntry = newRecord @TimecardEntry |> buildNewTimecardEntry timecardDate
         let timecardActivity = CreatingEntry
 
-        let editingScheduledMessage = False
+        let editingScheduledMessageId = Nothing
         let personActivity = WorkingOnTimecardEntry {..}
         let personSelection = PersonSelected {..}
 
@@ -151,7 +151,7 @@ instance Controller CommunicationsController where
         timecardEntry <- fetch timecardEntryId
         let timecardActivity = EditingEntry
 
-        let editingScheduledMessage = False
+        let editingScheduledMessageId = Nothing
         let personActivity = WorkingOnTimecardEntry {..}
         let personSelection = PersonSelected {..}
 
@@ -183,7 +183,7 @@ instance Controller CommunicationsController where
         timecardEntry <- fetch timecardEntryId
         let timecardActivity = EditingModifiedEntry
 
-        let editingScheduledMessage = False
+        let editingScheduledMessageId = Nothing
         let personActivity = WorkingOnTimecardEntry {..}
         let personSelection = PersonSelected {..}
 
@@ -218,7 +218,7 @@ instance Controller CommunicationsController where
                                 (get #id toPhoneNumber)
                         let newMessage = newRecord @TwilioMessage
 
-                        let editingScheduledMessage = False
+                        let editingScheduledMessageId = Nothing
                         let timecardActivity = CreatingEntry
                         let personActivity = WorkingOnTimecardEntry {..}
                         let personSelection = PersonSelected {..}
@@ -266,7 +266,7 @@ instance Controller CommunicationsController where
                                 (get #id toPhoneNumber)
                         let newMessage = newRecord @TwilioMessage
 
-                        let editingScheduledMessage = False
+                        let editingScheduledMessageId = Nothing
                         let timecardActivity = EditingEntry
                         let personActivity = WorkingOnTimecardEntry {..}
                         let personSelection = PersonSelected {..}
@@ -321,7 +321,7 @@ instance Controller CommunicationsController where
                     Timecard.Query.EntriesDateDescending
                     selectedPersonId
 
-        let editingScheduledMessage = True
+        let editingScheduledMessageId = Just sendMessageActionId
         let personActivity = SendingMessage {..}
         let personSelection = PersonSelected {..}
 
