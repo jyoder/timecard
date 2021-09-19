@@ -371,9 +371,6 @@ instance Controller CommunicationsController where
         selectedPersonPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
 
         now <- getCurrentTime
-        let expiresAt = Timecard.AccessToken.expirationFrom now
-        Timecard.AccessToken.create expiresAt timecardId
-
         ReviewRequest.scheduleRequest
             (baseUrl $ getFrameworkConfig ?context)
             now
