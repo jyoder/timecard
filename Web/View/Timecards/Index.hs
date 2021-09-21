@@ -286,7 +286,7 @@ renderTimecardsColumn timecardsColumn =
         TimecardsColumnVisible {..} ->
             [hsx|
                 <div class="timecards-column m-lg-3 flex-grow-1">
-                    <div class="scroll-to-pinned"></div>
+                    <div class="scroll-to-pinned d-none d-lg-block"></div>
                     {forEach timecardTables renderTimecardTable}
                 </div>
             |]
