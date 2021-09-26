@@ -5,7 +5,6 @@ module Web.Controller.Communications where
 import qualified Application.Action.ActionRunState as ActionRunState
 import qualified Application.Action.SendMessageAction as SendMessageAction
 import qualified Application.Base.PhoneNumber as PhoneNumber
-import qualified Application.Base.WorkerSettings as WorkerSettings
 import qualified Application.People.Person as Person
 import qualified Application.People.Query as People.Query
 import qualified Application.People.View as People.View
@@ -370,15 +369,13 @@ instance Controller CommunicationsController where
 
         selectedPerson <- fetch selectedPersonId
         selectedPersonPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
-        preferredLanguage <- WorkerSettings.fetchPreferredLanguageForWorker selectedPersonId
 
         now <- getCurrentTime
         ReviewRequest.scheduleRequest
             (baseUrl $ getFrameworkConfig ?context)
             now
             timecardId
-            preferredLanguage
-            (get #goesBy selectedPerson)
+            selectedPerson
             (get #id botPhoneNumber)
             (get #id selectedPersonPhoneNumber)
 

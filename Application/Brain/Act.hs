@@ -1,7 +1,6 @@
 module Application.Brain.Act where
 
 import qualified Application.Action.ActionRunState as ActionRunState
-import qualified Application.Base.WorkerSettings as WorkerSettings
 import Application.Brain.Decide as Decide
 import qualified Application.Timecard.Entry as Entry
 import qualified Application.Timecard.EntryRequest as EntryRequest
@@ -17,7 +16,6 @@ act _ Decide.SuspendScheduledMessages {..} = do
     mapM_ ActionRunState.updateSuspended actionRunState
 act baseUrl Decide.CreateTimecardEntry {..} = do
     worker <- fetch workerId
-    preferredLanguage <- WorkerSettings.fetchPreferredLanguageForWorker workerId
 
     let timecardEntry =
             newRecord @TimecardEntry
@@ -54,8 +52,7 @@ act baseUrl Decide.CreateTimecardEntry {..} = do
                     baseUrl
                     now
                     timecardId
-                    preferredLanguage
-                    (get #goesBy worker)
+                    worker
                     botPhoneNumberId
                     workerPhoneNumberId
                     >> pure ()
