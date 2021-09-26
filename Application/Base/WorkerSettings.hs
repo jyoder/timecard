@@ -21,6 +21,12 @@ fetchPreferredLanguageForWorker workerId = do
 
 toLanguage :: Text -> Language
 toLanguage text
-    | text == "english" = English
-    | text == "spanish" = Spanish
+    | text == english = English
+    | text == spanish = Spanish
     | otherwise = English
+
+english :: Text
+english = "english"
+
+spanish :: Text
+spanish = "spanish"
