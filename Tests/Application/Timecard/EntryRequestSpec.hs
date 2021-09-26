@@ -335,7 +335,6 @@ spec = do
                     pdt
                     (toUtc "2021-06-23 15:29:00 PDT")
                     timecardEntry
-                    WorkerSettings.English
                     ron
                     (get #id timPhoneNumber)
                     (get #id ronPhoneNumber)
@@ -355,6 +354,75 @@ spec = do
 
                 get #body sendMessageAction
                     `shouldBe` "Hey Ron - I've got you at McDonald's today. Let me know what hours you worked and what you did when you have a chance. Thanks!"
+
+            itIO "uses the worker's preferred language" do
+                ron <-
+                    newRecord @Person
+                        |> set #firstName "Ronald"
+                        |> set #lastName "McDonald"
+                        |> set #goesBy "Ron"
+                        |> createRecord
+
+                timPhoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+18054035926"
+                        |> createRecord
+
+                ronPhoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+18054030600"
+                        |> createRecord
+
+                newRecord @PhoneContact
+                    |> set #phoneNumberId (get #id ronPhoneNumber)
+                    |> set #personId (get #id ron)
+                    |> createRecord
+
+                newRecord @WorkerSetting
+                    |> set #personId (get #id ron)
+                    |> set #sendDailyReminderAt (toTimeOfDay "15:30:00")
+                    |> set #preferredLanguage WorkerSettings.spanish
+                    |> createRecord
+
+                timecard <-
+                    newRecord @Timecard
+                        |> set #weekOf (toDay "2021-06-21")
+                        |> set #personId (get #id ron)
+                        |> createRecord
+
+                timecardEntry <-
+                    newRecord @TimecardEntry
+                        |> set #timecardId (get #id timecard)
+                        |> set #date (toDay "2021-06-23")
+                        |> set #jobName "McDonald's"
+                        |> set #hoursWorked 8.0
+                        |> set #workDone "work"
+                        |> set #invoiceTranslation "invoice"
+                        |> createRecord
+
+                Timecard.EntryRequest.scheduleNextRequest
+                    pdt
+                    (toUtc "2021-06-23 15:29:00 PDT")
+                    timecardEntry
+                    ron
+                    (get #id timPhoneNumber)
+                    (get #id ronPhoneNumber)
+
+                sendMessageAction <-
+                    query @SendMessageAction
+                        |> filterWhere (#toId, get #id ronPhoneNumber)
+                        |> fetchOne
+
+                actionRunTime <-
+                    query @ActionRunTime
+                        |> filterWhere (#actionRunStateId, get #actionRunStateId sendMessageAction)
+                        |> fetchOne
+
+                get #runsAt actionRunTime
+                    `shouldBe` toUtc "2021-06-24 15:30:00 PDT"
+
+                get #body sendMessageAction
+                    `shouldBe` "\161Hola Ron! \191Estabas en McDonald's hoy? H\225game saber qu\233 horas trabaj\243 y qu\233 hizo cuando tuvo la oportunidad. \161Gracias!"
 
             itIO "avoids scheduling multiple send message actions" do
                 ron <-
@@ -405,7 +473,6 @@ spec = do
                         pdt
                         (toUtc "2021-06-23 15:29:00 PDT")
                         timecardEntry
-                        WorkerSettings.English
                         ron
                         (get #id timPhoneNumber)
                         (get #id ronPhoneNumber)
@@ -417,7 +484,6 @@ spec = do
                         pdt
                         (toUtc "2021-06-23 15:29:00 PDT")
                         timecardEntry
-                        WorkerSettings.English
                         ron
                         (get #id timPhoneNumber)
                         (get #id ronPhoneNumber)

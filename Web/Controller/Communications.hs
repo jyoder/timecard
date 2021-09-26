@@ -201,7 +201,6 @@ instance Controller CommunicationsController where
         botId <- Person.fetchBotId
         selectedPerson <- fetch selectedPersonId
         toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
-        preferredLanguage <- WorkerSettings.fetchPreferredLanguageForWorker selectedPersonId
 
         newRecord @TimecardEntry
             |> buildTimecardEntry
@@ -234,7 +233,6 @@ instance Controller CommunicationsController where
                             companyTimeZone
                             now
                             timecardEntry
-                            preferredLanguage
                             selectedPerson
                             (get #id fromPhoneNumber)
                             (get #id toPhoneNumber)

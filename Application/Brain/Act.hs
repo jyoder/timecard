@@ -42,7 +42,6 @@ act baseUrl Decide.CreateTimecardEntry {..} = do
                 companyTimeZone
                 now
                 timecardEntry
-                preferredLanguage
                 worker
                 botPhoneNumberId
                 workerPhoneNumberId
