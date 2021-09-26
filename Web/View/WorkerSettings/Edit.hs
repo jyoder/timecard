@@ -25,5 +25,6 @@ renderForm workerSetting =
     {textField #personId}
     {checkboxField #isActive}
     {textField #sendDailyReminderAt}
+    {textField #preferredLanguage}
     {submitButton}
 |]

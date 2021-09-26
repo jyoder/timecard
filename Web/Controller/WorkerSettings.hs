@@ -55,4 +55,4 @@ instance Controller WorkerSettingsController where
 
 buildWorkerSetting workerSetting =
     workerSetting
-        |> fill @["personId", "isActive", "sendDailyReminderAt"]
+        |> fill @["personId", "isActive", "sendDailyReminderAt", "preferredLanguage"]

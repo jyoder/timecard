@@ -146,7 +146,9 @@ CREATE TABLE worker_settings (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     person_id UUID NOT NULL,
     send_daily_reminder_at TIME NOT NULL,
-    is_active BOOLEAN DEFAULT true NOT NULL
+    is_active BOOLEAN DEFAULT true NOT NULL,
+    preferred_language TEXT DEFAULT 'english' NOT NULL,
+    CHECK ((preferred_language = 'english') OR (preferred_language = 'spanish'))
 );
 CREATE TABLE vertex_ai_entity_predictions (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,

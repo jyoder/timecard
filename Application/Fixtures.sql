@@ -171,10 +171,10 @@ ALTER TABLE public.users ENABLE TRIGGER ALL;
 
 ALTER TABLE public.worker_settings DISABLE TRIGGER ALL;
 
-INSERT INTO public.worker_settings (id, created_at, updated_at, person_id, send_daily_reminder_at, is_active) VALUES ('ade22074-a9a7-4ac1-80b9-a7b92eb40504', '2021-06-24 18:56:06.349431-07', '2021-06-24 18:56:06.349431-07', 'c8a20c60-1c95-4a9e-bb6a-57ca2670115d', '19:00:00', true);
-INSERT INTO public.worker_settings (id, created_at, updated_at, person_id, send_daily_reminder_at, is_active) VALUES ('9652722d-5227-4c39-92f5-4adb32f6d5a6', '2021-06-24 18:57:37.004369-07', '2021-06-24 18:57:37.004369-07', '6e41e1a0-7f59-4195-ad39-546fcf1e6b79', '00:15:30', true);
-INSERT INTO public.worker_settings (id, created_at, updated_at, person_id, send_daily_reminder_at, is_active) VALUES ('a4fad215-6ac9-437b-bc8d-b7a5b32275a6', '2021-06-24 18:57:59.718703-07', '2021-06-24 18:57:59.718703-07', 'cfce1f7b-7617-4c5d-8349-e6640378e01e', '00:15:30', true);
-INSERT INTO public.worker_settings (id, created_at, updated_at, person_id, send_daily_reminder_at, is_active) VALUES ('23885399-9925-48dd-b922-41ff619eb0cd', '2021-06-24 18:58:16.658285-07', '2021-06-24 18:58:16.658285-07', '4383aa8e-d200-45cb-9c8e-0090f14457ef', '00:15:30', true);
+INSERT INTO public.worker_settings (id, created_at, updated_at, person_id, send_daily_reminder_at, is_active, preferred_language) VALUES ('9652722d-5227-4c39-92f5-4adb32f6d5a6', '2021-06-24 18:57:37.004369-07', '2021-06-24 18:57:37.004369-07', '6e41e1a0-7f59-4195-ad39-546fcf1e6b79', '00:15:30', true, 'english');
+INSERT INTO public.worker_settings (id, created_at, updated_at, person_id, send_daily_reminder_at, is_active, preferred_language) VALUES ('a4fad215-6ac9-437b-bc8d-b7a5b32275a6', '2021-06-24 18:57:59.718703-07', '2021-06-24 18:57:59.718703-07', 'cfce1f7b-7617-4c5d-8349-e6640378e01e', '00:15:30', true, 'english');
+INSERT INTO public.worker_settings (id, created_at, updated_at, person_id, send_daily_reminder_at, is_active, preferred_language) VALUES ('23885399-9925-48dd-b922-41ff619eb0cd', '2021-06-24 18:58:16.658285-07', '2021-06-24 18:58:16.658285-07', '4383aa8e-d200-45cb-9c8e-0090f14457ef', '00:15:30', true, 'english');
+INSERT INTO public.worker_settings (id, created_at, updated_at, person_id, send_daily_reminder_at, is_active, preferred_language) VALUES ('ade22074-a9a7-4ac1-80b9-a7b92eb40504', '2021-06-24 18:56:06.349431-07', '2021-09-25 20:43:50.652177-07', 'c8a20c60-1c95-4a9e-bb6a-57ca2670115d', '19:00:00', true, 'english');
 
 
 ALTER TABLE public.worker_settings ENABLE TRIGGER ALL;
