@@ -285,7 +285,7 @@ renderTimecardsColumn timecardsColumn =
             [hsx||]
         TimecardsColumnVisible {..} ->
             [hsx|
-                <div class="timecards-column m-lg-3 flex-grow-1">
+                <div class="timecards-column mr-3 flex-grow-1">
                     <div class="scroll-to-pinned d-none d-lg-block"></div>
                     {forEach timecardTables renderTimecardTable}
                 </div>
@@ -444,10 +444,6 @@ styles =
             .column-nav-link {
                 width: 100%;
                 line-height: 2.5rem;
-            }
-
-            .browser-nav {
-                height: var(--browser-nav-height);
             }
 
             .people-list {

@@ -610,7 +610,7 @@ renderMessagesColumn messagesColumn =
                 <div class="messages-list">
                     {renderMessageItems messageItems scheduledMessageItems}
                 </div>
-                <div class="message-input pt-0 pt-lg-2 mb-0 mb-lg-2">
+                <div class="message-input pt-0 pt-lg-2">
                     {renderSendMessageForm sendMessageForm}
                 </div>
             |]
@@ -919,7 +919,7 @@ renderFieldError (Just errorMessage) =
 renderColumnNavigation :: ColumnNavigation -> Html
 renderColumnNavigation ColumnNavigation {..} =
     [hsx|
-        <ul class="column-nav m-0 p-0 mb-2 d-flex d-lg-none">
+        <ul class="column-nav p-0 mb-2 d-flex d-lg-none">
             <li class="column-nav-item flex-even d-flex justify-content-center">
                 <a class={"column-nav-link text-center " <> peopleLinkClass} href={peopleAction}>People</a>
             </li>
