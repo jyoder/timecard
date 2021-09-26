@@ -1,5 +1,6 @@
 module Tests.Application.Timecard.EntryRequestSpec where
 
+import qualified Application.Base.WorkerSettings as WorkerSettings
 import qualified Application.Timecard.EntryRequest as Timecard.EntryRequest
 import Generated.Types
 import IHP.ControllerPrelude
@@ -334,6 +335,7 @@ spec = do
                     pdt
                     (toUtc "2021-06-23 15:29:00 PDT")
                     timecardEntry
+                    WorkerSettings.English
                     ron
                     (get #id timPhoneNumber)
                     (get #id ronPhoneNumber)
@@ -403,6 +405,7 @@ spec = do
                         pdt
                         (toUtc "2021-06-23 15:29:00 PDT")
                         timecardEntry
+                        WorkerSettings.English
                         ron
                         (get #id timPhoneNumber)
                         (get #id ronPhoneNumber)
@@ -414,6 +417,7 @@ spec = do
                         pdt
                         (toUtc "2021-06-23 15:29:00 PDT")
                         timecardEntry
+                        WorkerSettings.English
                         ron
                         (get #id timPhoneNumber)
                         (get #id ronPhoneNumber)
@@ -429,11 +433,16 @@ spec = do
                     `shouldBe` Just (get #id sendMessageAction)
 
     describe "requestBody" do
-        it "returns the body of the request" do
+        it "returns the body of the request in English when the preferred language is English" do
             let person = newRecord @Person |> set #goesBy "Big Bird"
             let timecardEntry = newRecord @TimecardEntry |> set #jobName "Sesame St."
-            Timecard.EntryRequest.requestBody person timecardEntry
+            Timecard.EntryRequest.requestBody WorkerSettings.English person timecardEntry
                 `shouldBe` "Hey Big Bird - I've got you at Sesame St. today. Let me know what hours you worked and what you did when you have a chance. Thanks!"
+        it "returns the body of the request in Spanish when the preferred language is Spanish" do
+            let person = newRecord @Person |> set #goesBy "Big Bird"
+            let timecardEntry = newRecord @TimecardEntry |> set #jobName "Sesame St."
+            Timecard.EntryRequest.requestBody WorkerSettings.Spanish person timecardEntry
+                `shouldBe` "\161Hola Big Bird! \191Estabas en Sesame St. hoy? H\225game saber qu\233 horas trabaj\243 y qu\233 hizo cuando tuvo la oportunidad. \161Gracias!"
 
 pdt :: TimeZone
 pdt = read "PDT"

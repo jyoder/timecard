@@ -1,5 +1,6 @@
 module Tests.Application.Timecard.ReviewRequestSpec where
 
+import qualified Application.Base.WorkerSettings as WorkerSettings
 import qualified Application.Timecard.ReviewRequest as ReviewRequest
 import Generated.Types
 import IHP.ControllerPrelude
@@ -22,9 +23,12 @@ spec = do
                 `shouldBe` toUtc "2021-09-20 00:04:00 PDT"
 
     describe "requestBody" do
-        it "returns the body of the timecard review request" do
-            ReviewRequest.requestBody "Laura" "https://fake.com"
+        it "returns the body of the timecard review request in English when the preferred language is English" do
+            ReviewRequest.requestBody WorkerSettings.English "Laura" "https://fake.com"
                 `shouldBe` "Thanks Laura. Here's your timecard to review and sign:\nhttps://fake.com\n\nLet me know if you need me to make any corrections on it. Have a good weekend!"
+        it "returns the body of the timecard review request in Spanish when the preferred language is Spanish" do
+            ReviewRequest.requestBody WorkerSettings.Spanish "Laura" "https://fake.com"
+                `shouldBe` "Gracias Laura. Aqu\237 est\225 su tarjeta de tiempo para revisar y firmar:\nhttps://fake.com\n\nAv\237seme si necesita que le haga alguna correcci\243n."
 
     describe "scheduleRequest" do
         beforeAll (testConfig >>= mockContext RootApplication) do
@@ -74,6 +78,7 @@ spec = do
                         "https://fake.com"
                         (toUtc "2021-09-17 15:30:00 PDT")
                         (get #id timecard)
+                        WorkerSettings.English
                         "Mrs. Laura"
                         (get #id botPhoneNumber)
                         (get #id workerPhoneNumber)

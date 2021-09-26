@@ -1,6 +1,7 @@
 module Application.Timecard.ReviewRequest where
 
 import qualified Application.Action.SendMessageAction as SendMessageAction
+import Application.Base.WorkerSettings (Language (..))
 import qualified Application.Timecard.AccessToken as Timecard.AccessToken
 import Generated.Types
 import IHP.ControllerPrelude
@@ -10,16 +11,17 @@ scheduleRequest ::
     Text ->
     UTCTime ->
     Id Timecard ->
+    Language ->
     Text ->
     Id PhoneNumber ->
     Id PhoneNumber ->
     IO SendMessageAction
-scheduleRequest baseUrl now timecardId workerName fromPhoneNumberId toPhoneNumberId = do
+scheduleRequest baseUrl now timecardId language workerName fromPhoneNumberId toPhoneNumberId = do
     timecardAccessToken <- Timecard.AccessToken.create expiresAt timecardId
     accessToken <- fetchOne $ get #accessTokenId timecardAccessToken
     let link = reviewLink baseUrl (get #value accessToken)
         sendAt = requestTime now
-        body = requestBody workerName link
+        body = requestBody language workerName link
      in SendMessageAction.schedule fromPhoneNumberId toPhoneNumberId body sendAt
   where
     expiresAt = Timecard.AccessToken.expirationFrom now
@@ -30,10 +32,16 @@ reviewLink baseUrl accessToken = baseUrl <> "/ShowTimecardReview?accessToken=" <
 requestTime :: UTCTime -> UTCTime
 requestTime = addUTCTime (60 * 4)
 
-requestBody :: Text -> Text -> Text
-requestBody name link =
+requestBody :: Language -> Text -> Text -> Text
+requestBody English name link =
     "Thanks "
         <> name
         <> ". Here's your timecard to review and sign:\n"
         <> link
         <> "\n\nLet me know if you need me to make any corrections on it. Have a good weekend!"
+requestBody Spanish name link =
+    "Gracias "
+        <> name
+        <> ". Aquí está su tarjeta de tiempo para revisar y firmar:\n"
+        <> link
+        <> "\n\nAvíseme si necesita que le haga alguna corrección."

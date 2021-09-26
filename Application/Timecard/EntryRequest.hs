@@ -5,6 +5,7 @@ module Application.Timecard.EntryRequest (
 ) where
 
 import qualified Application.Action.SendMessageAction as SendMessageAction
+import Application.Base.WorkerSettings (Language (..))
 import Application.Service.Time (nextWorkingDay)
 import qualified Application.Timecard.Query as Timecard.Query
 import Data.Time.Calendar.WeekDate (toWeekDate)
@@ -41,11 +42,12 @@ scheduleNextRequest ::
     TimeZone ->
     UTCTime ->
     TimecardEntry ->
+    Language ->
     Person ->
     Id PhoneNumber ->
     Id PhoneNumber ->
     IO (Maybe SendMessageAction)
-scheduleNextRequest timeZone now newEntry person fromId toId = do
+scheduleNextRequest timeZone now newEntry language person fromId toId = do
     alreadyScheduled <- scheduledRequestExists toId
     workerSetting <-
         query @WorkerSetting
@@ -58,7 +60,7 @@ scheduleNextRequest timeZone now newEntry person fromId toId = do
 
     let sendTimeOfDay = get #sendDailyReminderAt workerSetting
     let timecardEntryDays = get #timecardEntryDate <$> timecardEntryRows
-    let body = requestBody person newEntry
+    let body = requestBody language person newEntry
     let maybeSendAt =
             nextRequestTime
                 alreadyScheduled
@@ -74,13 +76,19 @@ scheduleNextRequest timeZone now newEntry person fromId toId = do
         Nothing ->
             pure Nothing
 
-requestBody :: Person -> TimecardEntry -> Text
-requestBody person lastEntry =
+requestBody :: Language -> Person -> TimecardEntry -> Text
+requestBody English person lastEntry =
     "Hey "
         <> get #goesBy person
         <> " - I've got you at "
         <> get #jobName lastEntry
         <> " today. Let me know what hours you worked and what you did when you have a chance. Thanks!"
+requestBody Spanish person lastEntry =
+    "¡Hola "
+        <> get #goesBy person
+        <> "! ¿Estabas en "
+        <> get #jobName lastEntry
+        <> " hoy? Hágame saber qué horas trabajó y qué hizo cuando tuvo la oportunidad. ¡Gracias!"
 
 scheduledRequestExists ::
     (?modelContext :: ModelContext) =>
