@@ -45,7 +45,7 @@ requestBody English name link =
         <> name
         <> ". Here's your timecard to review and sign:\n"
         <> link
-        <> "\n\nLet me know if you need me to make any corrections on it. Have a good weekend!"
+        <> "\n\nLet me know if you need me to make any corrections on it."
 requestBody Spanish name link =
     "Gracias "
         <> name

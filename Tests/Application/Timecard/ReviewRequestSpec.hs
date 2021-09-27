@@ -25,7 +25,7 @@ spec = do
     describe "requestBody" do
         it "returns the body of the timecard review request in English when the preferred language is English" do
             ReviewRequest.requestBody WorkerSettings.English "Laura" "https://fake.com"
-                `shouldBe` "Thanks Laura. Here's your timecard to review and sign:\nhttps://fake.com\n\nLet me know if you need me to make any corrections on it. Have a good weekend!"
+                `shouldBe` "Thanks Laura. Here's your timecard to review and sign:\nhttps://fake.com\n\nLet me know if you need me to make any corrections on it."
         it "returns the body of the timecard review request in Spanish when the preferred language is Spanish" do
             ReviewRequest.requestBody WorkerSettings.Spanish "Laura" "https://fake.com"
                 `shouldBe` "Gracias Laura. Aqu\237 est\225 su tarjeta de tiempo para revisar y firmar:\nhttps://fake.com\n\nAv\237seme si necesita que le haga alguna correcci\243n."
@@ -97,7 +97,7 @@ spec = do
                 get #body sendMessageAction
                     `shouldBe` "Thanks Laura. Here's your timecard to review and sign:\nhttps://fake.com/ShowTimecardReview?accessToken="
                     <> accessTokenValue
-                    <> "\n\nLet me know if you need me to make any corrections on it. Have a good weekend!"
+                    <> "\n\nLet me know if you need me to make any corrections on it."
 
             itIO "schedules a request in Spanish if the worker prefers Spanish" do
                 bot <-
