@@ -94,7 +94,7 @@ query whereCondition entriesSort =
                     partition by 
                         timecards.id
                     order by
-                        access_tokens.is_revoked desc,
+                        access_tokens.is_revoked asc,
                         access_tokens.expires_at desc,
                         access_tokens.created_at desc
                 ) as row_number

@@ -504,7 +504,84 @@ spec = do
                                     }
                                ]
 
-            itIO "includes only the token with the latest expiration time" do
+            itIO "prefers a non-revoked token over a revoked token" do
+                ron <-
+                    newRecord @Person
+                        |> set #firstName "Ronald"
+                        |> set #lastName "McDonald"
+                        |> set #goesBy "Ron"
+                        |> createRecord
+
+                timecard <-
+                    newRecord @Timecard
+                        |> set #weekOf (toDay "2021-06-21")
+                        |> set #personId (get #id ron)
+                        |> createRecord
+
+                timecardEntry <-
+                    newRecord @TimecardEntry
+                        |> set #timecardId (get #id timecard)
+                        |> set #date (toDay "2021-06-23")
+                        |> set #jobName "McDonald's"
+                        |> set #workDone "work"
+                        |> set #invoiceTranslation "invoice"
+                        |> set #hoursWorked 8.0
+                        |> set #workDone "work"
+                        |> set #invoiceTranslation "invoice"
+                        |> createRecord
+
+                accessToken1 <-
+                    newRecord @AccessToken
+                        |> set #value "secret1"
+                        |> set #expiresAt (toUtc "2021-06-23 15:29:00 PDT")
+                        |> createRecord
+
+                newRecord @TimecardAccessToken
+                    |> set #timecardId (get #id timecard)
+                    |> set #accessTokenId (get #id accessToken1)
+                    |> createRecord
+
+                accessToken2 <-
+                    newRecord @AccessToken
+                        |> set #value "secret2"
+                        |> set #expiresAt (toUtc "2021-06-24 15:29:00 PDT")
+                        |> set #isRevoked True
+                        |> createRecord
+
+                newRecord @TimecardAccessToken
+                    |> set #timecardId (get #id timecard)
+                    |> set #accessTokenId (get #id accessToken2)
+                    |> createRecord
+
+                rows <-
+                    Timecard.Query.fetchById
+                        Timecard.Query.EntriesDateDescending
+                        (get #id timecard)
+
+                rows
+                    `shouldBe` [ Timecard.Query.Row
+                                    { timecardId = get #id timecard
+                                    , timecardPersonId = get #personId timecard
+                                    , timecardWeekOf = get #weekOf timecard
+                                    , accessTokenId = Just $ get #id accessToken1
+                                    , accessTokenValue = Just $ get #value accessToken1
+                                    , accessTokenExpiresAt = Just $ get #expiresAt accessToken1
+                                    , accessTokenIsRevoked = Just $ get #isRevoked accessToken1
+                                    , signingId = Nothing
+                                    , signingSignedAt = Nothing
+                                    , timecardEntryId = get #id timecardEntry
+                                    , timecardEntryDate = get #date timecardEntry
+                                    , timecardEntryJobName = get #jobName timecardEntry
+                                    , timecardEntryClockedInAt = get #clockedInAt timecardEntry
+                                    , timecardEntryClockedOutAt = get #clockedOutAt timecardEntry
+                                    , timecardEntryLunchDuration = get #lunchDuration timecardEntry
+                                    , timecardEntryHoursWorked = get #hoursWorked timecardEntry
+                                    , timecardEntryWorkDone = get #workDone timecardEntry
+                                    , timecardEntryInvoiceTranslation = get #invoiceTranslation timecardEntry
+                                    }
+                               ]
+
+            itIO "prefers the token with a later expiration time" do
                 ron <-
                     newRecord @Person
                         |> set #firstName "Ronald"
