@@ -277,6 +277,12 @@ instance Controller CommunicationsController where
                         redirectTo CommunicationsPersonSelectionAction {..}
                     )
     --
+    action CommunicationsDeleteTimecardEntryAction {selectedPersonId, timecardEntryId} = do
+        let currentColumn = TimecardsColumn
+        let column = Just $ columnToParam currentColumn
+        Timecard.Entry.delete timecardEntryId
+        redirectTo CommunicationsPersonSelectionAction {..}
+    --
     action CommunicationsSendPhoneMessageAction = do
         let toPhoneNumberId = Id (param "toId")
         toPhoneNumber <- fetchOne toPhoneNumberId

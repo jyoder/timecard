@@ -73,6 +73,10 @@ data CommunicationsController
     | CommunicationsUpdateTimecardEntryAction
         { timecardEntryId :: !(Id TimecardEntry)
         }
+    | CommunicationsDeleteTimecardEntryAction
+        { selectedPersonId :: !(Id Person)
+        , timecardEntryId :: !(Id TimecardEntry)
+        }
     | CommunicationsSendPhoneMessageAction
     | CommunicationsEditScheduledMessageAction
         { sendMessageActionId :: !(Id SendMessageAction)

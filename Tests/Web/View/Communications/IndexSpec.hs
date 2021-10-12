@@ -866,6 +866,11 @@ spec = do
                                         { selectedPersonId = "10000000-0000-0000-0000-000000000000"
                                         , timecardEntryId = "20000000-0000-0000-0000-000000000000"
                                         }
+                                , deleteAction =
+                                    CommunicationsDeleteTimecardEntryAction
+                                        { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                                        , timecardEntryId = "20000000-0000-0000-0000-000000000000"
+                                        }
                                 }
                             ]
                         }
@@ -1006,6 +1011,11 @@ spec = do
                             , invoiceTranslation = "invoice translation"
                             , editAction =
                                 CommunicationsEditTimecardEntryAction
+                                    { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                                    , timecardEntryId = "20000000-0000-0000-0000-000000000000"
+                                    }
+                            , deleteAction =
+                                CommunicationsDeleteTimecardEntryAction
                                     { selectedPersonId = "10000000-0000-0000-0000-000000000000"
                                     , timecardEntryId = "20000000-0000-0000-0000-000000000000"
                                     }
@@ -1185,6 +1195,11 @@ spec = do
                     , invoiceTranslation = "invoice translation"
                     , editAction =
                         CommunicationsEditTimecardEntryAction
+                            { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                            , timecardEntryId = "20000000-0000-0000-0000-000000000000"
+                            }
+                    , deleteAction =
+                        CommunicationsDeleteTimecardEntryAction
                             { selectedPersonId = "10000000-0000-0000-0000-000000000000"
                             , timecardEntryId = "20000000-0000-0000-0000-000000000000"
                             }

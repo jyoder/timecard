@@ -157,6 +157,79 @@ spec = do
                 Set.fromList (get #id <$> newTimecardEntryMessages)
                     `shouldBe` Set.fromList (get #id <$> timecardEntryMessages)
 
+    describe "deleteAll" do
+        beforeAll (testConfig >>= mockContext RootApplication) do
+            itIO "deletes all message associations with the given timecard entry" do
+                ron <-
+                    newRecord @Person
+                        |> set #firstName "Ronald"
+                        |> set #lastName "McDonald"
+                        |> set #goesBy "Ron"
+                        |> createRecord
+
+                timPhoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+18054035926"
+                        |> createRecord
+
+                ronPhoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+18054030600"
+                        |> createRecord
+
+                timecard <-
+                    newRecord @Timecard
+                        |> set #weekOf (toDay "2021-06-21")
+                        |> set #personId (get #id ron)
+                        |> createRecord
+
+                timecardEntry <-
+                    newRecord @TimecardEntry
+                        |> set #timecardId (get #id timecard)
+                        |> set #date (toDay "2021-06-23")
+                        |> set #jobName "McDonald's"
+                        |> set #hoursWorked 8.0
+                        |> set #workDone "work"
+                        |> set #invoiceTranslation "invoice"
+                        |> createRecord
+
+                twilioMessage1 <-
+                    newRecord @TwilioMessage
+                        |> set #apiVersion "1.0"
+                        |> set #messageSid "sid1"
+                        |> set #messagingServiceSid Nothing
+                        |> set #fromId (get #id timPhoneNumber)
+                        |> set #toId (get #id ronPhoneNumber)
+                        |> set #status "sent"
+                        |> set #body "Can I get some burgers?"
+                        |> set #numMedia 0
+                        |> createRecord
+
+                twilioMessage2 <-
+                    newRecord @TwilioMessage
+                        |> set #apiVersion "1.0"
+                        |> set #messageSid "sid2"
+                        |> set #messagingServiceSid Nothing
+                        |> set #fromId (get #id ronPhoneNumber)
+                        |> set #toId (get #id timPhoneNumber)
+                        |> set #status "sent"
+                        |> set #body "You got it!"
+                        |> set #numMedia 0
+                        |> createRecord
+
+                Timecard.EntryMessage.createAll
+                    (get #id timecardEntry)
+                    [get #id twilioMessage1, get #id twilioMessage2]
+
+                Timecard.EntryMessage.deleteAll $ get #id timecardEntry
+
+                remainingTimecardEntryMessages <-
+                    query @TimecardEntryMessage
+                        |> filterWhere (#timecardEntryId, get #id timecardEntry)
+                        |> fetch
+
+                remainingTimecardEntryMessages `shouldBe` []
+
     describe "fetchByTimecardEntry" do
         beforeAll (testConfig >>= mockContext RootApplication) do
             itIO "returns timecard entry messages associated with the given timecard entry" do

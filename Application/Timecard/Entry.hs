@@ -1,6 +1,7 @@
 module Application.Timecard.Entry (
     create,
     update,
+    delete,
     validate,
 ) where
 
@@ -9,7 +10,7 @@ import Application.Service.Transaction (withTransactionOrSavepoint)
 import Application.Timecard.EntryMessage as Timecard.EntryMessage
 import qualified Application.Timecard.Timecard as Timecard
 import Generated.Types
-import IHP.ControllerPrelude hiding (create)
+import IHP.ControllerPrelude hiding (create, delete)
 
 create ::
     (?modelContext :: ModelContext) =>
@@ -46,6 +47,15 @@ update twilioMessageIds timecardEntry = do
                     timecardEntry <- updateRecord timecardEntry
                     Timecard.EntryMessage.replaceAll (get #id timecardEntry) twilioMessageIds
                     pure $ Right timecardEntry
+
+delete ::
+    (?modelContext :: ModelContext) =>
+    Id TimecardEntry ->
+    IO ()
+delete timecardEntryId =
+    withTransactionOrSavepoint do
+        Timecard.EntryMessage.deleteAll timecardEntryId
+        deleteRecordById @TimecardEntry timecardEntryId
 
 setTimecardId ::
     (?modelContext :: ModelContext) =>

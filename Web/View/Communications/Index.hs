@@ -160,6 +160,7 @@ data TimecardEntryCard = TimecardEntryCard
     , jobName :: !Text
     , invoiceTranslation :: !Text
     , editAction :: !CommunicationsController
+    , deleteAction :: !CommunicationsController
     }
     deriving (Eq, Show)
 
@@ -478,6 +479,10 @@ buildTimecardEntryCard selectedPerson timecardEntry =
         , invoiceTranslation = get #invoiceTranslation timecardEntry
         , editAction =
             CommunicationsEditTimecardEntryAction
+                (get #id selectedPerson)
+                (get #id timecardEntry)
+        , deleteAction =
+            CommunicationsDeleteTimecardEntryAction
                 (get #id selectedPerson)
                 (get #id timecardEntry)
         }
@@ -838,6 +843,10 @@ renderTimecardEntryCard TimecardEntryCard {..} =
                 <h5 class="card-title">{jobName}</h5>
                 <p class="card-text">{nl2br invoiceTranslation}</p>
                 <a href={editAction} class="btn btn-primary">Edit</a>
+
+                <form method="POST" action={deleteAction} style="display: inline-block" class="ml-2">
+                    <button type="submit" class="btn btn-outline-primary">Delete</button>
+                </form>
             </div>
         </div>
     |]

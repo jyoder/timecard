@@ -1,13 +1,14 @@
 module Application.Timecard.EntryMessage (
     createAll,
     replaceAll,
+    deleteAll,
     fetchByTimecardEntry,
 ) where
 
 import Application.Service.Transaction (withTransactionOrSavepoint)
 import Generated.Types
 import IHP.Fetch
-import IHP.ModelSupport
+import IHP.ModelSupport hiding (deleteAll)
 import IHP.Prelude
 import IHP.QueryBuilder
 
@@ -31,6 +32,18 @@ replaceAll timecardEntryId twilioMessageIds =
             oldTimecardEntryMessages <- fetchByTimecardEntry timecardEntryId
             deleteRecords oldTimecardEntryMessages
             createMany timecardEntryMessages
+
+deleteAll ::
+    (?modelContext :: ModelContext) =>
+    Id TimecardEntry ->
+    IO ()
+deleteAll timecardEntryId =
+    withTransactionOrSavepoint do
+        timecardEntryMessages <-
+            query @TimecardEntryMessage
+                |> filterWhere (#timecardEntryId, timecardEntryId)
+                |> fetch
+        deleteRecords timecardEntryMessages
 
 fetchByTimecardEntry ::
     (?modelContext :: ModelContext) =>
