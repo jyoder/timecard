@@ -83,14 +83,45 @@ fetchById entriesSort timecardId =
 query :: WhereCondition -> EntriesSort -> Query
 query whereCondition entriesSort =
     [i|
+        with tokens as (
+            select
+                timecards.id timecard_id,
+                access_tokens.id access_token_id,
+                access_tokens.value access_token_value,
+                access_tokens.expires_at access_token_expires_at,
+                access_tokens.is_revoked access_token_is_revoked,
+                row_number() over (
+                    partition by 
+                        timecards.id
+                    order by
+                        access_tokens.is_revoked desc,
+                        access_tokens.expires_at desc,
+                        access_tokens.created_at desc
+                ) as row_number
+            from
+                timecards,
+                timecard_access_tokens,
+                access_tokens
+            where
+                timecard_access_tokens.timecard_id = timecards.id
+                and timecard_access_tokens.access_token_id = access_tokens.id
+        ),
+        current_access_token as (
+            select
+                tokens.*
+            from
+                tokens
+            where
+                tokens.row_number = 1
+        )
         select
             timecards.id timecard_id,
             timecards.person_id timecard_person_id,
             timecards.week_of timecard_week_of,
-            access_tokens.id access_token_id,
-            access_tokens.value access_token_value,
-            access_tokens.expires_at access_token_expires_at,
-            access_tokens.is_revoked access_token_is_revoked,
+            current_access_token.access_token_id access_token_id,
+            current_access_token.access_token_value access_token_value,
+            current_access_token.access_token_expires_at access_token_expires_at,
+            current_access_token.access_token_is_revoked access_token_is_revoked,
             signings.id signing_id,
             signings.signed_at signing_signed_at,
             timecard_entries.id timecard_entry_id,
@@ -107,9 +138,7 @@ query whereCondition entriesSort =
             inner join
                 timecard_entries on (timecard_entries.timecard_id = timecards.id)
             left join
-                timecard_access_tokens on (timecard_access_tokens.timecard_id = timecards.id)
-            left join
-                access_tokens on (timecard_access_tokens.access_token_id = access_tokens.id)
+                current_access_token on (current_access_token.timecard_id = timecards.id)
             left join
                 timecard_signings on (timecard_signings.timecard_id = timecards.id)
             left join
