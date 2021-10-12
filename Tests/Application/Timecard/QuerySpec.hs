@@ -720,3 +720,81 @@ spec = do
                                     , timecardEntryInvoiceTranslation = get #invoiceTranslation timecardEntry
                                     }
                                ]
+
+            itIO "prefers newly created signings" do
+                ron <-
+                    newRecord @Person
+                        |> set #firstName "Ronald"
+                        |> set #lastName "McDonald"
+                        |> set #goesBy "Ron"
+                        |> createRecord
+
+                timecard <-
+                    newRecord @Timecard
+                        |> set #weekOf (toDay "2021-06-21")
+                        |> set #personId (get #id ron)
+                        |> createRecord
+
+                timecardEntry <-
+                    newRecord @TimecardEntry
+                        |> set #timecardId (get #id timecard)
+                        |> set #date (toDay "2021-06-23")
+                        |> set #jobName "McDonald's"
+                        |> set #workDone "work"
+                        |> set #invoiceTranslation "invoice"
+                        |> set #hoursWorked 8.0
+                        |> createRecord
+
+                signing1 <-
+                    newRecord @Signing
+                        |> set #name "Ron McDonald"
+                        |> set #createdAt (toUtc "2021-06-20 15:29:00 PDT")
+                        |> set #signedAt (toUtc "2021-06-23 15:29:00 PDT")
+                        |> set #ipAddress "127.0.0.1"
+                        |> createRecord
+
+                newRecord @TimecardSigning
+                    |> set #timecardId (get #id timecard)
+                    |> set #signingId (get #id signing1)
+                    |> createRecord
+
+                signing2 <-
+                    newRecord @Signing
+                        |> set #name "Ron McDonald"
+                        |> set #createdAt (toUtc "2021-06-21 15:29:00 PDT")
+                        |> set #signedAt (toUtc "2021-06-23 15:29:00 PDT")
+                        |> set #ipAddress "127.0.0.1"
+                        |> createRecord
+
+                newRecord @TimecardSigning
+                    |> set #timecardId (get #id timecard)
+                    |> set #signingId (get #id signing2)
+                    |> createRecord
+
+                rows <-
+                    Timecard.Query.fetchById
+                        Timecard.Query.EntriesDateDescending
+                        (get #id timecard)
+
+                rows
+                    `shouldBe` [ Timecard.Query.Row
+                                    { timecardId = get #id timecard
+                                    , timecardPersonId = get #personId timecard
+                                    , timecardWeekOf = get #weekOf timecard
+                                    , accessTokenId = Nothing
+                                    , accessTokenValue = Nothing
+                                    , accessTokenExpiresAt = Nothing
+                                    , accessTokenIsRevoked = Nothing
+                                    , signingId = Just $ get #id signing2
+                                    , signingSignedAt = Just $ get #signedAt signing2
+                                    , timecardEntryId = get #id timecardEntry
+                                    , timecardEntryDate = get #date timecardEntry
+                                    , timecardEntryJobName = get #jobName timecardEntry
+                                    , timecardEntryClockedInAt = get #clockedInAt timecardEntry
+                                    , timecardEntryClockedOutAt = get #clockedOutAt timecardEntry
+                                    , timecardEntryLunchDuration = get #lunchDuration timecardEntry
+                                    , timecardEntryHoursWorked = get #hoursWorked timecardEntry
+                                    , timecardEntryWorkDone = get #workDone timecardEntry
+                                    , timecardEntryInvoiceTranslation = get #invoiceTranslation timecardEntry
+                                    }
+                               ]

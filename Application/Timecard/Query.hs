@@ -84,35 +84,16 @@ query :: WhereCondition -> EntriesSort -> Query
 query whereCondition entriesSort =
     [i|
         with tokens as (
-            select
-                timecards.id timecard_id,
-                access_tokens.id access_token_id,
-                access_tokens.value access_token_value,
-                access_tokens.expires_at access_token_expires_at,
-                access_tokens.is_revoked access_token_is_revoked,
-                row_number() over (
-                    partition by 
-                        timecards.id
-                    order by
-                        access_tokens.is_revoked asc,
-                        access_tokens.expires_at desc,
-                        access_tokens.created_at desc
-                ) as row_number
-            from
-                timecards,
-                timecard_access_tokens,
-                access_tokens
-            where
-                timecard_access_tokens.timecard_id = timecards.id
-                and timecard_access_tokens.access_token_id = access_tokens.id
+            #{tokensQuerySql}
         ),
         current_access_token as (
-            select
-                tokens.*
-            from
-                tokens
-            where
-                tokens.row_number = 1
+            #{currentAccessTokenQuerySql}
+        ),
+        signings_ as (
+            #{signingsQuerySql}
+        ),
+        latest_signing as (
+            #{latestSigningQuerySql}
         )
         select
             timecards.id timecard_id,
@@ -122,8 +103,8 @@ query whereCondition entriesSort =
             current_access_token.access_token_value access_token_value,
             current_access_token.access_token_expires_at access_token_expires_at,
             current_access_token.access_token_is_revoked access_token_is_revoked,
-            signings.id signing_id,
-            signings.signed_at signing_signed_at,
+            latest_signing.signing_id signing_id,
+            latest_signing.signing_signed_at signing_signed_at,
             timecard_entries.id timecard_entry_id,
             timecard_entries.date timecard_entry_date,
             timecard_entries.job_name timecard_entry_job_name,
@@ -140,15 +121,84 @@ query whereCondition entriesSort =
             left join
                 current_access_token on (current_access_token.timecard_id = timecards.id)
             left join
-                timecard_signings on (timecard_signings.timecard_id = timecards.id)
-            left join
-                signings on (timecard_signings.signing_id = signings.id)
+                latest_signing on (latest_signing.timecard_id = timecards.id)
         where 
             #{whereConditionSql whereCondition}
         order by
             timecards.week_of desc,
             timecard_entries.date #{entriesSortSql entriesSort},
             timecard_entries.created_at #{entriesSortSql entriesSort}
+    |]
+
+tokensQuerySql :: Text
+tokensQuerySql =
+    [i|
+        select
+            timecards.id timecard_id,
+            access_tokens.id access_token_id,
+            access_tokens.value access_token_value,
+            access_tokens.expires_at access_token_expires_at,
+            access_tokens.is_revoked access_token_is_revoked,
+            row_number() over (
+                partition by 
+                    timecards.id
+                order by
+                    access_tokens.is_revoked asc,
+                    access_tokens.expires_at desc,
+                    access_tokens.created_at desc
+            ) as row_number
+        from
+            timecards,
+            timecard_access_tokens,
+            access_tokens
+        where
+            timecard_access_tokens.timecard_id = timecards.id
+            and timecard_access_tokens.access_token_id = access_tokens.id
+    |]
+
+currentAccessTokenQuerySql :: Text
+currentAccessTokenQuerySql =
+    [i|
+        select
+            tokens.*
+        from
+            tokens
+        where
+            tokens.row_number = 1
+    |]
+
+signingsQuerySql :: Text
+signingsQuerySql =
+    [i|
+        select
+            timecards.id timecard_id,
+            signings.id signing_id,
+            signings.signed_at signing_signed_at,
+            row_number() over (
+                partition by 
+                    timecards.id
+                order by
+                    signings.created_at desc,
+                    signings.id asc
+            ) as row_number
+        from
+            timecards,
+            timecard_signings,
+            signings
+        where
+            timecard_signings.timecard_id = timecards.id
+            and timecard_signings.signing_id = signings.id
+    |]
+
+latestSigningQuerySql :: Text
+latestSigningQuerySql =
+    [i|
+        select
+            signings_.*
+        from
+            signings_
+        where
+            signings_.row_number = 1
     |]
 
 whereConditionSql :: WhereCondition -> Text
