@@ -128,22 +128,22 @@ messagesIdQuery :: Query
 messagesIdQuery =
     [i|
         with
-            #{messageDetailsIdCte},
-            #{predictionsCte}
-        #{mainQuery}
+            #{messageDetailsIdQuerySql},
+            #{predictionsQuerySql}
+        #{mainQuerySql}
     |]
 
 messagesPeopleQuery :: Query
 messagesPeopleQuery =
     [i|
         with
-            #{messageDetailsPeopleCte},
-            #{predictionsCte}
-        #{mainQuery}
+            #{messageDetailsPeopleQuerySql},
+            #{predictionsQuerySql}
+        #{mainQuerySql}
     |]
 
-messageDetailsIdCte :: Text
-messageDetailsIdCte =
+messageDetailsIdQuerySql :: Text
+messageDetailsIdQuerySql =
     [i|
         message_details as (
             select
@@ -178,8 +178,8 @@ messageDetailsIdCte =
         )
     |]
 
-messageDetailsPeopleCte :: Text
-messageDetailsPeopleCte =
+messageDetailsPeopleQuerySql :: Text
+messageDetailsPeopleQuerySql =
     [i|
         message_details as (
             select
@@ -238,8 +238,8 @@ messageDetailsPeopleCte =
         )
     |]
 
-predictionsCte :: Text
-predictionsCte =
+predictionsQuerySql :: Text
+predictionsQuerySql =
     [i|
         predictions as (
             select
@@ -267,8 +267,8 @@ predictionsCte =
         )
     |]
 
-mainQuery :: Text
-mainQuery =
+mainQuerySql :: Text
+mainQuerySql =
     [i|
         select
             message_details.id,
