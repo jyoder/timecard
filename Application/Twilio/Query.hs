@@ -6,7 +6,6 @@ module Application.Twilio.Query (
     fetchByPeople,
 ) where
 
-import Data.ByteString.UTF8 (toString)
 import "string-interpolate" Data.String.Interpolate (i)
 import Database.PostgreSQL.Simple (Query)
 import Database.PostgreSQL.Simple.FromField (FromField, ResultError (..), fromField, returnError)
@@ -78,7 +77,7 @@ instance FromField Status where
             Just "undelivered" -> pure Undelivered
             Just "failed" -> pure Failed
             Just "read" -> pure Read
-            Just _data -> returnError ConversionFailed field (toString _data)
+            Just _data -> returnError ConversionFailed field (cs _data)
             Nothing -> returnError UnexpectedNull field ""
 
 data EntityType
@@ -108,8 +107,8 @@ fetchById ::
     Id Types.TwilioMessage ->
     IO [Row]
 fetchById twilioMessageId = do
-    trackTableRead "twilio_messages"
-    sqlQuery messageQuery (Only twilioMessageId)
+    trackTables
+    sqlQuery messagesIdQuery (Only twilioMessageId)
 
 fetchByPeople ::
     (?modelContext :: ModelContext) =>
@@ -117,12 +116,16 @@ fetchByPeople ::
     Id Types.Person ->
     IO [Row]
 fetchByPeople personIdA personIdB = do
+    trackTables
+    sqlQuery messagesPeopleQuery (personIdA, personIdB)
+
+trackTables :: (?modelContext :: ModelContext) => IO ()
+trackTables = do
     trackTableRead "twilio_messages"
     trackTableRead "twilio_message_entities"
-    sqlQuery messagesQuery2 (personIdA, personIdB)
 
-messageQuery :: Query
-messageQuery =
+messagesIdQuery :: Query
+messagesIdQuery =
     [i|
         with
             #{messageDetailsIdCte},
@@ -130,8 +133,8 @@ messageQuery =
         #{mainQuery}
     |]
 
-messagesQuery2 :: Query
-messagesQuery2 =
+messagesPeopleQuery :: Query
+messagesPeopleQuery =
     [i|
         with
             #{messageDetailsPeopleCte},
@@ -289,4 +292,5 @@ mainQuery =
             message_details.created_at asc,
             message_details.id asc,
             predictions.row asc
+        limit 60
     |]

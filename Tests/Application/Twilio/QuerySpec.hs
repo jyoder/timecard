@@ -1,7 +1,10 @@
 module Tests.Application.Twilio.QuerySpec where
 
+import Application.Service.Transaction (withTransactionOrSavepoint)
 import qualified Application.Twilio.Query as Query
 import qualified Application.Twilio.TwilioMessage as TwilioMessage
+import Data.Set (elems)
+import "string-interpolate" Data.String.Interpolate (i)
 import Generated.Types
 import IHP.ControllerPrelude
 import IHP.Test.Mocking
@@ -201,7 +204,16 @@ spec = do
                                     }
                                ]
 
-        describe "fetchByPeople2" do
+            itIO "tracks the correct set of tables" do
+                withTableReadTracker do
+                    Query.fetchById "10000000-0000-0000-0000-000000000000"
+                    trackedTables <- readIORef ?touchedTables
+                    elems trackedTables
+                        `shouldBe` [ "twilio_message_entities"
+                                   , "twilio_messages"
+                                   ]
+
+        describe "fetchByPeople" do
             itIO "selects only messages between the two given people" do
                 bob <-
                     newRecord @Person
@@ -391,7 +403,7 @@ spec = do
                                     }
                                ]
 
-            itIO "includes entity prediction information if present, ordered by segment start" do
+            itIO "limits number of rows returned to 60" do
                 bob <-
                     newRecord @Person
                         |> set #firstName "Bob"
@@ -404,11 +416,10 @@ spec = do
                         |> set #number "+12222222222"
                         |> createRecord
 
-                bobContact <-
-                    newRecord @PhoneContact
-                        |> set #personId (get #id bob)
-                        |> set #phoneNumberId (get #id bobPhoneNumber)
-                        |> createRecord
+                newRecord @PhoneContact
+                    |> set #personId (get #id bob)
+                    |> set #phoneNumberId (get #id bobPhoneNumber)
+                    |> createRecord
 
                 alice <-
                     newRecord @Person
@@ -422,82 +433,34 @@ spec = do
                         |> set #number "+13333333333"
                         |> createRecord
 
-                aliceContact <-
-                    newRecord @PhoneContact
-                        |> set #personId (get #id alice)
-                        |> set #phoneNumberId (get #id alicePhoneNumber)
-                        |> createRecord
-
-                bobToAliceMessage <-
-                    newRecord @TwilioMessage
-                        |> set #fromId (get #id bobPhoneNumber)
-                        |> set #toId (get #id alicePhoneNumber)
-                        |> set #body "Hi Alice!"
-                        |> set #status TwilioMessage.delivered
-                        |> set #messageSid "1"
-                        |> createRecord
-
-                prediction1 <-
-                    newRecord @VertexAiEntityPrediction
-                        |> set #displayName "unrecognized"
-                        |> set #segmentStartOffset 3
-                        |> set #segmentEndOffset 5
-                        |> set #confidence 0.9
-                        |> set #vertexAiId "a"
-                        |> createRecord
-
-                newRecord @TwilioMessageEntity
-                    |> set #twilioMessageId (get #id bobToAliceMessage)
-                    |> set #vertexAiEntityPredictionId (get #id prediction1)
+                newRecord @PhoneContact
+                    |> set #personId (get #id alice)
+                    |> set #phoneNumberId (get #id alicePhoneNumber)
                     |> createRecord
 
-                prediction2 <-
-                    newRecord @VertexAiEntityPrediction
-                        |> set #displayName "unrecognized"
-                        |> set #segmentStartOffset 0
-                        |> set #segmentEndOffset 2
-                        |> set #confidence 0.8
-                        |> set #vertexAiId "b"
-                        |> createRecord
+                let alicePhoneNumberId = show $ get #id alicePhoneNumber
+                    bobPhoneNumberId = show $ get #id bobPhoneNumber
+                    insertTuples = map (\sid -> [i| ('2010-04-01', #{show sid}, '1', NULL, '#{alicePhoneNumberId}', '#{bobPhoneNumberId}', 'delivered', 'Test', 0) |]) [1 .. 61]
+                    insertStatement =
+                        [i|
+                            insert into 
+                                public.twilio_messages 
+                                    (api_version, message_sid, account_sid, messaging_service_sid, to_id, from_id, status, body, num_media) 
+                                values 
+                                    #{intercalate ",\n" insertTuples};
+                        |]
 
-                newRecord @TwilioMessageEntity
-                    |> set #twilioMessageId (get #id bobToAliceMessage)
-                    |> set #vertexAiEntityPredictionId (get #id prediction2)
-                    |> createRecord
-
+                sqlExec insertStatement ()
                 rows <- Query.fetchByPeople (get #id bob) (get #id alice)
+                length rows `shouldBe` 60
 
-                rows
-                    `shouldBe` [ Query.Row
-                                    { id = get #id bobToAliceMessage
-                                    , fromPhoneNumber = "+12222222222"
-                                    , fromFirstName = "Bob"
-                                    , fromLastName = "Bobbers"
-                                    , toPhoneNumber = "+13333333333"
-                                    , toFirstName = "Alice"
-                                    , toLastName = "Allers"
-                                    , createdAt = get #createdAt bobToAliceMessage
-                                    , status = Query.Delivered
-                                    , body = Just "Hi Alice!"
-                                    , entityType = Just Query.Unrecognized
-                                    , entityStart = Just 0
-                                    , entityEnd = Just 2
-                                    , entityConfidence = Just 0.8
-                                    }
-                               , Query.Row
-                                    { id = get #id bobToAliceMessage
-                                    , fromPhoneNumber = "+12222222222"
-                                    , fromFirstName = "Bob"
-                                    , fromLastName = "Bobbers"
-                                    , toPhoneNumber = "+13333333333"
-                                    , toFirstName = "Alice"
-                                    , toLastName = "Allers"
-                                    , createdAt = get #createdAt bobToAliceMessage
-                                    , status = Query.Delivered
-                                    , body = Nothing
-                                    , entityType = Just Query.Unrecognized
-                                    , entityStart = Just 3
-                                    , entityEnd = Just 5
-                                    , entityConfidence = Just 0.9
-                                    }
+        itIO "tracks the correct set of tables" do
+            withTableReadTracker do
+                Query.fetchByPeople
+                    "10000000-0000-0000-0000-000000000000"
+                    "20000000-0000-0000-0000-000000000000"
+                trackedTables <- readIORef ?touchedTables
+                elems trackedTables
+                    `shouldBe` [ "twilio_message_entities"
+                               , "twilio_messages"
                                ]
