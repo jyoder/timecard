@@ -285,8 +285,8 @@ spec = do
                     (toUtc "2021-06-14 15:29:00 PDT")
                     `shouldBe` Nothing
 
-    describe "scheduleNextRequest" do
-        beforeAll (testConfig >>= mockContext RootApplication) do
+    aroundAll (withApp RootApplication testConfig) do
+        describe "scheduleNextRequest" do
             itIO "uses the worker's preferred daily reminder time" do
                 ron <-
                     newRecord @Person

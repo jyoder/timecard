@@ -9,8 +9,8 @@ import Tests.Support
 
 spec :: Spec
 spec = do
-    describe "validate" do
-        beforeAll (testConfig >>= mockContext RootApplication) do
+    aroundAll (withApp RootApplication testConfig) do
+        describe "validate" do
             itIO "validates that weekOf is the start of the week" do
                 ron <-
                     newRecord @Person
@@ -26,7 +26,7 @@ spec = do
 
                 timecard <- Timecard.Timecard.validate timecard
                 timecard |> get #meta |> get #annotations
-                    `shouldBe` [("weekOf", "weekOf must be a Monday, the start of the week")]
+                    `shouldBe` [("weekOf", TextViolation "weekOf must be a Monday, the start of the week")]
 
             itIO "validates that weekOf matches associated timecard entry dates" do
                 ron <-
@@ -58,10 +58,9 @@ spec = do
                         |> Timecard.Timecard.validate
 
                 timecard |> get #meta |> get #annotations
-                    `shouldBe` [("weekOf", "weekOf must match timecard entries")]
+                    `shouldBe` [("weekOf", TextViolation "weekOf must match timecard entries")]
 
-    describe "fetchOrCreate" do
-        beforeAll (testConfig >>= mockContext RootApplication) do
+        describe "fetchOrCreate" do
             itIO "fetches an existing timecard" do
                 ron <-
                     newRecord @Person

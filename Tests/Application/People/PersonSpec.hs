@@ -9,8 +9,8 @@ import Tests.Support
 
 spec :: Spec
 spec = do
-    describe "fetchBotId" do
-        beforeAll (testConfig >>= mockContext RootApplication) do
+    aroundAll (withApp RootApplication testConfig) do
+        describe "fetchBotId" do
             itIO "selects the bot id" do
                 bot <-
                     newRecord @Person
@@ -28,8 +28,7 @@ spec = do
                 botId <- Person.fetchBotId
                 botId `shouldBe` get #id bot
 
-    describe "fetchByPhoneNumber" do
-        beforeAll (testConfig >>= mockContext RootApplication) do
+        describe "fetchByPhoneNumber" do
             itIO "selects a person that corresponds to a given phone number" do
                 jim <-
                     newRecord @Person
@@ -80,7 +79,7 @@ spec = do
                         |> set #lastName "Rogers"
                         |> set #goesBy "Mister"
             Person.validate person |> get #meta |> get #annotations
-                `shouldBe` [("firstName", "This field cannot be empty")]
+                `shouldBe` [("firstName", TextViolation "This field cannot be empty")]
 
         it "ensures that the last name is non-empty" do
             let person =
@@ -89,7 +88,7 @@ spec = do
                         |> set #lastName ""
                         |> set #goesBy "Mister"
             Person.validate person |> get #meta |> get #annotations
-                `shouldBe` [("lastName", "This field cannot be empty")]
+                `shouldBe` [("lastName", TextViolation "This field cannot be empty")]
 
         it "ensures that the goes-by field is non-empty" do
             let person =
@@ -98,4 +97,4 @@ spec = do
                         |> set #lastName "Rogers"
                         |> set #goesBy ""
             Person.validate person |> get #meta |> get #annotations
-                `shouldBe` [("goesBy", "This field cannot be empty")]
+                `shouldBe` [("goesBy", TextViolation "This field cannot be empty")]

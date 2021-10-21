@@ -4,15 +4,14 @@ import qualified Application.Twilio.Query as Query
 import qualified Application.Twilio.TwilioMessage as TwilioMessage
 import Generated.Types
 import IHP.ControllerPrelude
-import IHP.Prelude
 import IHP.Test.Mocking
 import Test.Hspec
 import Tests.Support
 
 spec :: Spec
 spec = do
-    describe "fetchById" do
-        beforeAll (testConfig >>= mockContext RootApplication) do
+    aroundAll (withApp RootApplication testConfig) do
+        describe "fetchById" do
             itIO "selects only the message with the given id" do
                 bob <-
                     newRecord @Person
@@ -202,8 +201,7 @@ spec = do
                                     }
                                ]
 
-    describe "fetchByPeople2" do
-        beforeAll (testConfig >>= mockContext RootApplication) do
+        describe "fetchByPeople2" do
             itIO "selects only messages between the two given people" do
                 bob <-
                     newRecord @Person

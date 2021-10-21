@@ -30,8 +30,8 @@ spec = do
             ReviewRequest.requestBody WorkerSettings.Spanish "Laura" "https://fake.com"
                 `shouldBe` "Gracias Laura. Aqu\237 est\225 su tarjeta de tiempo para revisar y firmar:\nhttps://fake.com\n\nAv\237seme si necesita que le haga alguna correcci\243n."
 
-    describe "scheduleRequest" do
-        beforeAll (testConfig >>= mockContext RootApplication) do
+    aroundAll (withApp RootApplication testConfig) do
+        describe "scheduleRequest" do
             itIO "schedules a request for a timecard review" do
                 bot <-
                     newRecord @Person

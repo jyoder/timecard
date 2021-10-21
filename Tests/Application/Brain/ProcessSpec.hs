@@ -11,8 +11,8 @@ import Tests.Support
 
 spec :: Spec
 spec = do
-    describe "processIncomingMessage" do
-        beforeAll (testConfig >>= mockContext RootApplication) do
+    aroundAll (withApp RootApplication testConfig) do
+        describe "processIncomingMessage" do
             itIO "processes an incoming message, taking the appropriate action based on the brain's plan" do
                 worker <-
                     newRecord @Person

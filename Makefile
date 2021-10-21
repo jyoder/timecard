@@ -30,8 +30,8 @@ pure-tests:
 tests: export DATABASE_URL = postgresql:///test?host=$(PWD)/build/db
 
 tests:
-	dropdb -h $(PWD)/build/db --if-exists test
-	createdb -h $(PWD)/build/db test
-	psql -d $(DATABASE_URL) -f build/ihp-lib/IHPSchema.sql
-	psql -d $(DATABASE_URL) -f Application/Schema.sql
+	dropdb --host $(PWD)/build/db --if-exists test
+	createdb --host $(PWD)/build/db test
+	psql --quiet --dbname $(DATABASE_URL) --file build/ihp-lib/IHPSchema.sql
+	psql --quiet --dbname $(DATABASE_URL) --file Application/Schema.sql
 	ghcid --test=':main' --command='ghci -itest Spec'

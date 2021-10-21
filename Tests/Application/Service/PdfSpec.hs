@@ -8,8 +8,8 @@ import Tests.Support
 
 spec :: Spec
 spec = do
-    describe "loadBootstrap" do
-        beforeAll (testConfig >>= mockContext RootApplication) do
+    aroundAll (withApp RootApplication testConfig) do
+        describe "loadBootstrap" do
             itIO "loads minified bootstrap into memory" do
                 bootstrap <- loadBootstrap
                 null bootstrap `shouldBe` False

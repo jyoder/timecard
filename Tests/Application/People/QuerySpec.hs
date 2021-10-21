@@ -11,8 +11,8 @@ import Tests.Support
 
 spec :: Spec
 spec = do
-    describe "fetchActiveWorkers" do
-        beforeAll (testConfig >>= mockContext RootApplication) do
+    aroundAll (withApp RootApplication testConfig) do
+        describe "fetchActiveWorkers" do
             itIO "tracks appropriate tables" do
                 withTableReadTracker do
                     People.Query.fetchActiveWorkers

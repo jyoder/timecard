@@ -9,8 +9,8 @@ import Tests.Support
 
 spec :: Spec
 spec = do
-    describe "updateNotStarted" do
-        beforeAll (testConfig >>= mockContext RootApplication) do
+    aroundAll (withApp RootApplication testConfig) do
+        describe "updateNotStarted" do
             itIO "updates the state to not_started" do
                 actionRunState <-
                     newRecord @ActionRunState
@@ -20,8 +20,7 @@ spec = do
                 actionRunState <- ActionRunState.updateNotStarted actionRunState
                 get #state actionRunState `shouldBe` "not_started"
 
-    describe "updateSuspended" do
-        beforeAll (testConfig >>= mockContext RootApplication) do
+        describe "updateSuspended" do
             itIO "updates the state to suspended" do
                 actionRunState <-
                     newRecord @ActionRunState
@@ -31,8 +30,7 @@ spec = do
                 actionRunState <- ActionRunState.updateSuspended actionRunState
                 get #state actionRunState `shouldBe` "suspended"
 
-    describe "updateRunning" do
-        beforeAll (testConfig >>= mockContext RootApplication) do
+        describe "updateRunning" do
             itIO "updates the state to running" do
                 actionRunState <-
                     newRecord @ActionRunState
@@ -42,8 +40,7 @@ spec = do
                 actionRunState <- ActionRunState.updateRunning actionRunState
                 get #state actionRunState `shouldBe` "running"
 
-    describe "updateFinished" do
-        beforeAll (testConfig >>= mockContext RootApplication) do
+        describe "updateFinished" do
             itIO "updates the state to finished" do
                 actionRunState <-
                     newRecord @ActionRunState
@@ -53,8 +50,7 @@ spec = do
                 actionRunState <- ActionRunState.updateFinished actionRunState
                 get #state actionRunState `shouldBe` "finished"
 
-    describe "updateCanceled" do
-        beforeAll (testConfig >>= mockContext RootApplication) do
+        describe "updateCanceled" do
             itIO "updates the state to canceled" do
                 actionRunState <-
                     newRecord @ActionRunState
@@ -64,8 +60,7 @@ spec = do
                 actionRunState <- ActionRunState.updateCanceled actionRunState
                 get #state actionRunState `shouldBe` "canceled"
 
-    describe "updateFailed" do
-        beforeAll (testConfig >>= mockContext RootApplication) do
+        describe "updateFailed" do
             itIO "updates the state to failed" do
                 actionRunState <-
                     newRecord @ActionRunState

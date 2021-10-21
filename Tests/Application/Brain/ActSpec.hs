@@ -12,8 +12,8 @@ import Tests.Support
 
 spec :: Spec
 spec = do
-    describe "act" do
-        beforeAll (testConfig >>= mockContext RootApplication) do
+    aroundAll (withApp RootApplication testConfig) do
+        describe "act" do
             context "when the plan says to create a timecard entry and schedule a reminder" do
                 itIO "creates a timecard entry and schedules a reminder at the right time" do
                     bot <-

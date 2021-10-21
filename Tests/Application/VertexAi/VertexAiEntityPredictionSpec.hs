@@ -14,7 +14,7 @@ spec = do
                 |> set #displayName "hours_worked"
                 |> validate
                 |> get #meta
-                |> get #annotations `shouldBe` [("vertexAiId", "This field cannot be blank")]
+                |> get #annotations `shouldBe` [("vertexAiId", TextViolation "This field cannot be blank")]
 
         it "validates that displayName is not blank" do
             newRecord @VertexAiEntityPrediction
@@ -22,7 +22,7 @@ spec = do
                 |> set #displayName "  "
                 |> validate
                 |> get #meta
-                |> get #annotations `shouldBe` [("displayName", "This field cannot be blank")]
+                |> get #annotations `shouldBe` [("displayName", TextViolation "This field cannot be blank")]
 
         it "validates that segmentStartOffset is non-negative" do
             newRecord @VertexAiEntityPrediction
@@ -31,7 +31,7 @@ spec = do
                 |> set #segmentStartOffset (-1)
                 |> validate
                 |> get #meta
-                |> get #annotations `shouldBe` [("segmentStartOffset", "This field must be greater than or equal to 0")]
+                |> get #annotations `shouldBe` [("segmentStartOffset", TextViolation "This field must be greater than or equal to 0")]
 
         it "validates that segmentEndOffset is greater than or equal to segmentStartOffset" do
             newRecord @VertexAiEntityPrediction
@@ -41,7 +41,7 @@ spec = do
                 |> set #segmentEndOffset 0
                 |> validate
                 |> get #meta
-                |> get #annotations `shouldBe` [("segmentEndOffset", "This field must be greater than or equal to segmentStartOffset")]
+                |> get #annotations `shouldBe` [("segmentEndOffset", TextViolation "This field must be greater than or equal to segmentStartOffset")]
 
         it "validates that confidence is greater than or equal to 0.0" do
             newRecord @VertexAiEntityPrediction
@@ -50,7 +50,7 @@ spec = do
                 |> set #confidence (-0.1)
                 |> validate
                 |> get #meta
-                |> get #annotations `shouldBe` [("confidence", "This field must be greater than or equal to 0.0")]
+                |> get #annotations `shouldBe` [("confidence", TextViolation "This field must be greater than or equal to 0.0")]
 
         it "validates that confidence is less than than or equal to 1.0" do
             newRecord @VertexAiEntityPrediction
@@ -59,7 +59,7 @@ spec = do
                 |> set #confidence 1.1
                 |> validate
                 |> get #meta
-                |> get #annotations `shouldBe` [("confidence", "This field must be less than or equal to 1.0")]
+                |> get #annotations `shouldBe` [("confidence", TextViolation "This field must be less than or equal to 1.0")]
 
         it "accepts records that pass all validations" do
             newRecord @VertexAiEntityPrediction

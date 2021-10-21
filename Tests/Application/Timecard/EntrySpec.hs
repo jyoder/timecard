@@ -9,8 +9,8 @@ import Tests.Support
 
 spec :: Spec
 spec = do
-    describe "create" do
-        beforeAll (testConfig >>= mockContext RootApplication) do
+    aroundAll (withApp RootApplication testConfig) do
+        describe "create" do
             itIO "sets the timecard id to the corresponding existing timecard" do
                 ron <-
                     newRecord @Person
@@ -148,8 +148,7 @@ spec = do
                 get #twilioMessageId <$> twilioMessages
                     `shouldBe` [get #id twilioMessage]
 
-    describe "update" do
-        beforeAll (testConfig >>= mockContext RootApplication) do
+        describe "update" do
             itIO "sets the timecard id to the corresponding existing timecard" do
                 ron <-
                     newRecord @Person
@@ -349,8 +348,7 @@ spec = do
                 get #twilioMessageId <$> timecardEntryMessages
                     `shouldBe` [get #id twilioMessage2]
 
-    describe "delete" do
-        beforeAll (testConfig >>= mockContext RootApplication) do
+        describe "delete" do
             itIO "deletes the given timecard entry and all message associations" do
                 ron <-
                     newRecord @Person
@@ -425,8 +423,7 @@ spec = do
                         |> fetch
                 timecardEntryMessages `shouldBe` []
 
-    describe "validate" do
-        beforeAll (testConfig >>= mockContext RootApplication) do
+        describe "validate" do
             itIO "validates all fields" do
                 ron <-
                     newRecord @Person
@@ -453,10 +450,10 @@ spec = do
 
                 timecardEntry <- Timecard.Entry.validate timecardEntry
                 timecardEntry |> get #meta |> get #annotations
-                    `shouldBe` [ ("date", "date must fall within the timecard week 2021-06-21")
-                               , ("invoiceTranslation", "This field cannot be empty")
-                               , ("workDone", "This field cannot be empty")
-                               , ("hoursWorked", "This field must be greater than or equal to 0.0")
-                               , ("lunchDuration", "This field must be greater than or equal to 0")
-                               , ("jobName", "This field cannot be empty")
+                    `shouldBe` [ ("date", TextViolation "date must fall within the timecard week 2021-06-21")
+                               , ("invoiceTranslation", TextViolation "This field cannot be empty")
+                               , ("workDone", TextViolation "This field cannot be empty")
+                               , ("hoursWorked", TextViolation "This field must be greater than or equal to 0.0")
+                               , ("lunchDuration", TextViolation "This field must be greater than or equal to 0")
+                               , ("jobName", TextViolation "This field cannot be empty")
                                ]

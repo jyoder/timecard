@@ -15,8 +15,8 @@ import Text.Read (read)
 
 spec :: Spec
 spec = do
-    describe "observe" do
-        beforeAll (testConfig >>= mockContext RootApplication) do
+    aroundAll (withApp RootApplication testConfig) do
+        describe "observe" do
             itIO "loads all required context and returns a set of observations" do
                 now' <- getCurrentTime
 

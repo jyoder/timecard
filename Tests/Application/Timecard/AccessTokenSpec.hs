@@ -9,8 +9,8 @@ import Tests.Support
 
 spec :: Spec
 spec = do
-    describe "create" do
-        beforeAll (testConfig >>= mockContext RootApplication) do
+    aroundAll (withApp RootApplication testConfig) do
+        describe "create" do
             itIO "inserts a timecard access token and associated access token with the correct expiration" do
                 ron <-
                     newRecord @Person

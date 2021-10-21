@@ -103,8 +103,8 @@ toException :: (HasField "meta" model ModelSupport.MetaBag) => model -> Validati
 toException model = ValidationException message
   where
     message = intercalate ", " messages
-    messages = map (\(field, value) -> field <> "=" <> value) annotations
-    annotations :: [(Text, Text)]
+    messages = map (\(field, value) -> field <> "=" <> show value) annotations
+    annotations :: [(Text, ModelSupport.Violation)]
     annotations = getField @"annotations" meta
     meta :: ModelSupport.MetaBag
     meta = getField @"meta" model

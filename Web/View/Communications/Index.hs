@@ -7,6 +7,7 @@ import qualified Application.People.View as V
 import qualified Application.Timecard.View as V
 import qualified Application.Twilio.Query as Twilio.Query
 import qualified Application.Twilio.View as V
+import qualified Text.Blaze.Html5 as H
 import Web.View.Navigation.People
 import Web.View.Navigation.Section (Section (Communications), renderSectionNavigation)
 import Web.View.Prelude hiding (Page)
@@ -167,28 +168,28 @@ data TimecardEntryCard = TimecardEntryCard
 data TimecardEntryForm = TimecardEntryForm
     { date :: !Text
     , dateInvalidClass :: !Text
-    , dateError :: !(Maybe Text)
+    , dateError :: !(Maybe Violation)
     , jobName :: !Text
     , jobNameInvalidClass :: !Text
-    , jobNameError :: !(Maybe Text)
+    , jobNameError :: !(Maybe Violation)
     , clockedInAt :: !Text
     , clockedInAtInvalidClass :: !Text
-    , clockedInAtError :: !(Maybe Text)
+    , clockedInAtError :: !(Maybe Violation)
     , clockedOutAt :: !Text
     , clockedOutAtInvalidClass :: !Text
-    , clockedOutAtError :: !(Maybe Text)
+    , clockedOutAtError :: !(Maybe Violation)
     , lunchDuration :: !Text
     , lunchDurationInvalidClass :: !Text
-    , lunchDurationError :: !(Maybe Text)
+    , lunchDurationError :: !(Maybe Violation)
     , hoursWorked :: !Text
     , hoursWorkedInvalidClass :: !Text
-    , hoursWorkedError :: !(Maybe Text)
+    , hoursWorkedError :: !(Maybe Violation)
     , workDone :: !Text
     , workDoneInvalidClass :: !Text
-    , workDoneError :: !(Maybe Text)
+    , workDoneError :: !(Maybe Violation)
     , invoiceTranslation :: !Text
     , invoiceTranslationInvalidClass :: !Text
-    , invoiceTranslationError :: !(Maybe Text)
+    , invoiceTranslationError :: !(Maybe Violation)
     , selectedMessageIdsParam :: !Text
     , selectedPersonIdParam :: !Text
     , submitLabel :: !Text
@@ -531,7 +532,7 @@ buildTimecardEntryForm
             }
       where
         hasErrorFor = isJust . errorFor
-        errorFor fieldName = snd <$> find (\(name, errorMessage) -> name == fieldName) annotations
+        errorFor fieldName = snd <$> find (\(name, _) -> name == fieldName) annotations
         annotations = timecardEntry |> get #meta |> get #annotations
         invalidClass = "is-invalid"
         workDone = assembleMessageBodies (get #workDone timecardEntry) sortedMessages
@@ -918,12 +919,18 @@ renderTimecardEntryForm TimecardEntryForm {..} =
         </form>
     |]
 
-renderFieldError :: Maybe Text -> Html
+renderFieldError :: Maybe Violation -> Html
 renderFieldError Nothing = [hsx||]
-renderFieldError (Just errorMessage) =
+renderFieldError (Just violation) =
     [hsx| 
-        <div class="invalid-feedback">{errorMessage}</div>
+        <div class="invalid-feedback">{unwrapViolation violation}</div>
     |]
+
+unwrapViolation :: Violation -> Html
+unwrapViolation violation =
+    case violation of
+        TextViolation errorMessage -> [hsx| {errorMessage} |]
+        HtmlViolation errorMessage -> H.preEscapedToHtml errorMessage
 
 renderColumnNavigation :: ColumnNavigation -> Html
 renderColumnNavigation ColumnNavigation {..} =

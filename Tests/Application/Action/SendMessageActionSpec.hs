@@ -30,8 +30,8 @@ spec = do
                     Left _ -> pure ()
                     Right _ -> expectationFailure "should disallow empty body"
 
-    describe "fetchReadyToRun" do
-        beforeAll (testConfig >>= mockContext RootApplication) do
+    aroundAll (withApp RootApplication testConfig) do
+        describe "fetchReadyToRun" do
             itIO "returns a send message action if the run time is in the past and it has not been started" do
                 actionRunState <-
                     newRecord @ActionRunState
@@ -222,8 +222,7 @@ spec = do
                                    , "send_message_actions"
                                    ]
 
-    describe "fetchNotStartedOrSuspendedByPhoneNumber" do
-        beforeAll (testConfig >>= mockContext RootApplication) do
+        describe "fetchNotStartedOrSuspendedByPhoneNumber" do
             itIO "returns a send message action if it is not started" do
                 actionRunState <-
                     newRecord @ActionRunState
@@ -346,8 +345,7 @@ spec = do
                                    , "send_message_actions"
                                    ]
 
-    describe "fetchNotStartedCreatedBeforeByPhoneNumber" do
-        beforeAll (testConfig >>= mockContext RootApplication) do
+        describe "fetchNotStartedCreatedBeforeByPhoneNumber" do
             itIO "returns a send message action if it is not started and created before the given time" do
                 actionRunState <-
                     newRecord @ActionRunState
@@ -474,8 +472,7 @@ spec = do
                                    , "send_message_actions"
                                    ]
 
-    describe "schedule" do
-        beforeAll (testConfig >>= mockContext RootApplication) do
+        describe "schedule" do
             itIO "saves a send message action based on the given parameters" do
                 fromPhoneNumber <-
                     newRecord @PhoneNumber
@@ -524,10 +521,9 @@ spec = do
                     (get #id toPhoneNumber)
                     ""
                     (toUtc "2021-06-23 15:00:00 PDT")
-                    `shouldThrow` (== ValidationException "body=This field cannot be empty")
+                    `shouldThrow` (== ValidationException "body=TextViolation {message = \"This field cannot be empty\"}")
 
-    describe "perform" do
-        beforeAll (testConfig >>= mockContext RootApplication) do
+        describe "perform" do
             itIO "sends a message via twilio and saves the result in the database" do
                 actionRunState <-
                     newRecord @ActionRunState

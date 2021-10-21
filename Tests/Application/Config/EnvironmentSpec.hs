@@ -12,8 +12,8 @@ import Tests.Support
 
 spec :: Spec
 spec = do
-    describe "loadEnvVars" do
-        beforeAll (testConfig >>= mockContext RootApplication) do
+    aroundAll (withApp RootApplication testConfig) do
+        describe "loadEnvVars" do
             itIO "loads all specified environment variables" do
                 tokenId1 <- randomIO :: IO Int
                 let tokenName1 = "TOKEN_" <> show (abs tokenId1)
