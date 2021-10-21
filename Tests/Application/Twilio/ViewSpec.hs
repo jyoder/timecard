@@ -16,7 +16,7 @@ spec = do
 
         it "returns multiple distinct messages for rows with distinct ids" do
             View.buildMessages
-                [ Query.Row2
+                [ Query.Row
                     { id = "10000000-0000-0000-0000-000000000000"
                     , fromPhoneNumber = "+1111111111"
                     , fromFirstName = "Bob"
@@ -32,7 +32,7 @@ spec = do
                     , entityEnd = Just 5
                     , entityConfidence = Just 0.4
                     }
-                , Query.Row2
+                , Query.Row
                     { id = "20000000-0000-0000-0000-000000000000"
                     , fromPhoneNumber = "+1111111111"
                     , fromFirstName = "Bob"
@@ -92,7 +92,7 @@ spec = do
     describe "buildMessage" do
         it "converts multple rows into a message" do
             View.buildMessage
-                ( Query.Row2
+                ( Query.Row
                     { id = "10000000-0000-0000-0000-000000000000"
                     , fromPhoneNumber = "+1111111111"
                     , fromFirstName = "Bob"
@@ -108,7 +108,7 @@ spec = do
                     , entityEnd = Just 15
                     , entityConfidence = Just 0.9
                     }
-                    :| [ Query.Row2
+                    :| [ Query.Row
                             { id = "10000000-0000-0000-0000-000000000000"
                             , fromPhoneNumber = "+1111111111"
                             , fromFirstName = "Bob"
@@ -163,7 +163,7 @@ spec = do
 
         it "requires the first row to contain the body" do
             View.buildMessage
-                ( Query.Row2
+                ( Query.Row
                     { id = "10000000-0000-0000-0000-000000000000"
                     , fromPhoneNumber = "+1111111111"
                     , fromFirstName = "Bob"
@@ -179,7 +179,7 @@ spec = do
                     , entityEnd = Just 15
                     , entityConfidence = Just 0.9
                     }
-                    :| [ Query.Row2
+                    :| [ Query.Row
                             { id = "10000000-0000-0000-0000-000000000000"
                             , fromPhoneNumber = "+1111111111"
                             , fromFirstName = "Bob"
@@ -236,7 +236,7 @@ spec = do
         it "returns an entity that spans the entire body if no entity information is present" do
             View.buildEntities
                 "345 Gortock Rd. Hammered boards 7:30-4:30"
-                [ Query.Row2
+                [ Query.Row
                     { id = "10000000-0000-0000-0000-000000000000"
                     , fromPhoneNumber = "+1111111111"
                     , fromFirstName = "Bob"
@@ -263,7 +263,7 @@ spec = do
         it "returns an entity that fills in spaces with unrecognized entities" do
             View.buildEntities
                 "345 Gortock Rd. Hammered boards 7:30-4:30 8.5hrs"
-                [ Query.Row2
+                [ Query.Row
                     { id = "10000000-0000-0000-0000-000000000000"
                     , fromPhoneNumber = "+1111111111"
                     , fromFirstName = "Bob"
@@ -279,7 +279,7 @@ spec = do
                     , entityEnd = Just 36
                     , entityConfidence = Just 0.7
                     }
-                , Query.Row2
+                , Query.Row
                     { id = "10000000-0000-0000-0000-000000000000"
                     , fromPhoneNumber = "+1111111111"
                     , fromFirstName = "Bob"
@@ -337,7 +337,7 @@ spec = do
     describe "entityTuple" do
         it "translates a row to an entity tuple when all entity fields are present" do
             View.entityTuple
-                Query.Row2
+                Query.Row
                     { id = "10000000-0000-0000-0000-000000000000"
                     , fromPhoneNumber = "+1111111111"
                     , fromFirstName = "Bob"
@@ -363,7 +363,7 @@ spec = do
                     )
         it "returns nothing when any of the entity fields are missing" do
             View.entityTuple
-                Query.Row2
+                Query.Row
                     { id = "10000000-0000-0000-0000-000000000000"
                     , fromPhoneNumber = "+1111111111"
                     , fromFirstName = "Bob"

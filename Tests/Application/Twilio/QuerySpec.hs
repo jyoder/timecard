@@ -72,7 +72,7 @@ spec = do
                 rows <- Query.fetchById $ get #id bobToAliceMessage2
 
                 rows
-                    `shouldBe` [ Query.Row2
+                    `shouldBe` [ Query.Row
                                     { id = get #id bobToAliceMessage2
                                     , fromPhoneNumber = "+12222222222"
                                     , fromFirstName = "Bob"
@@ -167,7 +167,7 @@ spec = do
                 rows <- Query.fetchById $ get #id bobToAliceMessage
 
                 rows
-                    `shouldBe` [ Query.Row2
+                    `shouldBe` [ Query.Row
                                     { id = get #id bobToAliceMessage
                                     , fromPhoneNumber = "+12222222222"
                                     , fromFirstName = "Bob"
@@ -183,7 +183,7 @@ spec = do
                                     , entityEnd = Just 2
                                     , entityConfidence = Just 0.8
                                     }
-                               , Query.Row2
+                               , Query.Row
                                     { id = get #id bobToAliceMessage
                                     , fromPhoneNumber = "+12222222222"
                                     , fromFirstName = "Bob"
@@ -279,7 +279,7 @@ spec = do
                 rows <- Query.fetchByPeople (get #id bob) (get #id alice)
 
                 rows
-                    `shouldBe` [ Query.Row2
+                    `shouldBe` [ Query.Row
                                     { id = get #id bobToAliceMessage
                                     , fromPhoneNumber = "+12222222222"
                                     , fromFirstName = "Bob"
@@ -357,7 +357,7 @@ spec = do
                 rows <- Query.fetchByPeople (get #id bob) (get #id alice)
 
                 rows
-                    `shouldBe` [ Query.Row2
+                    `shouldBe` [ Query.Row
                                     { id = get #id bobToAliceMessage1
                                     , fromPhoneNumber = "+12222222222"
                                     , fromFirstName = "Bob"
@@ -373,7 +373,7 @@ spec = do
                                     , entityEnd = Nothing
                                     , entityConfidence = Nothing
                                     }
-                               , Query.Row2
+                               , Query.Row
                                     { id = get #id bobToAliceMessage2
                                     , fromPhoneNumber = "+12222222222"
                                     , fromFirstName = "Bob"
@@ -468,7 +468,7 @@ spec = do
                 rows <- Query.fetchByPeople (get #id bob) (get #id alice)
 
                 rows
-                    `shouldBe` [ Query.Row2
+                    `shouldBe` [ Query.Row
                                     { id = get #id bobToAliceMessage
                                     , fromPhoneNumber = "+12222222222"
                                     , fromFirstName = "Bob"
@@ -484,7 +484,7 @@ spec = do
                                     , entityEnd = Just 2
                                     , entityConfidence = Just 0.8
                                     }
-                               , Query.Row2
+                               , Query.Row
                                     { id = get #id bobToAliceMessage
                                     , fromPhoneNumber = "+12222222222"
                                     , fromFirstName = "Bob"

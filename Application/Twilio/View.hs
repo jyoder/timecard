@@ -1,6 +1,6 @@
 module Application.Twilio.View where
 
-import Application.Twilio.Query (EntityType (..), Row2 (..), Status (..))
+import Application.Twilio.Query (EntityType (..), Row (..), Status (..))
 import Data.List.NonEmpty (NonEmpty (..))
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Text as Text
@@ -37,7 +37,7 @@ data EntityTuple = EntityTuple
     }
     deriving (Eq, Show)
 
-buildMessages :: [Row2] -> [Message]
+buildMessages :: [Row] -> [Message]
 buildMessages rows =
     case NonEmpty.nonEmpty rows of
         Just rows -> buildMessage <$> rowGroups rows
@@ -45,9 +45,9 @@ buildMessages rows =
   where
     rowGroups = NonEmpty.groupBy (\r1 r2 -> get #id r1 == get #id r2)
 
-buildMessage :: NonEmpty Row2 -> Message
+buildMessage :: NonEmpty Row -> Message
 buildMessage rowGroup =
-    let Row2 {..} = NonEmpty.head rowGroup
+    let Row {..} = NonEmpty.head rowGroup
         body' = fromMaybe "<<missing body>>" body
         rows = NonEmpty.toList rowGroup
      in Message
@@ -64,7 +64,7 @@ buildMessage rowGroup =
             , entities = buildEntities body' rows
             }
 
-buildEntities :: Text -> [Row2] -> [Entity]
+buildEntities :: Text -> [Row] -> [Entity]
 buildEntities body rowGroup =
     buildEntity body <$> rowGroup |> entityTuples |> fillSpaces end
   where
@@ -79,8 +79,8 @@ buildEntity body EntityTuple {..} =
         , confidence
         }
 
-entityTuple :: Row2 -> Maybe EntityTuple
-entityTuple Row2 {..} =
+entityTuple :: Row -> Maybe EntityTuple
+entityTuple Row {..} =
     case (entityStart, entityEnd, entityType, entityConfidence) of
         (Just entityStart, Just entityEnd, Just entityType, Just entityConfidence) ->
             Just

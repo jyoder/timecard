@@ -1,6 +1,5 @@
 module Application.Twilio.Query (
     Row (..),
-    Row2 (..),
     Status (..),
     EntityType (..),
     fetchById,
@@ -16,19 +15,6 @@ import qualified Generated.Types as Types
 import IHP.ControllerPrelude
 
 data Row = Row
-    { id :: !(Id Types.TwilioMessage)
-    , fromPhoneNumber :: !Text
-    , fromFirstName :: !Text
-    , fromLastName :: !Text
-    , toPhoneNumber :: !Text
-    , toFirstName :: !Text
-    , toLastName :: !Text
-    , createdAt :: !UTCTime
-    , status :: !Status
-    , body :: !Text
-    }
-
-data Row2 = Row2
     { id :: !(Id Types.TwilioMessage)
     , fromPhoneNumber :: !Text
     , fromFirstName :: !Text
@@ -63,20 +49,6 @@ data Status
 instance FromRow Row where
     fromRow =
         Row
-            <$> field
-            <*> field
-            <*> field
-            <*> field
-            <*> field
-            <*> field
-            <*> field
-            <*> field
-            <*> field
-            <*> field
-
-instance FromRow Row2 where
-    fromRow =
-        Row2
             <$> field
             <*> field
             <*> field
@@ -134,7 +106,7 @@ instance FromField EntityType where
 fetchById ::
     (?modelContext :: ModelContext) =>
     Id Types.TwilioMessage ->
-    IO [Row2]
+    IO [Row]
 fetchById twilioMessageId = do
     trackTableRead "twilio_messages"
     sqlQuery messageQuery (Only twilioMessageId)
@@ -143,7 +115,7 @@ fetchByPeople ::
     (?modelContext :: ModelContext) =>
     Id Types.Person ->
     Id Types.Person ->
-    IO [Row2]
+    IO [Row]
 fetchByPeople personIdA personIdB = do
     trackTableRead "twilio_messages"
     trackTableRead "twilio_message_entities"
