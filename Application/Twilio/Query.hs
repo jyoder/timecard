@@ -234,11 +234,9 @@ messageDetailsPeopleCte =
             order by
                 twilio_messages.created_at desc
             limit
-                #{maxMessagesToRetrieve}
+                60
         )
     |]
-  where
-    maxMessagesToRetrieve = 60 :: Int
 
 predictionsCte :: Text
 predictionsCte =
