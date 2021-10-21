@@ -403,7 +403,7 @@ spec = do
                                     }
                                ]
 
-            itIO "limits number of rows returned to 60" do
+            itIO "limits number of messages returned to 60 (about one month's worth of communication)" do
                 bob <-
                     newRecord @Person
                         |> set #firstName "Bob"
@@ -451,8 +451,41 @@ spec = do
                         |]
 
                 sqlExec insertStatement ()
+
+                message <- query @TwilioMessage |> fetchOne
+                prediction1 <-
+                    newRecord @VertexAiEntityPrediction
+                        |> set #displayName "unrecognized"
+                        |> set #segmentStartOffset 1
+                        |> set #segmentEndOffset 2
+                        |> set #confidence 0.9
+                        |> set #vertexAiId "a"
+                        |> createRecord
+
+                newRecord @TwilioMessageEntity
+                    |> set #twilioMessageId (get #id message)
+                    |> set #vertexAiEntityPredictionId (get #id prediction1)
+                    |> createRecord
+
+                prediction2 <-
+                    newRecord @VertexAiEntityPrediction
+                        |> set #displayName "unrecognized"
+                        |> set #segmentStartOffset 3
+                        |> set #segmentEndOffset 5
+                        |> set #confidence 0.9
+                        |> set #vertexAiId "b"
+                        |> createRecord
+
+                newRecord @TwilioMessageEntity
+                    |> set #twilioMessageId (get #id message)
+                    |> set #vertexAiEntityPredictionId (get #id prediction2)
+                    |> createRecord
+
                 rows <- Query.fetchByPeople (get #id bob) (get #id alice)
-                length rows `shouldBe` 60
+
+                -- Should be 61 since the presence of two predictions for a message increases
+                -- the number of rows.
+                length rows `shouldBe` 61
 
         itIO "tracks the correct set of tables" do
             withTableReadTracker do

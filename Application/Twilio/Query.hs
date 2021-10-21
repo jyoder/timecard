@@ -233,6 +233,8 @@ messageDetailsPeopleCte =
                     and twilio_messages.to_id = phone_numbers_a.id))
             order by
                 twilio_messages.created_at desc
+            limit
+                60
         )
     |]
 
@@ -292,5 +294,4 @@ mainQuery =
             message_details.created_at asc,
             message_details.id asc,
             predictions.row asc
-        limit 60
     |]
