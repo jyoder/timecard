@@ -234,9 +234,11 @@ messageDetailsPeopleQuerySql =
             order by
                 twilio_messages.created_at desc
             limit
-                60
+                #{maxMessagesToRetrieve}
         )
     |]
+  where
+    maxMessagesToRetrieve = 60 :: Int
 
 predictionsQuerySql :: Text
 predictionsQuerySql =

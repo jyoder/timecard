@@ -83,7 +83,10 @@ fetchById entriesSort timecardId =
 query :: WhereCondition -> EntriesSort -> Query
 query whereCondition entriesSort =
     [i|
-        with tokens as (
+        with latest_timecards as (
+            #{latestTimecardsQuerySql}
+        ), 
+        tokens as (
             #{tokensQuerySql}
         ),
         current_access_token as (
@@ -96,9 +99,9 @@ query whereCondition entriesSort =
             #{latestSigningQuerySql}
         )
         select
-            timecards.id timecard_id,
-            timecards.person_id timecard_person_id,
-            timecards.week_of timecard_week_of,
+            latest_timecards.id timecard_id,
+            latest_timecards.person_id timecard_person_id,
+            latest_timecards.week_of timecard_week_of,
             current_access_token.access_token_id access_token_id,
             current_access_token.access_token_value access_token_value,
             current_access_token.access_token_expires_at access_token_expires_at,
@@ -115,17 +118,17 @@ query whereCondition entriesSort =
             timecard_entries.work_done timecard_entry_work_done,
             timecard_entries.invoice_translation timecard_entry_invoice_translation
         from
-            timecards
+            latest_timecards
             inner join
-                timecard_entries on (timecard_entries.timecard_id = timecards.id)
+                timecard_entries on (timecard_entries.timecard_id = latest_timecards.id)
             left join
-                current_access_token on (current_access_token.timecard_id = timecards.id)
+                current_access_token on (current_access_token.timecard_id = latest_timecards.id)
             left join
-                latest_signing on (latest_signing.timecard_id = timecards.id)
+                latest_signing on (latest_signing.timecard_id = latest_timecards.id)
         where 
             #{whereConditionSql whereCondition}
         order by
-            timecards.week_of desc,
+            latest_timecards.week_of desc,
             timecard_entries.date #{entriesSortSql entriesSort},
             timecard_entries.created_at #{entriesSortSql entriesSort}
     |]
@@ -155,6 +158,21 @@ tokensQuerySql =
             timecard_access_tokens.timecard_id = timecards.id
             and timecard_access_tokens.access_token_id = access_tokens.id
     |]
+
+latestTimecardsQuerySql :: Text
+latestTimecardsQuerySql =
+    [i|
+        select
+            timecards.*
+        from
+            timecards
+        order by
+            timecards.week_of desc
+        limit
+            #{maxTimecardsToRetrieve}
+    |]
+  where
+    maxTimecardsToRetrieve = 4 :: Int
 
 currentAccessTokenQuerySql :: Text
 currentAccessTokenQuerySql =
@@ -202,8 +220,8 @@ latestSigningQuerySql =
     |]
 
 whereConditionSql :: WhereCondition -> Text
-whereConditionSql PersonIdCondition = "timecards.person_id = ?"
-whereConditionSql TimecardIdCondition = "timecards.id = ?"
+whereConditionSql PersonIdCondition = "latest_timecards.person_id = ?"
+whereConditionSql TimecardIdCondition = "latest_timecards.id = ?"
 
 entriesSortSql :: EntriesSort -> Text
 entriesSortSql EntriesDateAscending = "asc"
