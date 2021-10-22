@@ -84,7 +84,7 @@ query :: WhereCondition -> EntriesSort -> Query
 query whereCondition entriesSort =
     [i|
         with latest_timecards as (
-            #{latestTimecardsQuerySql}
+            #{latestTimecardsQuerySql whereCondition}
         ), 
         tokens as (
             #{tokensQuerySql}
@@ -125,8 +125,6 @@ query whereCondition entriesSort =
                 current_access_token on (current_access_token.timecard_id = latest_timecards.id)
             left join
                 latest_signing on (latest_signing.timecard_id = latest_timecards.id)
-        where 
-            #{whereConditionSql whereCondition}
         order by
             latest_timecards.week_of desc,
             timecard_entries.date #{entriesSortSql entriesSort},
@@ -137,35 +135,37 @@ tokensQuerySql :: Text
 tokensQuerySql =
     [i|
         select
-            timecards.id timecard_id,
+            latest_timecards.id timecard_id,
             access_tokens.id access_token_id,
             access_tokens.value access_token_value,
             access_tokens.expires_at access_token_expires_at,
             access_tokens.is_revoked access_token_is_revoked,
             row_number() over (
                 partition by 
-                    timecards.id
+                    latest_timecards.id
                 order by
                     access_tokens.is_revoked asc,
                     access_tokens.expires_at desc,
                     access_tokens.created_at desc
             ) as row_number
         from
-            timecards,
+            latest_timecards,
             timecard_access_tokens,
             access_tokens
         where
-            timecard_access_tokens.timecard_id = timecards.id
+            timecard_access_tokens.timecard_id = latest_timecards.id
             and timecard_access_tokens.access_token_id = access_tokens.id
     |]
 
-latestTimecardsQuerySql :: Text
-latestTimecardsQuerySql =
+latestTimecardsQuerySql :: WhereCondition -> Text
+latestTimecardsQuerySql whereCondition =
     [i|
         select
             timecards.*
         from
             timecards
+        where
+            #{whereConditionSql whereCondition}
         order by
             timecards.week_of desc
         limit
@@ -189,22 +189,22 @@ signingsQuerySql :: Text
 signingsQuerySql =
     [i|
         select
-            timecards.id timecard_id,
+            latest_timecards.id timecard_id,
             signings.id signing_id,
             signings.signed_at signing_signed_at,
             row_number() over (
                 partition by 
-                    timecards.id
+                    latest_timecards.id
                 order by
                     signings.created_at desc,
                     signings.id asc
             ) as row_number
         from
-            timecards,
+            latest_timecards,
             timecard_signings,
             signings
         where
-            timecard_signings.timecard_id = timecards.id
+            timecard_signings.timecard_id = latest_timecards.id
             and timecard_signings.signing_id = signings.id
     |]
 
@@ -220,8 +220,8 @@ latestSigningQuerySql =
     |]
 
 whereConditionSql :: WhereCondition -> Text
-whereConditionSql PersonIdCondition = "latest_timecards.person_id = ?"
-whereConditionSql TimecardIdCondition = "latest_timecards.id = ?"
+whereConditionSql PersonIdCondition = "timecards.person_id = ?"
+whereConditionSql TimecardIdCondition = "timecards.id = ?"
 
 entriesSortSql :: EntriesSort -> Text
 entriesSortSql EntriesDateAscending = "asc"
