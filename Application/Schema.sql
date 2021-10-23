@@ -8,8 +8,8 @@ CREATE TABLE users (
     failed_login_attempts INT DEFAULT 0 NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-    CHECK(trim(email) <> ''),
-    CHECK(trim(password_hash) <> '')
+    CHECK (trim(email) <> ''),
+    CHECK (trim(password_hash) <> '')
 );
 CREATE TABLE people (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
@@ -107,7 +107,8 @@ CREATE TABLE action_run_states (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     state TEXT DEFAULT 'not_started' NOT NULL,
-    CHECK ((((((state = 'not_started') OR (state = 'suspended')) OR (state = 'running')) OR (state = 'canceled')) OR (state = 'finished')) OR (state = 'failed'))
+    runs_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    CHECK (((((state = 'not_started' OR state = 'suspended') OR state = 'running') OR state = 'canceled') OR state = 'finished') OR state = 'failed')
 );
 CREATE TABLE timecards (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
@@ -160,7 +161,7 @@ CREATE TABLE worker_settings (
     send_daily_reminder_at TIME NOT NULL,
     is_active BOOLEAN DEFAULT true NOT NULL,
     preferred_language TEXT DEFAULT 'english' NOT NULL,
-    CHECK ((preferred_language = 'english') OR (preferred_language = 'spanish'))
+    CHECK (preferred_language = 'english' OR preferred_language = 'spanish')
 );
 CREATE TABLE vertex_ai_entity_predictions (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
