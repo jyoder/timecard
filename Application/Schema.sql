@@ -7,7 +7,9 @@ CREATE TABLE users (
     locked_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
     failed_login_attempts INT DEFAULT 0 NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    CHECK(trim(email) <> ''),
+    CHECK(trim(password_hash) <> '')
 );
 CREATE TABLE people (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
@@ -15,7 +17,10 @@ CREATE TABLE people (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
-    goes_by TEXT NOT NULL
+    goes_by TEXT NOT NULL,
+    CHECK (trim(first_name) <> ''),
+    CHECK (trim(last_name) <> ''),
+    CHECK (trim(goes_by) <> '')
 );
 CREATE TABLE phone_numbers (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
@@ -64,7 +69,10 @@ CREATE TABLE timecard_entries (
     timecard_id UUID NOT NULL,
     clocked_in_at TIME DEFAULT NULL,
     clocked_out_at TIME DEFAULT NULL,
-    lunch_duration INT DEFAULT NULL
+    lunch_duration INT DEFAULT NULL,
+    CHECK (trim(job_name) <> ''),
+    CHECK (trim(work_done) <> ''),
+    CHECK (trim(invoice_translation) <> '')
 );
 CREATE TABLE process_events_jobs (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
@@ -91,7 +99,8 @@ CREATE TABLE send_message_actions (
     body TEXT NOT NULL,
     from_id UUID DEFAULT uuid_generate_v4() NOT NULL,
     to_id UUID DEFAULT uuid_generate_v4() NOT NULL,
-    action_run_state_id UUID NOT NULL
+    action_run_state_id UUID NOT NULL,
+    CHECK (trim(body) <> '')
 );
 CREATE TABLE action_run_states (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
@@ -114,7 +123,8 @@ CREATE TABLE access_tokens (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     value TEXT NOT NULL,
     expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    is_revoked BOOLEAN DEFAULT false NOT NULL
+    is_revoked BOOLEAN DEFAULT false NOT NULL,
+    CHECK (trim(value) <> '')
 );
 CREATE TABLE timecard_access_tokens (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
@@ -130,7 +140,9 @@ CREATE TABLE signings (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     signed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     name TEXT NOT NULL,
-    ip_address TEXT NOT NULL
+    ip_address TEXT NOT NULL,
+    CHECK (trim(name) <> ''),
+    CHECK (trim(ip_address) <> '')
 );
 CREATE TABLE timecard_signings (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
@@ -266,6 +278,7 @@ CREATE TRIGGER set_updated_at BEFORE UPDATE ON timecard_signings FOR EACH ROW EX
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON worker_settings FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON vertex_ai_entity_predictions FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON twilio_message_entities FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
+CREATE TRIGGER set_updated_at BEFORE UPDATE ON fetch_entity_prediction_jobs FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
 CREATE INDEX fetch_entity_prediction_jobs_twilio_message_id_index ON fetch_entity_prediction_jobs (twilio_message_id);
 ALTER TABLE action_run_times ADD CONSTRAINT action_run_times_ref_action_run_state_id FOREIGN KEY (action_run_state_id) REFERENCES action_run_states (id) ON DELETE NO ACTION;
 ALTER TABLE fetch_entity_prediction_jobs ADD CONSTRAINT fetch_entity_prediction_jobs_ref_twilio_message_id FOREIGN KEY (twilio_message_id) REFERENCES twilio_messages (id) ON DELETE NO ACTION;
