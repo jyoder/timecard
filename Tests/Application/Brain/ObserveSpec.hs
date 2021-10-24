@@ -53,11 +53,6 @@ spec = do
                 actionRunState <-
                     newRecord @ActionRunState
                         |> set #state ActionRunState.notStarted
-                        |> createRecord
-
-                actionRunTime <-
-                    newRecord @ActionRunTime
-                        |> set #actionRunStateId (get #id actionRunState)
                         |> set #runsAt (toUtc "2021-06-23 15:00:00 PDT")
                         |> createRecord
 

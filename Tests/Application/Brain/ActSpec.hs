@@ -102,11 +102,6 @@ spec = do
                     actionRunState <-
                         fetch (get #actionRunStateId sendMessageAction)
 
-                    actionRunTime <-
-                        query @ActionRunTime
-                            |> filterWhere (#actionRunStateId, get #id actionRunState)
-                            |> fetchOne
-
                     get #jobName timecardEntry `shouldBe` "123 Something Rd."
                     get #hoursWorked timecardEntry `shouldBe` 7.5
                     get #clockedInAt timecardEntry `shouldBe` Just (toTimeOfDay "07:00:00")
@@ -119,7 +114,7 @@ spec = do
                     get #toId sendMessageAction `shouldBe` get #id workerPhoneNumber
                     get #fromId sendMessageAction `shouldBe` get #id botPhoneNumber
                     get #state actionRunState `shouldBe` ActionRunState.notStarted
-                    get #runsAt actionRunTime `shouldBe` toUtc "2021-08-31 15:30:00 PDT"
+                    get #runsAt actionRunState `shouldBe` toUtc "2021-08-31 15:30:00 PDT"
 
                 itIO "creates a timecard entry, schedules a reminder, and schedules a review if the timecard is complete" do
                     bot <-
@@ -244,29 +239,29 @@ spec = do
                             |> filterWhere (#date, toDay "2021-09-03")
                             |> fetchOne
 
-                    entryActionRunTime <-
-                        query @ActionRunTime
+                    entryActionRunState <-
+                        query @ActionRunState
                             |> filterWhere (#runsAt, toUtc "2021-09-06 15:30:00 PDT")
                             |> fetchOne
 
                     entryRequest <-
                         query @SendMessageAction
                             |> filterWhere (#toId, get #id workerPhoneNumber)
-                            |> filterWhere (#actionRunStateId, get #actionRunStateId entryActionRunTime)
+                            |> filterWhere (#actionRunStateId, get #id entryActionRunState)
                             |> fetchOne
 
                     entryActionRunState <-
                         fetch (get #actionRunStateId entryRequest)
 
-                    reviewActionRunTime <-
-                        query @ActionRunTime
+                    reviewActionRunState <-
+                        query @ActionRunState
                             |> filterWhere (#runsAt, toUtc "2021-09-03 15:34:00 PDT")
                             |> fetchOne
 
                     reviewRequest <-
                         query @SendMessageAction
                             |> filterWhere (#toId, get #id workerPhoneNumber)
-                            |> filterWhere (#actionRunStateId, get #actionRunStateId reviewActionRunTime)
+                            |> filterWhere (#actionRunStateId, get #id reviewActionRunState)
                             |> fetchOne
 
                     reviewActionRunState <-

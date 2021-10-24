@@ -344,12 +344,9 @@ spec = do
                         |> filterWhere (#toId, get #id ronPhoneNumber)
                         |> fetchOne
 
-                actionRunTime <-
-                    query @ActionRunTime
-                        |> filterWhere (#actionRunStateId, get #actionRunStateId sendMessageAction)
-                        |> fetchOne
+                actionRunState <- fetchOne $ get #actionRunStateId sendMessageAction
 
-                get #runsAt actionRunTime
+                get #runsAt actionRunState
                     `shouldBe` toUtc "2021-06-24 15:30:00 PDT"
 
                 get #body sendMessageAction
@@ -413,12 +410,9 @@ spec = do
                         |> filterWhere (#toId, get #id ronPhoneNumber)
                         |> fetchOne
 
-                actionRunTime <-
-                    query @ActionRunTime
-                        |> filterWhere (#actionRunStateId, get #actionRunStateId sendMessageAction)
-                        |> fetchOne
+                actionRunState <- fetchOne $ get #actionRunStateId sendMessageAction
 
-                get #runsAt actionRunTime
+                get #runsAt actionRunState
                     `shouldBe` toUtc "2021-06-24 15:30:00 PDT"
 
                 get #body sendMessageAction

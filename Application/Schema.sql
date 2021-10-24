@@ -85,13 +85,6 @@ CREATE TABLE process_events_jobs (
     locked_by UUID DEFAULT NULL,
     run_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
 );
-CREATE TABLE action_run_times (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-    runs_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-    action_run_state_id UUID NOT NULL
-);
 CREATE TABLE send_message_actions (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
@@ -233,7 +226,7 @@ BEGIN
 END;
 $$ language plpgsql;
 CREATE TRIGGER validate_timecard_week_of_is_start_of_week BEFORE INSERT OR UPDATE ON timecards FOR EACH ROW EXECUTE PROCEDURE trigger_validate_timecard_week_of_is_start_of_week();
-CREATE INDEX action_run_times_runs_at_index ON action_run_times (runs_at);
+CREATE INDEX action_run_states_runs_at_index ON action_run_states (runs_at);
 CREATE INDEX phone_contacts_person_id_index ON phone_contacts (person_id);
 CREATE INDEX phone_contacts_phone_number_id_index ON phone_contacts (phone_number_id);
 CREATE INDEX send_message_actions_from_id_index ON send_message_actions (from_id);
@@ -242,7 +235,6 @@ CREATE INDEX timecard_entry_messages_timecard_entry_id_index ON timecard_entry_m
 CREATE INDEX timecard_entry_messages_twilio_message_id_index ON timecard_entry_messages (twilio_message_id);
 CREATE INDEX twilio_messages_from_id_index ON twilio_messages (from_id);
 CREATE INDEX twilio_messages_to_id_index ON twilio_messages (to_id);
-CREATE INDEX action_run_times_action_run_state_id_index ON action_run_times (action_run_state_id);
 CREATE INDEX send_message_actions_action_run_state_id_index ON send_message_actions (action_run_state_id);
 CREATE INDEX action_run_states_state_index ON action_run_states (state);
 CREATE INDEX timecard_entries_timecard_id_index ON timecard_entries (timecard_id);
@@ -268,7 +260,6 @@ CREATE TRIGGER set_updated_at BEFORE UPDATE ON twilio_messages FOR EACH ROW EXEC
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON timecard_entry_messages FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON timecard_entries FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON process_events_jobs FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
-CREATE TRIGGER set_updated_at BEFORE UPDATE ON action_run_times FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON send_message_actions FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON action_run_states FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON timecards FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
@@ -281,7 +272,6 @@ CREATE TRIGGER set_updated_at BEFORE UPDATE ON vertex_ai_entity_predictions FOR 
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON twilio_message_entities FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON fetch_entity_prediction_jobs FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
 CREATE INDEX fetch_entity_prediction_jobs_twilio_message_id_index ON fetch_entity_prediction_jobs (twilio_message_id);
-ALTER TABLE action_run_times ADD CONSTRAINT action_run_times_ref_action_run_state_id FOREIGN KEY (action_run_state_id) REFERENCES action_run_states (id) ON DELETE NO ACTION;
 ALTER TABLE fetch_entity_prediction_jobs ADD CONSTRAINT fetch_entity_prediction_jobs_ref_twilio_message_id FOREIGN KEY (twilio_message_id) REFERENCES twilio_messages (id) ON DELETE NO ACTION;
 ALTER TABLE phone_contacts ADD CONSTRAINT phone_contacts_ref_person_id FOREIGN KEY (person_id) REFERENCES people (id) ON DELETE NO ACTION;
 ALTER TABLE phone_contacts ADD CONSTRAINT phone_contacts_ref_phone_number_id FOREIGN KEY (phone_number_id) REFERENCES phone_numbers (id) ON DELETE NO ACTION;

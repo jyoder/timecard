@@ -36,11 +36,6 @@ spec = do
                 actionRunState <-
                     newRecord @ActionRunState
                         |> set #state ActionRunState.notStarted
-                        |> createRecord
-
-                actionRunTime <-
-                    newRecord @ActionRunTime
-                        |> set #actionRunStateId (get #id actionRunState)
                         |> set #runsAt (toUtc "2021-06-23 15:00:00 PDT")
                         |> createRecord
 
@@ -72,11 +67,6 @@ spec = do
                 actionRunState <-
                     newRecord @ActionRunState
                         |> set #state ActionRunState.notStarted
-                        |> createRecord
-
-                actionRunTime <-
-                    newRecord @ActionRunTime
-                        |> set #actionRunStateId (get #id actionRunState)
                         |> set #runsAt (toUtc "2021-06-23 15:00:00 PDT")
                         |> createRecord
 
@@ -108,11 +98,6 @@ spec = do
                 actionRunState <-
                     newRecord @ActionRunState
                         |> set #state ActionRunState.running
-                        |> createRecord
-
-                actionRunTime <-
-                    newRecord @ActionRunTime
-                        |> set #actionRunStateId (get #id actionRunState)
                         |> set #runsAt (toUtc "2021-06-23 15:00:00 PDT")
                         |> createRecord
 
@@ -144,11 +129,6 @@ spec = do
                 actionRunState <-
                     newRecord @ActionRunState
                         |> set #state ActionRunState.canceled
-                        |> createRecord
-
-                actionRunTime <-
-                    newRecord @ActionRunTime
-                        |> set #actionRunStateId (get #id actionRunState)
                         |> set #runsAt (toUtc "2021-06-23 15:00:00 PDT")
                         |> createRecord
 
@@ -180,11 +160,6 @@ spec = do
                 actionRunState <-
                     newRecord @ActionRunState
                         |> set #state ActionRunState.suspended
-                        |> createRecord
-
-                actionRunTime <-
-                    newRecord @ActionRunTime
-                        |> set #actionRunStateId (get #id actionRunState)
                         |> set #runsAt (toUtc "2021-06-23 15:00:00 PDT")
                         |> createRecord
 
@@ -218,7 +193,6 @@ spec = do
                     trackedTables <- readIORef ?touchedTables
                     elems trackedTables
                         `shouldBe` [ "action_run_states"
-                                   , "action_run_times"
                                    , "send_message_actions"
                                    ]
 
@@ -227,11 +201,6 @@ spec = do
                 actionRunState <-
                     newRecord @ActionRunState
                         |> set #state ActionRunState.notStarted
-                        |> createRecord
-
-                actionRunTime <-
-                    newRecord @ActionRunTime
-                        |> set #actionRunStateId (get #id actionRunState)
                         |> set #runsAt (toUtc "2021-06-23 15:00:00 PDT")
                         |> createRecord
 
@@ -263,11 +232,6 @@ spec = do
                 actionRunState <-
                     newRecord @ActionRunState
                         |> set #state ActionRunState.suspended
-                        |> createRecord
-
-                actionRunTime <-
-                    newRecord @ActionRunTime
-                        |> set #actionRunStateId (get #id actionRunState)
                         |> set #runsAt (toUtc "2021-06-23 15:00:00 PDT")
                         |> createRecord
 
@@ -299,11 +263,6 @@ spec = do
                 actionRunState <-
                     newRecord @ActionRunState
                         |> set #state ActionRunState.canceled
-                        |> createRecord
-
-                actionRunTime <-
-                    newRecord @ActionRunTime
-                        |> set #actionRunStateId (get #id actionRunState)
                         |> set #runsAt (toUtc "2021-06-23 15:00:00 PDT")
                         |> createRecord
 
@@ -341,7 +300,6 @@ spec = do
                     trackedTables <- readIORef ?touchedTables
                     elems trackedTables
                         `shouldBe` [ "action_run_states"
-                                   , "action_run_times"
                                    , "send_message_actions"
                                    ]
 
@@ -350,11 +308,6 @@ spec = do
                 actionRunState <-
                     newRecord @ActionRunState
                         |> set #state ActionRunState.notStarted
-                        |> createRecord
-
-                actionRunTime <-
-                    newRecord @ActionRunTime
-                        |> set #actionRunStateId (get #id actionRunState)
                         |> createRecord
 
                 fromPhoneNumber <-
@@ -389,11 +342,6 @@ spec = do
                         |> set #state ActionRunState.notStarted
                         |> createRecord
 
-                actionRunTime <-
-                    newRecord @ActionRunTime
-                        |> set #actionRunStateId (get #id actionRunState)
-                        |> createRecord
-
                 fromPhoneNumber <-
                     newRecord @PhoneNumber
                         |> set #number "+14444444444"
@@ -424,11 +372,6 @@ spec = do
                 actionRunState <-
                     newRecord @ActionRunState
                         |> set #state ActionRunState.running
-                        |> createRecord
-
-                actionRunTime <-
-                    newRecord @ActionRunTime
-                        |> set #actionRunStateId (get #id actionRunState)
                         |> createRecord
 
                 fromPhoneNumber <-
@@ -468,7 +411,6 @@ spec = do
                     trackedTables <- readIORef ?touchedTables
                     elems trackedTables
                         `shouldBe` [ "action_run_states"
-                                   , "action_run_times"
                                    , "send_message_actions"
                                    ]
 
@@ -494,13 +436,8 @@ spec = do
                 actionRunState <-
                     fetch $ get #actionRunStateId sendMessageAction
 
-                actionRunTime <-
-                    query @ActionRunTime
-                        |> filterWhere (#actionRunStateId, get #id actionRunState)
-                        |> fetchOne
-
                 get #state actionRunState `shouldBe` ActionRunState.notStarted
-                get #runsAt actionRunTime `shouldBe` toUtc "2021-06-23 15:00:00 PDT"
+                get #runsAt actionRunState `shouldBe` toUtc "2021-06-23 15:00:00 PDT"
                 get #body sendMessageAction `shouldBe` "Hello World!"
                 get #fromId sendMessageAction `shouldBe` get #id fromPhoneNumber
                 get #toId sendMessageAction `shouldBe` get #id toPhoneNumber
@@ -530,11 +467,6 @@ spec = do
                         |> set #state ActionRunState.running
                         |> createRecord
 
-                actionRunTime <-
-                    newRecord @ActionRunTime
-                        |> set #actionRunStateId (get #id actionRunState)
-                        |> createRecord
-
                 fromPhoneNumber <-
                     newRecord @PhoneNumber
                         |> set #number "+14444444444"
@@ -558,7 +490,7 @@ spec = do
                             { id = get #id sendMessageAction
                             , actionRunStateId = get #id actionRunState
                             , state = get #state actionRunState
-                            , runsAt = get #runsAt actionRunTime
+                            , runsAt = get #runsAt actionRunState
                             , body = get #body sendMessageAction
                             , fromId = get #id fromPhoneNumber
                             , fromNumber = get #number fromPhoneNumber

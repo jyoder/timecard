@@ -9,7 +9,6 @@ module Application.Action.SendMessageAction (
 ) where
 
 import qualified Application.Action.ActionRunState as ActionRunState
-import qualified Application.Action.ActionRunTime as ActionRunTime
 import Application.Service.Transaction (withTransactionOrSavepoint)
 import Application.Service.Validation (validateAndCreate)
 import qualified Application.Twilio.Client as Client
@@ -94,12 +93,8 @@ schedule fromId toId body runsAt = do
     withTransactionOrSavepoint do
         actionRunState <-
             newRecord @ActionRunState
-                |> validateAndCreate ActionRunState.validate
-        actionRunTime <-
-            newRecord @ActionRunTime
-                |> set #actionRunStateId (get #id actionRunState)
                 |> set #runsAt runsAt
-                |> validateAndCreate ActionRunTime.validate
+                |> validateAndCreate ActionRunState.validate
         newRecord @SendMessageAction
             |> set #actionRunStateId (get #id actionRunState)
             |> set #fromId fromId
@@ -130,7 +125,6 @@ perform sendMessageAction = do
 trackTableReads :: (?modelContext :: ModelContext) => IO ()
 trackTableReads = do
     trackTableRead "send_message_actions"
-    trackTableRead "action_run_times"
     trackTableRead "action_run_states"
 
 query :: WhereCondition -> Query
@@ -140,7 +134,7 @@ query whereCondition =
             send_message_actions.id,
             action_run_states.id,
             action_run_states.state,
-            action_run_times.runs_at,
+            action_run_states.runs_at,
             send_message_actions.body,
             send_message_actions.from_id,
             from_phone_numbers.number,
@@ -150,23 +144,21 @@ query whereCondition =
             phone_numbers from_phone_numbers,
             phone_numbers to_phone_numbers,
             send_message_actions,
-            action_run_states,
-            action_run_times
+            action_run_states
         where
             to_phone_numbers.id = send_message_actions.to_id
             and from_phone_numbers.id = send_message_actions.from_id
             and send_message_actions.action_run_state_id = action_run_states.id
-            and action_run_times.action_run_state_id = action_run_states.id
             and #{whereConditionSql whereCondition}
         order by
-            action_run_times.runs_at asc;
+            action_run_states.runs_at asc;
     |]
 
 whereConditionSql :: WhereCondition -> Text
 whereConditionSql ReadyToRunCondition =
     [i|
         action_run_states.state = 'not_started'
-        and action_run_times.runs_at <= ?
+        and action_run_states.runs_at <= ?
     |]
 whereConditionSql NotStartedOrSuspendedByPhoneNumberCondition =
     [i|
