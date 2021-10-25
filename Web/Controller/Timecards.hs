@@ -21,6 +21,7 @@ instance Controller TimecardsController where
     beforeAction = ensureIsUser
 
     action TimecardsAction = do
+        let jumpToTop = True
         let currentColumn = PeopleColumn
         people <-
             People.View.buildPeople
@@ -60,9 +61,10 @@ instance Controller TimecardsController where
         let personActivity = Viewing
         let personSelection = PersonSelected {..}
 
-        render IndexView {..}
+        render IndexView {jumpToTop = jumpToTop == Just 1, ..}
     --
     action TimecardEditTimecardEntryAction {..} = do
+        let jumpToTop = False
         let currentColumn = TimecardsColumn
         people <-
             People.View.buildPeople
@@ -139,12 +141,14 @@ instance Controller TimecardsController where
                                 Timecard.Query.EntriesDateAscending
                                 selectedPersonId
 
+                    let jumpToTop = False
                     let personActivity = EditingInvoiceTranslation {..}
                     let personSelection = PersonSelected {..}
 
                     render IndexView {..}
                 Right timecardEntry -> do
                     updateRecord timecardEntry
+                    let jumpToTop = Nothing
                     redirectTo TimecardPersonSelectionAction {..}
 
 paramToColumn :: Text -> Column

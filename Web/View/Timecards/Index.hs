@@ -2,7 +2,7 @@ module Web.View.Timecards.Index where
 
 import qualified Application.People.View as V
 import qualified Application.Timecard.View as V
-import Web.View.Navigation.People
+import Web.View.Navigation.People (BadgeVisibility (..), PeopleNavigation, buildPeopleNavigation, renderPeopleNavigation)
 import Web.View.Navigation.Section (Section (Timecards), renderSectionNavigation)
 import Web.View.Prelude hiding (Page)
 import Web.View.Service.Style (removeScrollbars)
@@ -13,6 +13,7 @@ data IndexView = IndexView
     { people :: ![V.Person]
     , personSelection :: !PersonSelection
     , currentColumn :: !Column
+    , jumpToTop :: !Bool
     }
 
 data PersonSelection
@@ -43,6 +44,7 @@ data TimecardsColumn
     = TimecardsColumnNotVisible
     | TimecardsColumnVisible
         { timecardTables :: ![TimecardTable]
+        , jumpToTopClass :: !Text
         }
     deriving (Eq, Show)
 
@@ -118,6 +120,7 @@ buildPage view =
                         TimecardPersonSelectionAction
                             { selectedPersonId
                             , column = Just $ columnToParam TimecardsColumn
+                            , jumpToTop = Just 1
                             }
                     )
                     selectedPerson
@@ -143,12 +146,15 @@ buildTimecardsColumn IndexView {..} =
         NoPersonSelected -> TimecardsColumnNotVisible
         PersonSelected {..} ->
             TimecardsColumnVisible
-                { timecardTables =
+                { jumpToTopClass = jumpToTopClass'
+                , timecardTables =
                     buildTimecardTable
                         selectedPerson
                         personActivity
                         <$> timecards
                 }
+  where
+    jumpToTopClass' = if jumpToTop then "scroll-to-pinned" else ""
 
 buildTimecardTable :: Person -> PersonActivity -> V.Timecard -> TimecardTable
 buildTimecardTable selectedPerson personActivity timecard =
@@ -219,6 +225,7 @@ buildInvoiceTranslationCell
                                 TimecardPersonSelectionAction
                                     { selectedPersonId = get #id selectedPerson
                                     , column = Just $ columnToParam TimecardsColumn
+                                    , jumpToTop = Nothing
                                     }
                             }
                     else
@@ -252,6 +259,7 @@ buildColumnNavigation personSelection currentColumn =
             TimecardPersonSelectionAction
                 { selectedPersonId = get #id selectedPerson
                 , column = Just $ columnToParam column
+                , jumpToTop = Just 1
                 }
 
 columnToParam :: Column -> Text
@@ -286,7 +294,7 @@ renderTimecardsColumn timecardsColumn =
         TimecardsColumnVisible {..} ->
             [hsx|
                 <div class="timecards-column mr-3 flex-grow-1">
-                    <div class="scroll-to-pinned d-none d-lg-block"></div>
+                    <div class={jumpToTopClass <>  " d-none d-lg-block"}></div>
                     {forEach timecardTables renderTimecardTable}
                 </div>
             |]

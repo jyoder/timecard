@@ -16,6 +16,8 @@ spec :: Spec
 spec = do
     describe "buildPage" do
         it "returns a timecard page based on the given parameters" do
+            let jumpToTop = True
+
             let person =
                     People.View.Person
                         { id = "10000000-0000-0000-0000-000000000000"
@@ -67,6 +69,7 @@ spec = do
                                         TimecardPersonSelectionAction
                                             { selectedPersonId = "10000000-0000-0000-0000-000000000000"
                                             , column = Just "timecards"
+                                            , jumpToTop = Just 1
                                             }
                                     , activeClass = ""
                                     , ariaCurrent = "false"
@@ -99,6 +102,8 @@ spec = do
 
     describe "buildTimecardColumn" do
         it "returns a non-visible timecard column when no person has been selected" do
+            let jumpToTop = True
+
             let person =
                     People.View.Person
                         { id = "10000000-0000-0000-0000-000000000000"
@@ -142,6 +147,8 @@ spec = do
                 `shouldBe` Index.TimecardsColumnNotVisible
 
         it "returns a visible timecard column when a person has been selected" do
+            let jumpToTop = True
+
             let person =
                     People.View.Person
                         { id = "10000000-0000-0000-0000-000000000000"
@@ -194,7 +201,107 @@ spec = do
 
             Index.buildTimecardsColumn Index.IndexView {..}
                 `shouldBe` Index.TimecardsColumnVisible
-                    { timecardTables =
+                    { jumpToTopClass = "scroll-to-pinned"
+                    , timecardTables =
+                        [ Index.TimecardTable
+                            { weekOf = "06/21/2021"
+                            , status =
+                                Status.TimecardStatus
+                                    { statusClasses = "badge badge-pill badge-secondary"
+                                    , statusLabel = "In Progress"
+                                    }
+                            , firstName = "John"
+                            , lastName = "Cleese"
+                            , jobRows =
+                                [ Index.JobRow
+                                    { dayOfWeek' = "Wednesday"
+                                    , date = "06/23/2021"
+                                    , jobName = "job name"
+                                    , clockedInAt = "--"
+                                    , clockedOutAt = "--"
+                                    , lunchDuration = "--"
+                                    , hoursWorked = "5.5"
+                                    , workDone = "work done"
+                                    , invoiceTranslationCell =
+                                        Index.ShowInvoiceTranslation
+                                            { invoiceTranslation = "invoice translation"
+                                            , editAction =
+                                                TimecardEditTimecardEntryAction
+                                                    { timecardEntryId = "20000000-0000-0000-0000-000000000000"
+                                                    }
+                                            }
+                                    }
+                                ]
+                            , totalHoursRow =
+                                Index.TotalHoursRow
+                                    { totalHours = "5.5"
+                                    }
+                            , downloadAction =
+                                TimecardDownloadTimecardAction
+                                    { timecardId = "30000000-0000-0000-0000-000000000000"
+                                    }
+                            , downloadFileName = "2021-06-21-Cleese-John.pdf"
+                            }
+                        ]
+                    }
+
+        it "does not scroll to the top when the jump to top parameter is false" do
+            let jumpToTop = False
+
+            let person =
+                    People.View.Person
+                        { id = "10000000-0000-0000-0000-000000000000"
+                        , firstName = "John"
+                        , lastName = "Cleese"
+                        , goesBy = "John"
+                        , state = People.View.PersonIdle
+                        }
+
+            let people = [person]
+
+            let selectedPerson =
+                    newRecord @Person
+                        |> set #id "10000000-0000-0000-0000-000000000000"
+                        |> set #firstName "John"
+                        |> set #lastName "Cleese"
+
+            let timecardEntry =
+                    Timecard.View.TimecardEntry
+                        { id = "20000000-0000-0000-0000-000000000000"
+                        , date = toDay "2021-06-23"
+                        , jobName = "job name"
+                        , clockedInAt = Nothing
+                        , clockedOutAt = Nothing
+                        , lunchDuration = Nothing
+                        , hoursWorked = 5.5
+                        , workDone = "work done"
+                        , invoiceTranslation = "invoice translation"
+                        }
+
+            let timecard =
+                    Timecard.View.Timecard
+                        { id = "30000000-0000-0000-0000-000000000000"
+                        , personId = "10000000-0000-0000-0000-000000000000"
+                        , weekOf = toDay "2021-06-21"
+                        , status = Timecard.View.TimecardInProgress
+                        , entries = [timecardEntry]
+                        }
+
+            let personActivity = Index.Viewing
+
+            let personSelection =
+                    Index.PersonSelected
+                        { selectedPerson = selectedPerson
+                        , timecards = [timecard]
+                        , personActivity = personActivity
+                        }
+
+            let currentColumn = Index.TimecardsColumn
+
+            Index.buildTimecardsColumn Index.IndexView {..}
+                `shouldBe` Index.TimecardsColumnVisible
+                    { jumpToTopClass = ""
+                    , timecardTables =
                         [ Index.TimecardTable
                             { weekOf = "06/21/2021"
                             , status =
@@ -528,6 +635,7 @@ spec = do
                         TimecardPersonSelectionAction
                             { selectedPersonId = "10000000-0000-0000-0000-000000000000"
                             , column = Just "timecards"
+                            , jumpToTop = Nothing
                             }
                     }
 
@@ -586,12 +694,14 @@ spec = do
                         TimecardPersonSelectionAction
                             { selectedPersonId = "10000000-0000-0000-0000-000000000000"
                             , column = Just "people"
+                            , jumpToTop = Just 1
                             }
                     , timecardsLinkClass = "text-muted"
                     , timecardsAction =
                         TimecardPersonSelectionAction
                             { selectedPersonId = "10000000-0000-0000-0000-000000000000"
                             , column = Just "timecards"
+                            , jumpToTop = Just 1
                             }
                     }
 

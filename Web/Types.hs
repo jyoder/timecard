@@ -97,6 +97,7 @@ data TimecardsController
     | TimecardPersonSelectionAction
         { selectedPersonId :: !(Id Person)
         , column :: !(Maybe Text)
+        , jumpToTop :: !(Maybe Int)
         }
     | TimecardEditTimecardEntryAction
         { timecardEntryId :: !(Id TimecardEntry)

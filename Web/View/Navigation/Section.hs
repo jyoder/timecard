@@ -34,6 +34,7 @@ renderSectionNavigation currentSection selectedPerson =
             TimecardPersonSelectionAction
                 { selectedPersonId = get #id selectedPerson
                 , column = Nothing
+                , jumpToTop = Just 1
                 }
         Nothing -> TimecardsAction
     communicationsAction = case selectedPerson of
