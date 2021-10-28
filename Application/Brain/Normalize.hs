@@ -220,10 +220,10 @@ noMinutesWithPmRegex :: Text
 noMinutesWithPmRegex = "\\`([0-9][0-9]?) ?[pP][mM]?\\'"
 
 minutesWithAmRegex :: Text
-minutesWithAmRegex = "\\`([0-9][0-9]?):?([0-9][0-9]) ?[aA][mM]?\\'"
+minutesWithAmRegex = "\\`([0-9][0-9]?)[:.]?([0-9][0-9]) ?[aA][mM]?\\'"
 
 minutesWithPmRegex :: Text
-minutesWithPmRegex = "\\`([0-9][0-9]?):?([0-9][0-9]) ?[pP][mM]?\\'"
+minutesWithPmRegex = "\\`([0-9][0-9]?)[:.]?([0-9][0-9]) ?[pP][mM]?\\'"
 
 hoursWorked :: Text -> Maybe Double
 hoursWorked text

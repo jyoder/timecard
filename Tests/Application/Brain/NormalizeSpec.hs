@@ -536,6 +536,8 @@ spec = do
                     Normalize.clockedOutAt "1:30 AM" `shouldBe` Just (toTimeOfDay "01:30:00")
                 it "interprets '130a' as 1:30 AM" do
                     Normalize.clockedOutAt "130a" `shouldBe` Just (toTimeOfDay "01:30:00")
+                it "interprets '1.30a' as 1:30 AM" do
+                    Normalize.clockedOutAt "1.30a" `shouldBe` Just (toTimeOfDay "01:30:00")
                 it "interprets '01:30 AM' as nothing" do
                     Normalize.clockedOutAt "01:30 AM" `shouldBe` Nothing
                 it "interprets '13:30 AM' as nothing" do
@@ -580,6 +582,8 @@ spec = do
                     Normalize.clockedOutAt "1:30 PM" `shouldBe` Just (toTimeOfDay "13:30:00")
                 it "interprets '130p' as 1:30 PM" do
                     Normalize.clockedOutAt "130p" `shouldBe` Just (toTimeOfDay "13:30:00")
+                it "interprets '1.30a' as 1:30 AM" do
+                    Normalize.clockedOutAt "1.30p" `shouldBe` Just (toTimeOfDay "13:30:00")
                 it "interprets '01:30 PM' as nothing" do
                     Normalize.clockedOutAt "01:30 PM" `shouldBe` Nothing
                 it "interprets '13:30 PM' as nothing" do
