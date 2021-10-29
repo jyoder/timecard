@@ -40,6 +40,21 @@ INSERT INTO public.phone_numbers (id, created_at, updated_at, number) VALUES ('a
 ALTER TABLE public.phone_numbers ENABLE TRIGGER ALL;
 
 
+ALTER TABLE public.users DISABLE TRIGGER ALL;
+
+INSERT INTO public.users (id, email, password_hash, locked_at, failed_login_attempts, created_at, updated_at) VALUES ('aa267118-f73f-45ab-9644-5705f21070e7', 'test@company.com', 'sha256|17|V6JGPzE2wOfao5X6hI+QPA==|5/99LLTnfGArcvfziM8eIvlOMN/syoKpKvvW3NaRBvM=', NULL, 0, '2021-06-10 22:27:20.261931-07', '2021-08-11 13:23:01.92718-07');
+
+
+ALTER TABLE public.users ENABLE TRIGGER ALL;
+
+
+ALTER TABLE public.audit_entries DISABLE TRIGGER ALL;
+
+
+
+ALTER TABLE public.audit_entries ENABLE TRIGGER ALL;
+
+
 ALTER TABLE public.twilio_messages DISABLE TRIGGER ALL;
 
 INSERT INTO public.twilio_messages (id, created_at, updated_at, api_version, message_sid, account_sid, messaging_service_sid, to_id, from_id, status, body, num_media) VALUES ('8bc3933a-cc0f-446c-af4b-d2539e7ff813', '2021-08-18 21:58:28.077774-07', '2021-08-18 21:58:29.477766-07', '2010-04-01', 'SMf7f1c166d3b64888959e0a2bd167b786', 'AC828cf7fa609e74ef78861e56ad166f42', NULL, 'c1375981-0102-4132-8799-54f4fe3e0fbd', 'c1e2457b-60ce-4e84-8ba0-a12020c49d40', 'delivered', 'Test', 0);
@@ -83,6 +98,7 @@ ALTER TABLE public.phone_contacts ENABLE TRIGGER ALL;
 
 ALTER TABLE public.process_events_jobs DISABLE TRIGGER ALL;
 
+INSERT INTO public.process_events_jobs (id, created_at, updated_at, status, last_error, attempts_count, locked_at, locked_by, run_at) VALUES ('65a44728-69ce-4173-ba3d-fcfc7598b2c7', '2021-10-29 12:14:18.778552-07', '2021-10-29 12:14:18.778552-07', 'job_status_not_started', NULL, 0, NULL, NULL, '2021-10-29 12:16:18.778468-07');
 
 
 ALTER TABLE public.process_events_jobs ENABLE TRIGGER ALL;
@@ -119,7 +135,6 @@ ALTER TABLE public.timecard_access_tokens ENABLE TRIGGER ALL;
 
 ALTER TABLE public.timecard_entries DISABLE TRIGGER ALL;
 
-INSERT INTO public.timecard_entries (id, created_at, updated_at, date, job_name, hours_worked, work_done, invoice_translation, timecard_id, clocked_in_at, clocked_out_at, lunch_duration) VALUES ('15038eac-0d27-4daf-8d8e-1b9d887a21a3', '2021-10-23 16:13:45.474203-07', '2021-10-23 16:13:45.474203-07', '2021-10-23', 'Barf', 8, 'Test', 'Test', '8040eabe-209f-4168-92af-976fb1d0395f', '12:00:00', '12:00:00', 30);
 
 
 ALTER TABLE public.timecard_entries ENABLE TRIGGER ALL;
@@ -127,7 +142,6 @@ ALTER TABLE public.timecard_entries ENABLE TRIGGER ALL;
 
 ALTER TABLE public.timecard_entry_messages DISABLE TRIGGER ALL;
 
-INSERT INTO public.timecard_entry_messages (id, created_at, updated_at, timecard_entry_id, twilio_message_id) VALUES ('aa087012-aa6d-48c1-8069-25f8f7c7fae1', '2021-10-23 16:13:45.474203-07', '2021-10-23 16:13:45.474203-07', '15038eac-0d27-4daf-8d8e-1b9d887a21a3', 'bfe33468-11ba-4d2e-ba16-a2c43bdc2ec4');
 
 
 ALTER TABLE public.timecard_entry_messages ENABLE TRIGGER ALL;
@@ -152,14 +166,6 @@ ALTER TABLE public.twilio_message_entities DISABLE TRIGGER ALL;
 
 
 ALTER TABLE public.twilio_message_entities ENABLE TRIGGER ALL;
-
-
-ALTER TABLE public.users DISABLE TRIGGER ALL;
-
-INSERT INTO public.users (id, email, password_hash, locked_at, failed_login_attempts, created_at, updated_at) VALUES ('aa267118-f73f-45ab-9644-5705f21070e7', 'test@company.com', 'sha256|17|V6JGPzE2wOfao5X6hI+QPA==|5/99LLTnfGArcvfziM8eIvlOMN/syoKpKvvW3NaRBvM=', NULL, 0, '2021-06-10 22:27:20.261931-07', '2021-08-11 13:23:01.92718-07');
-
-
-ALTER TABLE public.users ENABLE TRIGGER ALL;
 
 
 ALTER TABLE public.worker_settings DISABLE TRIGGER ALL;

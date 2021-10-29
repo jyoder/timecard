@@ -1,5 +1,7 @@
 -- pgFormatter-ignore
 -- Your database schema. Use the Schema Designer at http://localhost:8001/ to add some tables.
+CREATE TYPE audit_actions AS ENUM ('message_sent', 'message_received', 'message_processed', 'timecard_entry_created', 'timecard_entry_edited', 'timecard_entry_deleted', 'review_link_generated', 'review_signed', 'daily_reminder_scheduled', 'review_request_scheduled', 'scheduled_message_edited', 'scheduled_message_suspended', 'scheduled_message_resumed', 'scheduled_message_deleted');
+
 CREATE TABLE users (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
     email TEXT NOT NULL,
@@ -193,6 +195,15 @@ CREATE TABLE fetch_entity_prediction_jobs (
     twilio_message_id UUID NOT NULL,
     run_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
 );
+CREATE TABLE audit_entries (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    phone_number_id UUID NOT NULL,
+    user_id UUID,
+    "action" audit_actions NOT NULL,
+    action_context TEXT NOT NULL
+);
 CREATE FUNCTION trigger_validate_timecard_entry_date_matches_timecard() RETURNS TRIGGER AS $$
 BEGIN
   IF date_trunc('week', NEW.date) = (SELECT timecards.week_of FROM timecards WHERE timecards.id = NEW.timecard_id) THEN
@@ -246,6 +257,9 @@ CREATE INDEX timecard_signings_signing_id_index ON timecard_signings (signing_id
 CREATE INDEX worker_settings_person_id_index ON worker_settings (person_id);
 CREATE INDEX twilio_message_entities_twilio_message_id_index ON twilio_message_entities (twilio_message_id);
 CREATE INDEX twilio_message_entities_vertex_ai_entity_prediction_id_index ON twilio_message_entities (vertex_ai_entity_prediction_id);
+CREATE INDEX fetch_entity_prediction_jobs_twilio_message_id_index ON fetch_entity_prediction_jobs (twilio_message_id);
+CREATE INDEX audit_entries_phone_number_id_index ON audit_entries (phone_number_id);
+CREATE INDEX audit_entries_user_id_index ON audit_entries (user_id);
 CREATE FUNCTION trigger_set_updated_at() RETURNS TRIGGER AS $$
 BEGIN
   NEW.updated_at = NOW();
@@ -271,7 +285,9 @@ CREATE TRIGGER set_updated_at BEFORE UPDATE ON worker_settings FOR EACH ROW EXEC
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON vertex_ai_entity_predictions FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON twilio_message_entities FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON fetch_entity_prediction_jobs FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
-CREATE INDEX fetch_entity_prediction_jobs_twilio_message_id_index ON fetch_entity_prediction_jobs (twilio_message_id);
+CREATE TRIGGER set_updated_at BEFORE UPDATE ON audit_entries FOR EACH ROW EXECUTE PROCEDURE trigger_set_updated_at();
+ALTER TABLE audit_entries ADD CONSTRAINT audit_entries_ref_phone_number_id FOREIGN KEY (phone_number_id) REFERENCES phone_numbers (id) ON DELETE NO ACTION;
+ALTER TABLE audit_entries ADD CONSTRAINT audit_entries_ref_user_id FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE NO ACTION;
 ALTER TABLE fetch_entity_prediction_jobs ADD CONSTRAINT fetch_entity_prediction_jobs_ref_twilio_message_id FOREIGN KEY (twilio_message_id) REFERENCES twilio_messages (id) ON DELETE NO ACTION;
 ALTER TABLE phone_contacts ADD CONSTRAINT phone_contacts_ref_person_id FOREIGN KEY (person_id) REFERENCES people (id) ON DELETE NO ACTION;
 ALTER TABLE phone_contacts ADD CONSTRAINT phone_contacts_ref_phone_number_id FOREIGN KEY (phone_number_id) REFERENCES phone_numbers (id) ON DELETE NO ACTION;
