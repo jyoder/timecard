@@ -1,6 +1,5 @@
 module Tests.Application.Twilio.QuerySpec where
 
-import Application.Service.Transaction (withTransactionOrSavepoint)
 import qualified Application.Twilio.Query as Query
 import qualified Application.Twilio.TwilioMessage as TwilioMessage
 import Data.Set (elems)

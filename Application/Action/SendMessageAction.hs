@@ -11,16 +11,18 @@ module Application.Action.SendMessageAction (
 import qualified Application.Action.ActionRunState as ActionRunState
 import Application.Service.Transaction (withTransactionOrSavepoint)
 import Application.Service.Validation (validateAndCreate)
-import qualified Application.Twilio.Client as Client
+import qualified Application.Twilio.TwilioMessage as TwilioMessage
 import "string-interpolate" Data.String.Interpolate (i)
 import Database.PostgreSQL.Simple (Only (..), Query)
 import Database.PostgreSQL.Simple.FromRow (FromRow, field, fromRow)
 import Generated.Types
+import IHP.Fetch (fetch)
 import IHP.FrameworkConfig (FrameworkConfig)
 import IHP.ModelSupport
 import IHP.Prelude
 import IHP.ValidationSupport.ValidateField
 
+-- TODO: consider dropping fromNumber and toNumber from this structure
 data T = T
     { id :: !(Id SendMessageAction)
     , actionRunStateId :: !(Id ActionRunState)
@@ -104,23 +106,13 @@ schedule fromId toId body runsAt = do
 
 perform :: (?modelContext :: ModelContext, ?context :: FrameworkConfig) => T -> IO TwilioMessage
 perform sendMessageAction = do
-    Client.Response {..} <-
-        Client.sendPhoneMessage
-            Client.config
-            (get #fromNumber sendMessageAction)
-            (get #toNumber sendMessageAction)
-            (get #body sendMessageAction)
-
-    newRecord @TwilioMessage
-        |> set #apiVersion apiVersion
-        |> set #messageSid messageSid
-        |> set #accountSid accountSid
-        |> set #fromId (get #fromId sendMessageAction)
-        |> set #toId (get #toId sendMessageAction)
-        |> set #status status
-        |> set #body body
-        |> set #numMedia numMedia
-        |> createRecord
+    fromPhoneNumber <- fetch $ get #fromId sendMessageAction
+    toPhoneNumber <- fetch $ get #toId sendMessageAction
+    TwilioMessage.send
+        Nothing
+        fromPhoneNumber
+        toPhoneNumber
+        (get #body sendMessageAction)
 
 trackTableReads :: (?modelContext :: ModelContext) => IO ()
 trackTableReads = do

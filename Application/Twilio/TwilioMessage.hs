@@ -4,6 +4,7 @@ module Application.Twilio.TwilioMessage (
     delivered,
 ) where
 
+import qualified Application.Base.AuditEntry as AuditEntry
 import Application.Service.Validation (validateAndCreate)
 import qualified Application.Twilio.Client as Client
 import Data.ByteString.UTF8 (toString)
@@ -28,11 +29,12 @@ send ::
     , ConfigProvider context
     , ?modelContext :: ModelContext
     ) =>
+    Maybe (Id User) ->
     PhoneNumber ->
     PhoneNumber ->
     Text ->
     IO TwilioMessage
-send fromPhoneNumber toPhoneNumber body = do
+send userId fromPhoneNumber toPhoneNumber body = do
     Client.Response {..} <-
         Client.sendPhoneMessage
             Client.config
@@ -40,16 +42,24 @@ send fromPhoneNumber toPhoneNumber body = do
             (get #number toPhoneNumber)
             body
 
-    newRecord @TwilioMessage
-        |> set #apiVersion apiVersion
-        |> set #messageSid messageSid
-        |> set #accountSid accountSid
-        |> set #fromId (get #id fromPhoneNumber)
-        |> set #toId (get #id toPhoneNumber)
-        |> set #status status
-        |> set #body body
-        |> set #numMedia numMedia
-        |> validateAndCreate validate
+    twilioMessage <-
+        newRecord @TwilioMessage
+            |> set #apiVersion apiVersion
+            |> set #messageSid messageSid
+            |> set #accountSid accountSid
+            |> set #fromId (get #id fromPhoneNumber)
+            |> set #toId (get #id toPhoneNumber)
+            |> set #status status
+            |> set #body body
+            |> set #numMedia numMedia
+            |> validateAndCreate validate
+
+    AuditEntry.createMessageSentEntry
+        userId
+        twilioMessage
+        (get #number fromPhoneNumber)
+
+    pure twilioMessage
 
 statuses :: [Text]
 statuses =

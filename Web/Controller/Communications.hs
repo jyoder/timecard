@@ -297,7 +297,11 @@ instance Controller CommunicationsController where
         if body == ""
             then redirectTo CommunicationsPersonSelectionAction {..}
             else do
-                TwilioMessage.send fromPhoneNumber toPhoneNumber body
+                TwilioMessage.send
+                    (Just $ get #id currentUser)
+                    fromPhoneNumber
+                    toPhoneNumber
+                    body
                 redirectTo CommunicationsPersonSelectionAction {..}
     action CommunicationsEditScheduledMessageAction {..} = do
         let currentColumn = MessagesColumn
