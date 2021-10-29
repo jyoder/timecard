@@ -60,6 +60,40 @@ spec = do
                                     <> "\", twilioMessageSid = \"1234\", fromPhoneNumber = \"+15555555555\", messageBody = \"Hi there!\"}"
                                )
 
+        describe "createMessageReceivedEntry" do
+            itIO "returns a message received entry" do
+                fromPhoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+15555555555"
+                        |> createRecord
+
+                toPhoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+16666666666"
+                        |> createRecord
+
+                twilioMessage <-
+                    newRecord @TwilioMessage
+                        |> set #fromId (get #id fromPhoneNumber)
+                        |> set #toId (get #id toPhoneNumber)
+                        |> set #body "Hi there!"
+                        |> set #messageSid "1234"
+                        |> createRecord
+
+                auditEntry <-
+                    createMessageReceivedEntry
+                        twilioMessage
+                        "+16666666666"
+
+                get #phoneNumberId auditEntry `shouldBe` get #id fromPhoneNumber
+                get #userId auditEntry `shouldBe` Nothing
+                get #action auditEntry `shouldBe` MessageReceived
+                get #actionContext auditEntry
+                    `shouldBe` ( "MessageReceivedContext {twilioMessageId = \""
+                                    <> show (get #id twilioMessage)
+                                    <> "\", twilioMessageSid = \"1234\", toPhoneNumber = \"+16666666666\", messageBody = \"Hi there!\"}"
+                               )
+
         describe "createEntry" do
             itIO "saves and returns an audit entry" do
                 user <-

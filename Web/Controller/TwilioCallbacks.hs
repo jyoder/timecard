@@ -1,5 +1,6 @@
 module Web.Controller.TwilioCallbacks where
 
+import qualified Application.Base.AuditEntry as AuditEntry
 import qualified Application.Base.FetchEntityPredictionJob as FetchEntityPredictionJob
 import qualified Application.Brain.Process as Brain.Process
 import Application.Service.Transaction (withTransactionOrSavepoint)
@@ -59,7 +60,11 @@ instance Controller TwilioCallbacksController where
                     Log.error ("Failed to save incoming message: " <> show twilioMessage)
                     pure ()
                 Right twilioMessage -> do
-                    twilioMessage <- createRecord twilioMessage
+                    twilioMessage <- withTransactionOrSavepoint do
+                        twilioMessage <- createRecord twilioMessage
+                        AuditEntry.createMessageReceivedEntry twilioMessage (get #number toPhoneNumber)
+                        pure twilioMessage
+
                     newRecord @FetchEntityPredictionJob
                         |> set #twilioMessageId (get #id twilioMessage)
                         |> validateAndCreate FetchEntityPredictionJob.validate

@@ -12,6 +12,14 @@ data MessageSentContext = MessageSentContext
     }
     deriving (Eq, Show)
 
+data MessageReceivedContext = MessageReceivedContext
+    { twilioMessageId :: !Text
+    , twilioMessageSid :: !Text
+    , toPhoneNumber :: !Text
+    , messageBody :: !Text
+    }
+    deriving (Eq, Show)
+
 createMessageSentEntry ::
     (?modelContext :: ModelContext) =>
     Maybe (Id User) ->
@@ -31,6 +39,27 @@ messageSentContext twilioMessage fromPhoneNumber =
         { twilioMessageId = show $ get #id twilioMessage
         , twilioMessageSid = get #messageSid twilioMessage
         , fromPhoneNumber = fromPhoneNumber
+        , messageBody = get #body twilioMessage
+        }
+
+createMessageReceivedEntry ::
+    (?modelContext :: ModelContext) =>
+    TwilioMessage ->
+    Text ->
+    IO AuditEntry
+createMessageReceivedEntry twilioMessage toPhoneNumber =
+    createEntry
+        Nothing
+        (get #fromId twilioMessage)
+        MessageReceived
+        (show $ messageReceivedContext twilioMessage toPhoneNumber)
+
+messageReceivedContext :: TwilioMessage -> Text -> MessageReceivedContext
+messageReceivedContext twilioMessage toPhoneNumber =
+    MessageReceivedContext
+        { twilioMessageId = show $ get #id twilioMessage
+        , twilioMessageSid = get #messageSid twilioMessage
+        , toPhoneNumber = toPhoneNumber
         , messageBody = get #body twilioMessage
         }
 
