@@ -180,6 +180,18 @@ createTimecardEntryDeletedEntry userId phoneNumberId timecardEntry =
                 }
         )
 
+createReviewLinkGeneratedEntry ::
+    (?modelContext :: ModelContext) =>
+    Maybe (Id User) ->
+    Id PhoneNumber ->
+    Text ->
+    IO AuditEntry
+createReviewLinkGeneratedEntry userId phoneNumberId =
+    createEntry
+        userId
+        phoneNumberId
+        ReviewLinkGenerated
+
 createEntry ::
     (?modelContext :: ModelContext) =>
     Maybe (Id User) ->

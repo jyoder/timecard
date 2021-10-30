@@ -396,6 +396,7 @@ instance Controller CommunicationsController where
 
         now <- getCurrentTime
         ReviewRequest.scheduleRequest
+            (Just $ get #id currentUser)
             (baseUrl $ getFrameworkConfig ?context)
             now
             timecardId

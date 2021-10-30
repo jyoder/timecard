@@ -1,6 +1,7 @@
 module Application.Timecard.ReviewRequest where
 
 import qualified Application.Action.SendMessageAction as SendMessageAction
+import qualified Application.Base.AuditEntry as AuditEntry
 import Application.Base.WorkerSettings (Language (..))
 import qualified Application.Base.WorkerSettings as WorkerSettings
 import qualified Application.Timecard.AccessToken as Timecard.AccessToken
@@ -9,6 +10,7 @@ import IHP.ControllerPrelude
 
 scheduleRequest ::
     (?modelContext :: ModelContext) =>
+    Maybe (Id User) ->
     Text ->
     UTCTime ->
     Id Timecard ->
@@ -16,7 +18,7 @@ scheduleRequest ::
     Id PhoneNumber ->
     Id PhoneNumber ->
     IO SendMessageAction
-scheduleRequest baseUrl now timecardId worker fromPhoneNumberId toPhoneNumberId = do
+scheduleRequest userId baseUrl now timecardId worker fromPhoneNumberId toPhoneNumberId = do
     workerSettings <-
         query @WorkerSetting
             |> filterWhere (#personId, get #id worker)
@@ -29,7 +31,8 @@ scheduleRequest baseUrl now timecardId worker fromPhoneNumberId toPhoneNumberId 
     let link = reviewLink baseUrl (get #value accessToken)
         sendAt = requestTime now
         body = requestBody language (get #goesBy worker) link
-     in SendMessageAction.schedule fromPhoneNumberId toPhoneNumberId body sendAt
+    AuditEntry.createReviewLinkGeneratedEntry userId toPhoneNumberId link
+    SendMessageAction.schedule fromPhoneNumberId toPhoneNumberId body sendAt
   where
     expiresAt = Timecard.AccessToken.expirationFrom now
 

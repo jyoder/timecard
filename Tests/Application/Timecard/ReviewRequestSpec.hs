@@ -33,6 +33,12 @@ spec = do
     aroundAll (withApp RootApplication testConfig) do
         describe "scheduleRequest" do
             itIO "schedules a request for a timecard review" do
+                user <-
+                    newRecord @User
+                        |> set #email "test@user.com"
+                        |> set #passwordHash "some password hash"
+                        |> createRecord
+
                 bot <-
                     newRecord @Person
                         |> set #firstName "Tim"
@@ -81,6 +87,7 @@ spec = do
 
                 sendMessageAction <-
                     ReviewRequest.scheduleRequest
+                        (Just $ get #id user)
                         "https://fake.com"
                         (toUtc "2021-09-17 15:30:00 PDT")
                         (get #id timecard)
@@ -98,6 +105,14 @@ spec = do
                     `shouldBe` "Thanks Laura. Here's your timecard to review and sign:\nhttps://fake.com/ShowTimecardReview?accessToken="
                     <> accessTokenValue
                     <> "\n\nLet me know if you need me to make any corrections on it."
+
+                auditEntryCount <-
+                    query @AuditEntry
+                        |> filterWhere (#userId, Just $ get #id user)
+                        |> filterWhere (#phoneNumberId, get #id workerPhoneNumber)
+                        |> filterWhere (#action, ReviewLinkGenerated)
+                        |> fetchCount
+                auditEntryCount `shouldBe` 1
 
             itIO "schedules a request in Spanish if the worker prefers Spanish" do
                 bot <-
@@ -148,6 +163,7 @@ spec = do
 
                 sendMessageAction <-
                     ReviewRequest.scheduleRequest
+                        Nothing
                         "https://fake.com"
                         (toUtc "2021-09-17 15:30:00 PDT")
                         (get #id timecard)

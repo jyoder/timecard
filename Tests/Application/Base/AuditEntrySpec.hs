@@ -238,6 +238,36 @@ spec = do
                 get #actionContext auditEntry
                     `shouldBe` "TimecardEntryContext {timecardEntryId = 00000000-0000-0000-0000-000000000000, date = 2021-10-30, jobName = \"Costco\", clockedInAt = Just 07:00:00, clockedOutAt = Just 07:00:01, lunchDuration = Just 30, hoursWorked = 8.0, workDone = \"Ate chips.\", invoiceTranslation = \"Installed doors.\"}"
 
+        describe "createReviewLinkGeneratedEntry" do
+            itIO "returns a review link generated entry" do
+                phoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+15555555555"
+                        |> createRecord
+
+                let timecardEntry =
+                        newRecord @TimecardEntry
+                            |> set #date (toDay "2021-10-30")
+                            |> set #jobName "Costco"
+                            |> set #clockedInAt (Just $ toTimeOfDay "07:00:00")
+                            |> set #clockedOutAt (Just $ toTimeOfDay "07:00:01")
+                            |> set #lunchDuration (Just 30)
+                            |> set #hoursWorked 8.0
+                            |> set #workDone "Ate chips."
+                            |> set #invoiceTranslation "Installed doors."
+
+                auditEntry <-
+                    createReviewLinkGeneratedEntry
+                        Nothing
+                        (get #id phoneNumber)
+                        "https://barf.com"
+
+                get #phoneNumberId auditEntry `shouldBe` get #id phoneNumber
+                get #userId auditEntry `shouldBe` Nothing
+                get #action auditEntry `shouldBe` ReviewLinkGenerated
+                get #actionContext auditEntry
+                    `shouldBe` "https://barf.com"
+
         describe "createEntry" do
             itIO "saves and returns an audit entry" do
                 user <-
