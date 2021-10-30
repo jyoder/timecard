@@ -5,6 +5,7 @@ module Application.Timecard.EntryRequest (
 ) where
 
 import qualified Application.Action.SendMessageAction as SendMessageAction
+import qualified Application.Base.AuditEntry as AuditEntry
 import qualified Application.Base.WorkerSettings as WorkerSettings
 import Application.Service.Time (nextWorkingDay)
 import qualified Application.Timecard.Query as Timecard.Query
@@ -72,6 +73,7 @@ scheduleNextRequest timeZone now newEntry person fromId toId = do
     case maybeSendAt of
         Just sendAt -> do
             sendMessageAction <- SendMessageAction.schedule fromId toId body sendAt
+            AuditEntry.createDailyReminderScheduledEntry toId body sendAt
             pure $ Just sendMessageAction
         Nothing ->
             pure Nothing

@@ -41,6 +41,12 @@ data TimecardEntryContext = TimecardEntryContext
     }
     deriving (Eq, Show)
 
+data ScheduledMessageContext = ScheduledMessageContext
+    { sendAt :: !UTCTime
+    , body :: !Text
+    }
+    deriving (Eq, Show)
+
 createMessageSentEntry ::
     (?modelContext :: ModelContext) =>
     Maybe (Id User) ->
@@ -202,6 +208,19 @@ createReviewSignedEntry phoneNumberId =
         Nothing
         phoneNumberId
         ReviewSigned
+
+createDailyReminderScheduledEntry ::
+    (?modelContext :: ModelContext) =>
+    Id PhoneNumber ->
+    Text ->
+    UTCTime ->
+    IO AuditEntry
+createDailyReminderScheduledEntry toPhoneNumberId body sendAt =
+    createEntry
+        Nothing
+        toPhoneNumberId
+        DailyReminderScheduled
+        (show ScheduledMessageContext {..})
 
 createEntry ::
     (?modelContext :: ModelContext) =>
