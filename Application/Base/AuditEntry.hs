@@ -192,6 +192,17 @@ createReviewLinkGeneratedEntry userId phoneNumberId =
         phoneNumberId
         ReviewLinkGenerated
 
+createReviewSignedEntry ::
+    (?modelContext :: ModelContext) =>
+    Id PhoneNumber ->
+    Text ->
+    IO AuditEntry
+createReviewSignedEntry phoneNumberId =
+    createEntry
+        Nothing
+        phoneNumberId
+        ReviewSigned
+
 createEntry ::
     (?modelContext :: ModelContext) =>
     Maybe (Id User) ->

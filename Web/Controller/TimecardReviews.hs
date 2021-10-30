@@ -1,6 +1,8 @@
 module Web.Controller.TimecardReviews where
 
 import qualified Application.Base.AccessToken as AccessToken
+import qualified Application.Base.AuditEntry as AuditEntry
+import qualified Application.Base.PhoneNumber as PhoneNumber
 import qualified Application.Base.Signing as Signing
 import qualified Application.People.Person as Person
 import Application.Service.Transaction (withTransactionOrSavepoint)
@@ -77,6 +79,7 @@ instance Controller TimecardReviewsController where
                     (get #timecardId timecardAccessToken)
 
         person <- fetch (get #personId timecard)
+        phoneNumber <- PhoneNumber.fetchByPerson $ get #id person
 
         withTransactionOrSavepoint do
             now <- getCurrentTime
@@ -93,6 +96,8 @@ instance Controller TimecardReviewsController where
                         signing <- createRecord signing
                         let timecardId = get #id timecard
                         let signingId = get #id signing
-                        Timecard.Signing.create timecardId signingId >> pure ()
+                        Timecard.Signing.create timecardId signingId
+                        AuditEntry.createReviewSignedEntry (get #id phoneNumber) name
+                        pure ()
 
         redirectTo $ ShowTimecardReviewAction accessTokenValue

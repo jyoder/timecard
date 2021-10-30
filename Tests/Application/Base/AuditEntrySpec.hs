@@ -245,17 +245,6 @@ spec = do
                         |> set #number "+15555555555"
                         |> createRecord
 
-                let timecardEntry =
-                        newRecord @TimecardEntry
-                            |> set #date (toDay "2021-10-30")
-                            |> set #jobName "Costco"
-                            |> set #clockedInAt (Just $ toTimeOfDay "07:00:00")
-                            |> set #clockedOutAt (Just $ toTimeOfDay "07:00:01")
-                            |> set #lunchDuration (Just 30)
-                            |> set #hoursWorked 8.0
-                            |> set #workDone "Ate chips."
-                            |> set #invoiceTranslation "Installed doors."
-
                 auditEntry <-
                     createReviewLinkGeneratedEntry
                         Nothing
@@ -267,6 +256,20 @@ spec = do
                 get #action auditEntry `shouldBe` ReviewLinkGenerated
                 get #actionContext auditEntry
                     `shouldBe` "https://barf.com"
+
+        describe "createReviewSignedEntry" do
+            itIO "returns a review signed entry" do
+                phoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+15555555555"
+                        |> createRecord
+
+                auditEntry <- createReviewSignedEntry (get #id phoneNumber) "Dustin Hoffman"
+
+                get #phoneNumberId auditEntry `shouldBe` get #id phoneNumber
+                get #userId auditEntry `shouldBe` Nothing
+                get #action auditEntry `shouldBe` ReviewSigned
+                get #actionContext auditEntry `shouldBe` "Dustin Hoffman"
 
         describe "createEntry" do
             itIO "saves and returns an audit entry" do
