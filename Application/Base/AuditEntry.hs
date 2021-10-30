@@ -5,7 +5,7 @@ import IHP.ModelSupport
 import IHP.Prelude
 
 data MessageSentContext = MessageSentContext
-    { twilioMessageId :: !Text
+    { twilioMessageId :: !(Id TwilioMessage)
     , twilioMessageSid :: !Text
     , fromPhoneNumber :: !Text
     , messageBody :: !Text
@@ -28,6 +28,19 @@ data MessageProcessedContext = MessageProcessedContext
     }
     deriving (Eq, Show)
 
+data TimecardEntryContext = TimecardEntryContext
+    { timecardEntryId :: !(Id TimecardEntry)
+    , date :: !Day
+    , jobName :: !Text
+    , clockedInAt :: !(Maybe TimeOfDay)
+    , clockedOutAt :: !(Maybe TimeOfDay)
+    , lunchDuration :: !(Maybe Int)
+    , hoursWorked :: !Double
+    , workDone :: !Text
+    , invoiceTranslation :: !Text
+    }
+    deriving (Eq, Show)
+
 createMessageSentEntry ::
     (?modelContext :: ModelContext) =>
     Maybe (Id User) ->
@@ -44,7 +57,7 @@ createMessageSentEntry userId twilioMessage fromPhoneNumber =
 messageSentContext :: TwilioMessage -> Text -> MessageSentContext
 messageSentContext twilioMessage fromPhoneNumber =
     MessageSentContext
-        { twilioMessageId = show $ get #id twilioMessage
+        { twilioMessageId = get #id twilioMessage
         , twilioMessageSid = get #messageSid twilioMessage
         , fromPhoneNumber = fromPhoneNumber
         , messageBody = get #body twilioMessage
@@ -91,6 +104,81 @@ messageProcessedContext twilioMessage situation plan =
         , messageBody = get #body twilioMessage
         , ..
         }
+
+createTimecardEntryCreatedEntry ::
+    (?modelContext :: ModelContext) =>
+    Maybe (Id User) ->
+    Id PhoneNumber ->
+    TimecardEntry ->
+    IO AuditEntry
+createTimecardEntryCreatedEntry userId phoneNumberId timecardEntry =
+    createEntry
+        userId
+        phoneNumberId
+        TimecardEntryCreated
+        ( show $
+            TimecardEntryContext
+                { timecardEntryId = get #id timecardEntry
+                , date = get #date timecardEntry
+                , jobName = get #jobName timecardEntry
+                , clockedInAt = get #clockedInAt timecardEntry
+                , clockedOutAt = get #clockedOutAt timecardEntry
+                , lunchDuration = get #lunchDuration timecardEntry
+                , hoursWorked = get #hoursWorked timecardEntry
+                , workDone = get #workDone timecardEntry
+                , invoiceTranslation = get #invoiceTranslation timecardEntry
+                }
+        )
+
+createTimecardEntryEditedEntry ::
+    (?modelContext :: ModelContext) =>
+    Maybe (Id User) ->
+    Id PhoneNumber ->
+    TimecardEntry ->
+    IO AuditEntry
+createTimecardEntryEditedEntry userId phoneNumberId timecardEntry =
+    createEntry
+        userId
+        phoneNumberId
+        TimecardEntryEdited
+        ( show $
+            TimecardEntryContext
+                { timecardEntryId = get #id timecardEntry
+                , date = get #date timecardEntry
+                , jobName = get #jobName timecardEntry
+                , clockedInAt = get #clockedInAt timecardEntry
+                , clockedOutAt = get #clockedOutAt timecardEntry
+                , lunchDuration = get #lunchDuration timecardEntry
+                , hoursWorked = get #hoursWorked timecardEntry
+                , workDone = get #workDone timecardEntry
+                , invoiceTranslation = get #invoiceTranslation timecardEntry
+                }
+        )
+
+createTimecardEntryDeletedEntry ::
+    (?modelContext :: ModelContext) =>
+    Maybe (Id User) ->
+    Id PhoneNumber ->
+    TimecardEntry ->
+    IO AuditEntry
+createTimecardEntryDeletedEntry userId phoneNumberId timecardEntry =
+    createEntry
+        userId
+        phoneNumberId
+        TimecardEntryDeleted
+        ( show $
+            TimecardEntryContext
+                { timecardEntryId = get #id timecardEntry
+                , date = get #date timecardEntry
+                , jobName = get #jobName timecardEntry
+                , clockedInAt = get #clockedInAt timecardEntry
+                , clockedOutAt = get #clockedOutAt timecardEntry
+                , lunchDuration = get #lunchDuration timecardEntry
+                , hoursWorked = get #hoursWorked timecardEntry
+                , workDone = get #workDone timecardEntry
+                , invoiceTranslation = get #invoiceTranslation timecardEntry
+                }
+        )
 
 createEntry ::
     (?modelContext :: ModelContext) =>

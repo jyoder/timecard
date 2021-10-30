@@ -70,8 +70,8 @@ spec = do
                         |> fetchOne
 
                 get #actionContext auditEntry
-                    `shouldBe` "MessageSentContext {twilioMessageId = \""
+                    `shouldBe` "MessageSentContext {twilioMessageId = "
                         <> show (get #id twilioMessage)
-                        <> "\", twilioMessageSid = "
+                        <> ", twilioMessageSid = "
                         <> show (get #messageSid twilioMessage)
                         <> ", fromPhoneNumber = \"+14444444444\", messageBody = \"Hi there!\"}"

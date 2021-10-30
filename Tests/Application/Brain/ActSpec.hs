@@ -167,7 +167,9 @@ spec = do
                             |> set #workDone "work"
                             |> set #invoiceTranslation "invoice"
                             |> Timecard.Entry.create
+                                Nothing
                                 (get #id worker)
+                                (get #id workerPhoneNumber)
                                 []
 
                     timecardEntryTuesday <-
@@ -178,7 +180,9 @@ spec = do
                             |> set #workDone "work"
                             |> set #invoiceTranslation "invoice"
                             |> Timecard.Entry.create
+                                Nothing
                                 (get #id worker)
+                                (get #id workerPhoneNumber)
                                 []
 
                     timecardEntryWednesday <-
@@ -189,7 +193,9 @@ spec = do
                             |> set #workDone "work"
                             |> set #invoiceTranslation "invoice"
                             |> Timecard.Entry.create
+                                Nothing
                                 (get #id worker)
+                                (get #id workerPhoneNumber)
                                 []
 
                     timecardEntryThursday <-
@@ -200,7 +206,9 @@ spec = do
                             |> set #workDone "work"
                             |> set #invoiceTranslation "invoice"
                             |> Timecard.Entry.create
+                                Nothing
                                 (get #id worker)
+                                (get #id workerPhoneNumber)
                                 []
 
                     twilioMessage <-

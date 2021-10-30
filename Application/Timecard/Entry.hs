@@ -5,6 +5,7 @@ module Application.Timecard.Entry (
     validate,
 ) where
 
+import qualified Application.Base.AuditEntry as AuditEntry
 import Application.Service.Time (startOfWeek)
 import Application.Service.Transaction (withTransactionOrSavepoint)
 import Application.Timecard.EntryMessage as Timecard.EntryMessage
@@ -14,11 +15,13 @@ import IHP.ControllerPrelude hiding (create, delete)
 
 create ::
     (?modelContext :: ModelContext) =>
+    Maybe (Id User) ->
     Id Person ->
+    Id PhoneNumber ->
     [Id TwilioMessage] ->
     TimecardEntry ->
     IO (Either TimecardEntry TimecardEntry)
-create personId twilioMessageIds timecardEntry =
+create userId personId phoneNumberId twilioMessageIds timecardEntry =
     withTransactionOrSavepoint do
         timecardEntry <- setTimecardId personId timecardEntry
         validate timecardEntry
@@ -27,15 +30,18 @@ create personId twilioMessageIds timecardEntry =
                     pure $ Left timecardEntry
                 Right timecardEntry -> do
                     timecardEntry <- createRecord timecardEntry
+                    AuditEntry.createTimecardEntryCreatedEntry userId phoneNumberId timecardEntry
                     Timecard.EntryMessage.createAll (get #id timecardEntry) twilioMessageIds
                     pure $ Right timecardEntry
 
 update ::
     (?modelContext :: ModelContext) =>
+    Maybe (Id User) ->
+    Id PhoneNumber ->
     [Id TwilioMessage] ->
     TimecardEntry ->
     IO (Either TimecardEntry TimecardEntry)
-update twilioMessageIds timecardEntry = do
+update userId phoneNumberId twilioMessageIds timecardEntry = do
     withTransactionOrSavepoint do
         timecard <- fetch (get #timecardId timecardEntry)
         timecardEntry <- setTimecardId (get #personId timecard) timecardEntry
@@ -45,17 +51,23 @@ update twilioMessageIds timecardEntry = do
                     pure $ Left timecardEntry
                 Right timecardEntry -> do
                     timecardEntry <- updateRecord timecardEntry
+                    AuditEntry.createTimecardEntryEditedEntry userId phoneNumberId timecardEntry
                     Timecard.EntryMessage.replaceAll (get #id timecardEntry) twilioMessageIds
                     pure $ Right timecardEntry
 
 delete ::
     (?modelContext :: ModelContext) =>
+    Maybe (Id User) ->
+    Id PhoneNumber ->
     Id TimecardEntry ->
     IO ()
-delete timecardEntryId =
+delete userId phoneNumberId timecardEntryId =
     withTransactionOrSavepoint do
         Timecard.EntryMessage.deleteAll timecardEntryId
-        deleteRecordById @TimecardEntry timecardEntryId
+        timecardEntry <- fetch timecardEntryId
+        deleteRecord timecardEntry
+        AuditEntry.createTimecardEntryDeletedEntry userId phoneNumberId timecardEntry
+        pure ()
 
 setTimecardId ::
     (?modelContext :: ModelContext) =>

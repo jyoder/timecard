@@ -203,7 +203,11 @@ instance Controller CommunicationsController where
 
         newRecord @TimecardEntry
             |> buildTimecardEntry
-            |> Timecard.Entry.create selectedPersonId selectedMessageIds
+            |> Timecard.Entry.create
+                (Just $ get #id currentUser)
+                selectedPersonId
+                (get #id toPhoneNumber)
+                selectedMessageIds
                 >>= either
                     ( \timecardEntry -> do
                         people <-
@@ -242,12 +246,16 @@ instance Controller CommunicationsController where
         let currentColumn = TimecardsColumn
         let column = Just $ columnToParam currentColumn
         let selectedPersonId = param @(Id Person) "selectedPersonId"
+        toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
         let selectedMessageIds = param @[Id TwilioMessage] "selectedMessageIds"
         timecardEntry <- fetch timecardEntryId
 
         timecardEntry
             |> buildTimecardEntry
-            |> Timecard.Entry.update selectedMessageIds
+            |> Timecard.Entry.update
+                (Just $ get #id currentUser)
+                (get #id toPhoneNumber)
+                selectedMessageIds
                 >>= either
                     ( \timecardEntry -> do
                         botId <- Person.fetchBotId
@@ -259,7 +267,6 @@ instance Controller CommunicationsController where
                         messages <-
                             Twilio.Query.fetchByPeople botId selectedPersonId
                                 <&> Twilio.View.buildMessages
-                        toPhoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
                         let selectedMessages = findSelectedMessages messages selectedMessageIds
                         scheduledMessages <-
                             SendMessageAction.fetchNotStartedOrSuspendedByPhoneNumber
@@ -280,7 +287,13 @@ instance Controller CommunicationsController where
     action CommunicationsDeleteTimecardEntryAction {selectedPersonId, timecardEntryId} = do
         let currentColumn = TimecardsColumn
         let column = Just $ columnToParam currentColumn
-        Timecard.Entry.delete timecardEntryId
+        phoneNumber <- PhoneNumber.fetchByPerson selectedPersonId
+
+        Timecard.Entry.delete
+            (Just $ get #id currentUser)
+            (get #id phoneNumber)
+            timecardEntryId
+
         redirectTo CommunicationsPersonSelectionAction {..}
     --
     action CommunicationsSendPhoneMessageAction = do
@@ -303,6 +316,7 @@ instance Controller CommunicationsController where
                     toPhoneNumber
                     body
                 redirectTo CommunicationsPersonSelectionAction {..}
+    --
     action CommunicationsEditScheduledMessageAction {..} = do
         let currentColumn = MessagesColumn
         sendMessageAction <- fetch sendMessageActionId
