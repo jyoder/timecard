@@ -76,9 +76,20 @@ spec = do
                         |> set #body "Hi!"
                         |> createRecord
 
+                auditEntryCount <-
+                    query @AuditEntry
+                        |> filterWhere (#phoneNumberId, get #fromId twilioMessage)
+                        |> fetchCount
+
                 Brain.Process.processIncomingMessage
                     "https://timecard.company.com"
                     twilioMessage
 
                 actionRunState <- fetch $ get #actionRunStateId sendMessageAction
                 get #state actionRunState `shouldBe` ActionRunState.suspended
+
+                auditEntryCount' <-
+                    query @AuditEntry
+                        |> filterWhere (#phoneNumberId, get #fromId twilioMessage)
+                        |> fetchCount
+                auditEntryCount' `shouldBe` auditEntryCount + 1

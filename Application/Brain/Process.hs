@@ -2,6 +2,7 @@ module Application.Brain.Process (
     processIncomingMessage,
 ) where
 
+import qualified Application.Base.AuditEntry as AuditEntry
 import qualified Application.Brain.Act as Act
 import qualified Application.Brain.Decide as Decide
 import qualified Application.Brain.Observe as Observe
@@ -31,4 +32,11 @@ processIncomingMessage baseUrl twilioMessage = do
             let situation = Orient.orient observations
             let plan = Decide.decide situation
             Act.act baseUrl plan
+
+            AuditEntry.createMessageProcessedEntry
+                twilioMessage
+                (show situation)
+                (show plan)
+
+            pure ()
         [] -> pure ()
