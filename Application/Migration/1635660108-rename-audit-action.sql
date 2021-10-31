@@ -1,6 +1,6 @@
-alter type "public"."audit_actions" rename to "audit_actions__old_version_to_be_dropped";
+alter type audit_actions rename to audit_actions__old_version_to_be_dropped;
 
-create type "public"."audit_actions" as enum (
+create type audit_actions as enum (
     'message_sent',
     'message_received',
     'message_processed',
@@ -17,9 +17,9 @@ create type "public"."audit_actions" as enum (
     'scheduled_message_canceled'
 );
 
-alter table "public"."audit_entries"
-    alter column action type "public"."audit_actions"
-    using action::text "public"."audit_actions";
+alter table audit_entries
+    alter column action type audit_actions
+    using action::text audit_actions;
 
-drop type "public"."audit_actions__old_version_to_be_dropped";
+drop type audit_actions__old_version_to_be_dropped;
 
