@@ -222,6 +222,19 @@ createDailyReminderScheduledEntry toPhoneNumberId body sendAt =
         DailyReminderScheduled
         (show ScheduledMessageContext {..})
 
+createReviewRequestScheduledEntry ::
+    (?modelContext :: ModelContext) =>
+    Id PhoneNumber ->
+    Text ->
+    UTCTime ->
+    IO AuditEntry
+createReviewRequestScheduledEntry toPhoneNumberId body sendAt =
+    createEntry
+        Nothing
+        toPhoneNumberId
+        ReviewRequestScheduled
+        (show ScheduledMessageContext {..})
+
 createEntry ::
     (?modelContext :: ModelContext) =>
     Maybe (Id User) ->

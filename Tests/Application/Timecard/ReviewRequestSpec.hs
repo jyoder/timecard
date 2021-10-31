@@ -95,7 +95,10 @@ spec = do
                         (get #id botPhoneNumber)
                         (get #id workerPhoneNumber)
 
-                timecardAccessToken <- query @TimecardAccessToken |> filterWhere (#timecardId, get #id timecard) |> fetchOne
+                timecardAccessToken <-
+                    query @TimecardAccessToken
+                        |> filterWhere (#timecardId, get #id timecard)
+                        |> fetchOne
                 accessToken <- fetch $ get #accessTokenId timecardAccessToken
                 let accessTokenValue = get #value accessToken
 
@@ -106,13 +109,21 @@ spec = do
                     <> accessTokenValue
                     <> "\n\nLet me know if you need me to make any corrections on it."
 
-                auditEntryCount <-
+                reviewLinkGeneratedCount <-
                     query @AuditEntry
                         |> filterWhere (#userId, Just $ get #id user)
                         |> filterWhere (#phoneNumberId, get #id workerPhoneNumber)
                         |> filterWhere (#action, ReviewLinkGenerated)
                         |> fetchCount
-                auditEntryCount `shouldBe` 1
+                reviewLinkGeneratedCount `shouldBe` 1
+
+                reviewRequestScheduledCount <-
+                    query @AuditEntry
+                        |> filterWhere (#userId, Nothing)
+                        |> filterWhere (#phoneNumberId, get #id workerPhoneNumber)
+                        |> filterWhere (#action, ReviewRequestScheduled)
+                        |> fetchCount
+                reviewRequestScheduledCount `shouldBe` 1
 
             itIO "schedules a request in Spanish if the worker prefers Spanish" do
                 bot <-

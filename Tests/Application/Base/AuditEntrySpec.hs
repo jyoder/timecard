@@ -289,6 +289,24 @@ spec = do
                 get #action auditEntry `shouldBe` DailyReminderScheduled
                 get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
 
+        describe "createReviewRequestScheduledEntry" do
+            itIO "returns a daily reminder scheduled entry" do
+                phoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+15555555555"
+                        |> createRecord
+
+                auditEntry <-
+                    createReviewRequestScheduledEntry
+                        (get #id phoneNumber)
+                        "Yo!"
+                        (toUtc "2021-10-30 07:00:00 PDT")
+
+                get #phoneNumberId auditEntry `shouldBe` get #id phoneNumber
+                get #userId auditEntry `shouldBe` Nothing
+                get #action auditEntry `shouldBe` ReviewRequestScheduled
+                get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
+
         describe "createEntry" do
             itIO "saves and returns an audit entry" do
                 user <-
