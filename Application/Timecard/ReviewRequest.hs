@@ -32,8 +32,10 @@ scheduleRequest userId baseUrl now timecardId worker fromPhoneNumberId toPhoneNu
         sendAt = requestTime now
         body = requestBody language (get #goesBy worker) link
     AuditEntry.createReviewLinkGeneratedEntry userId toPhoneNumberId link
-    AuditEntry.createReviewRequestScheduledEntry toPhoneNumberId body sendAt
-    SendMessageAction.schedule fromPhoneNumberId toPhoneNumberId body sendAt
+
+    sendMessageAction <- SendMessageAction.schedule fromPhoneNumberId toPhoneNumberId body sendAt
+    AuditEntry.createReviewRequestScheduledEntry sendMessageAction sendAt
+    pure sendMessageAction
   where
     expiresAt = Timecard.AccessToken.expirationFrom now
 

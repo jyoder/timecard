@@ -42,7 +42,8 @@ data TimecardEntryContext = TimecardEntryContext
     deriving (Eq, Show)
 
 data ScheduledMessageContext = ScheduledMessageContext
-    { sendAt :: !UTCTime
+    { sendMessageActionId :: !(Id SendMessageAction)
+    , sendAt :: !UTCTime
     , body :: !Text
     }
     deriving (Eq, Show)
@@ -211,84 +212,114 @@ createReviewSignedEntry phoneNumberId =
 
 createDailyReminderScheduledEntry ::
     (?modelContext :: ModelContext) =>
-    Id PhoneNumber ->
-    Text ->
+    SendMessageAction ->
     UTCTime ->
     IO AuditEntry
-createDailyReminderScheduledEntry toPhoneNumberId body sendAt =
+createDailyReminderScheduledEntry sendMessageAction sendAt =
     createEntry
         Nothing
-        toPhoneNumberId
+        (get #toId sendMessageAction)
         DailyReminderScheduled
-        (show ScheduledMessageContext {..})
+        ( show
+            ScheduledMessageContext
+                { sendMessageActionId = get #id sendMessageAction
+                , body = get #body sendMessageAction
+                , ..
+                }
+        )
 
 createReviewRequestScheduledEntry ::
     (?modelContext :: ModelContext) =>
-    Id PhoneNumber ->
-    Text ->
+    SendMessageAction ->
     UTCTime ->
     IO AuditEntry
-createReviewRequestScheduledEntry toPhoneNumberId body sendAt =
+createReviewRequestScheduledEntry sendMessageAction sendAt =
     createEntry
         Nothing
-        toPhoneNumberId
+        (get #toId sendMessageAction)
         ReviewRequestScheduled
-        (show ScheduledMessageContext {..})
+        ( show
+            ScheduledMessageContext
+                { sendMessageActionId = get #id sendMessageAction
+                , body = get #body sendMessageAction
+                , ..
+                }
+        )
 
 createScheduledMessageEditedEntry ::
     (?modelContext :: ModelContext) =>
     Id User ->
-    Id PhoneNumber ->
-    Text ->
+    SendMessageAction ->
     UTCTime ->
     IO AuditEntry
-createScheduledMessageEditedEntry userId toPhoneNumberId body sendAt =
+createScheduledMessageEditedEntry userId sendMessageAction sendAt =
     createEntry
         (Just userId)
-        toPhoneNumberId
+        (get #toId sendMessageAction)
         ScheduledMessageEdited
-        (show ScheduledMessageContext {..})
+        ( show
+            ScheduledMessageContext
+                { sendMessageActionId = get #id sendMessageAction
+                , body = get #body sendMessageAction
+                , ..
+                }
+        )
 
 createScheduledMessageSuspendedEntry ::
     (?modelContext :: ModelContext) =>
-    Id PhoneNumber ->
-    Text ->
+    SendMessageAction ->
     UTCTime ->
     IO AuditEntry
-createScheduledMessageSuspendedEntry toPhoneNumberId body sendAt =
+createScheduledMessageSuspendedEntry sendMessageAction sendAt =
     createEntry
         Nothing
-        toPhoneNumberId
+        (get #toId sendMessageAction)
         ScheduledMessageSuspended
-        (show ScheduledMessageContext {..})
+        ( show
+            ScheduledMessageContext
+                { sendMessageActionId = get #id sendMessageAction
+                , body = get #body sendMessageAction
+                , ..
+                }
+        )
 
 createScheduledMessageResumedEntry ::
     (?modelContext :: ModelContext) =>
     Maybe (Id User) ->
-    Id PhoneNumber ->
-    Text ->
+    SendMessageAction ->
     UTCTime ->
     IO AuditEntry
-createScheduledMessageResumedEntry userId toPhoneNumberId body sendAt =
+createScheduledMessageResumedEntry userId sendMessageAction sendAt =
     createEntry
         userId
-        toPhoneNumberId
+        (get #toId sendMessageAction)
         ScheduledMessageResumed
-        (show ScheduledMessageContext {..})
+        ( show
+            ScheduledMessageContext
+                { sendMessageActionId = get #id sendMessageAction
+                , body = get #body sendMessageAction
+                , ..
+                }
+        )
 
 createScheduledMessageDeletedEntry ::
     (?modelContext :: ModelContext) =>
     Maybe (Id User) ->
-    Id PhoneNumber ->
-    Text ->
+    SendMessageAction ->
     UTCTime ->
     IO AuditEntry
-createScheduledMessageDeletedEntry userId toPhoneNumberId body sendAt =
+createScheduledMessageDeletedEntry userId sendMessageAction sendAt =
     createEntry
         userId
-        toPhoneNumberId
+        (get #toId sendMessageAction)
         ScheduledMessageDeleted
-        (show ScheduledMessageContext {..})
+        ( show
+            ScheduledMessageContext
+                { sendMessageActionId = get #id sendMessageAction
+                , body = get #body sendMessageAction
+                , ..
+                }
+        )
 
 createEntry ::
     (?modelContext :: ModelContext) =>

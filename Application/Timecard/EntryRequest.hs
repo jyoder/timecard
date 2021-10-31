@@ -73,7 +73,7 @@ scheduleNextRequest timeZone now newEntry person fromId toId = do
     case maybeSendAt of
         Just sendAt -> do
             sendMessageAction <- SendMessageAction.schedule fromId toId body sendAt
-            AuditEntry.createDailyReminderScheduledEntry toId body sendAt
+            AuditEntry.createDailyReminderScheduledEntry sendMessageAction sendAt
             pure $ Just sendMessageAction
         Nothing ->
             pure Nothing

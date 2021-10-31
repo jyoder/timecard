@@ -371,8 +371,7 @@ instance Controller CommunicationsController where
                             sendMessageAction |> updateRecord
                             AuditEntry.createScheduledMessageEditedEntry
                                 (get #id currentUser)
-                                (get #toId sendMessageAction)
-                                (get #body sendMessageAction)
+                                sendMessageAction
                                 (get #runsAt actionRunState)
                             pure ()
             Nothing ->
@@ -384,8 +383,7 @@ instance Controller CommunicationsController where
                 ActionRunState.updateCanceled actionRunState
                 AuditEntry.createScheduledMessageDeletedEntry
                     (Just $ get #id currentUser)
-                    (get #toId sendMessageAction)
-                    (get #body sendMessageAction)
+                    sendMessageAction
                     (get #runsAt actionRunState)
                 pure ()
             else
@@ -394,8 +392,7 @@ instance Controller CommunicationsController where
                         ActionRunState.updateNotStarted actionRunState
                         AuditEntry.createScheduledMessageResumedEntry
                             (Just $ get #id currentUser)
-                            (get #toId sendMessageAction)
-                            (get #body sendMessageAction)
+                            sendMessageAction
                             (get #runsAt actionRunState)
                         pure ()
                     else pure ()

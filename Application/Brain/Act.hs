@@ -22,8 +22,7 @@ act _ Decide.SuspendScheduledMessages {..} = do
                     |> fetchOne
             ActionRunState.updateSuspended actionRunState
             AuditEntry.createScheduledMessageSuspendedEntry
-                (get #toId sendMessageAction)
-                (get #body sendMessageAction)
+                sendMessageAction
                 (get #runsAt actionRunState)
         )
         actionRunState

@@ -278,16 +278,21 @@ spec = do
                         |> set #number "+15555555555"
                         |> createRecord
 
+                let sendMessageAction =
+                        newRecord @SendMessageAction
+                            |> set #id "10000000-0000-0000-0000-000000000000"
+                            |> set #toId (get #id phoneNumber)
+                            |> set #body "Yo!"
+
                 auditEntry <-
                     createDailyReminderScheduledEntry
-                        (get #id phoneNumber)
-                        "Yo!"
+                        sendMessageAction
                         (toUtc "2021-10-30 07:00:00 PDT")
 
                 get #phoneNumberId auditEntry `shouldBe` get #id phoneNumber
                 get #userId auditEntry `shouldBe` Nothing
                 get #action auditEntry `shouldBe` DailyReminderScheduled
-                get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
+                get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendMessageActionId = 10000000-0000-0000-0000-000000000000, sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
 
         describe "createReviewRequestScheduledEntry" do
             itIO "returns a review request scheduled entry" do
@@ -296,16 +301,21 @@ spec = do
                         |> set #number "+15555555555"
                         |> createRecord
 
+                let sendMessageAction =
+                        newRecord @SendMessageAction
+                            |> set #id "10000000-0000-0000-0000-000000000000"
+                            |> set #toId (get #id phoneNumber)
+                            |> set #body "Yo!"
+
                 auditEntry <-
                     createReviewRequestScheduledEntry
-                        (get #id phoneNumber)
-                        "Yo!"
+                        sendMessageAction
                         (toUtc "2021-10-30 07:00:00 PDT")
 
                 get #phoneNumberId auditEntry `shouldBe` get #id phoneNumber
                 get #userId auditEntry `shouldBe` Nothing
                 get #action auditEntry `shouldBe` ReviewRequestScheduled
-                get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
+                get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendMessageActionId = 10000000-0000-0000-0000-000000000000, sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
 
         describe "createScheduledMessageEditedEntry" do
             itIO "returns a scheduled message edited entry" do
@@ -320,17 +330,22 @@ spec = do
                         |> set #number "+15555555555"
                         |> createRecord
 
+                let sendMessageAction =
+                        newRecord @SendMessageAction
+                            |> set #id "10000000-0000-0000-0000-000000000000"
+                            |> set #toId (get #id phoneNumber)
+                            |> set #body "Yo!"
+
                 auditEntry <-
                     createScheduledMessageEditedEntry
                         (get #id user)
-                        (get #id phoneNumber)
-                        "Yo!"
+                        sendMessageAction
                         (toUtc "2021-10-30 07:00:00 PDT")
 
                 get #phoneNumberId auditEntry `shouldBe` get #id phoneNumber
                 get #userId auditEntry `shouldBe` Just (get #id user)
                 get #action auditEntry `shouldBe` ScheduledMessageEdited
-                get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
+                get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendMessageActionId = 10000000-0000-0000-0000-000000000000, sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
 
         describe "createScheduledMessageSuspendedEntry" do
             itIO "returns a scheduled message suspended entry" do
@@ -339,16 +354,21 @@ spec = do
                         |> set #number "+15555555555"
                         |> createRecord
 
+                let sendMessageAction =
+                        newRecord @SendMessageAction
+                            |> set #id "10000000-0000-0000-0000-000000000000"
+                            |> set #toId (get #id phoneNumber)
+                            |> set #body "Yo!"
+
                 auditEntry <-
                     createScheduledMessageSuspendedEntry
-                        (get #id phoneNumber)
-                        "Yo!"
+                        sendMessageAction
                         (toUtc "2021-10-30 07:00:00 PDT")
 
                 get #phoneNumberId auditEntry `shouldBe` get #id phoneNumber
                 get #userId auditEntry `shouldBe` Nothing
                 get #action auditEntry `shouldBe` ScheduledMessageSuspended
-                get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
+                get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendMessageActionId = 10000000-0000-0000-0000-000000000000, sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
 
         describe "createScheduledMessageResumedEntry" do
             itIO "returns a scheduled message resumed entry" do
@@ -357,17 +377,22 @@ spec = do
                         |> set #number "+15555555555"
                         |> createRecord
 
+                let sendMessageAction =
+                        newRecord @SendMessageAction
+                            |> set #id "10000000-0000-0000-0000-000000000000"
+                            |> set #toId (get #id phoneNumber)
+                            |> set #body "Yo!"
+
                 auditEntry <-
                     createScheduledMessageResumedEntry
                         Nothing
-                        (get #id phoneNumber)
-                        "Yo!"
+                        sendMessageAction
                         (toUtc "2021-10-30 07:00:00 PDT")
 
                 get #phoneNumberId auditEntry `shouldBe` get #id phoneNumber
                 get #userId auditEntry `shouldBe` Nothing
                 get #action auditEntry `shouldBe` ScheduledMessageResumed
-                get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
+                get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendMessageActionId = 10000000-0000-0000-0000-000000000000, sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
 
         describe "createScheduledMessageDeletedEntry" do
             itIO "returns a scheduled message deleted entry" do
@@ -376,17 +401,22 @@ spec = do
                         |> set #number "+15555555555"
                         |> createRecord
 
+                let sendMessageAction =
+                        newRecord @SendMessageAction
+                            |> set #id "10000000-0000-0000-0000-000000000000"
+                            |> set #toId (get #id phoneNumber)
+                            |> set #body "Yo!"
+
                 auditEntry <-
                     createScheduledMessageDeletedEntry
                         Nothing
-                        (get #id phoneNumber)
-                        "Yo!"
+                        sendMessageAction
                         (toUtc "2021-10-30 07:00:00 PDT")
 
                 get #phoneNumberId auditEntry `shouldBe` get #id phoneNumber
                 get #userId auditEntry `shouldBe` Nothing
                 get #action auditEntry `shouldBe` ScheduledMessageDeleted
-                get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
+                get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendMessageActionId = 10000000-0000-0000-0000-000000000000, sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
 
         describe "createEntry" do
             itIO "saves and returns an audit entry" do
