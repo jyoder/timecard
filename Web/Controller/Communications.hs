@@ -381,7 +381,7 @@ instance Controller CommunicationsController where
         if state == Just ActionRunState.canceled
             then do
                 ActionRunState.updateCanceled actionRunState
-                AuditEntry.createScheduledMessageDeletedEntry
+                AuditEntry.createScheduledMessageCanceledEntry
                     (Just $ get #id currentUser)
                     sendMessageAction
                     (get #runsAt actionRunState)

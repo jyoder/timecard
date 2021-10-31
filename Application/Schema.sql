@@ -1,7 +1,6 @@
 -- pgFormatter-ignore
 -- Your database schema. Use the Schema Designer at http://localhost:8001/ to add some tables.
-CREATE TYPE audit_actions AS ENUM ('message_sent', 'message_received', 'message_processed', 'timecard_entry_created', 'timecard_entry_edited', 'timecard_entry_deleted', 'review_link_generated', 'review_signed', 'daily_reminder_scheduled', 'review_request_scheduled', 'scheduled_message_edited', 'scheduled_message_suspended', 'scheduled_message_resumed', 'scheduled_message_deleted');
-
+CREATE TYPE audit_actions AS ENUM ('message_sent', 'message_received', 'message_processed', 'timecard_entry_created', 'timecard_entry_edited', 'timecard_entry_deleted', 'review_link_generated', 'review_signed', 'daily_reminder_scheduled', 'review_request_scheduled', 'scheduled_message_edited', 'scheduled_message_suspended', 'scheduled_message_resumed', 'scheduled_message_canceled');
 CREATE TABLE users (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
     email TEXT NOT NULL,

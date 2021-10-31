@@ -394,8 +394,8 @@ spec = do
                 get #action auditEntry `shouldBe` ScheduledMessageResumed
                 get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendMessageActionId = 10000000-0000-0000-0000-000000000000, sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
 
-        describe "createScheduledMessageDeletedEntry" do
-            itIO "returns a scheduled message deleted entry" do
+        describe "createScheduledMessageCanceledEntry" do
+            itIO "returns a scheduled message canceled entry" do
                 phoneNumber <-
                     newRecord @PhoneNumber
                         |> set #number "+15555555555"
@@ -408,14 +408,14 @@ spec = do
                             |> set #body "Yo!"
 
                 auditEntry <-
-                    createScheduledMessageDeletedEntry
+                    createScheduledMessageCanceledEntry
                         Nothing
                         sendMessageAction
                         (toUtc "2021-10-30 07:00:00 PDT")
 
                 get #phoneNumberId auditEntry `shouldBe` get #id phoneNumber
                 get #userId auditEntry `shouldBe` Nothing
-                get #action auditEntry `shouldBe` ScheduledMessageDeleted
+                get #action auditEntry `shouldBe` ScheduledMessageCanceled
                 get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendMessageActionId = 10000000-0000-0000-0000-000000000000, sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
 
         describe "createEntry" do

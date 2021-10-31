@@ -302,17 +302,17 @@ createScheduledMessageResumedEntry userId sendMessageAction sendAt =
                 }
         )
 
-createScheduledMessageDeletedEntry ::
+createScheduledMessageCanceledEntry ::
     (?modelContext :: ModelContext) =>
     Maybe (Id User) ->
     SendMessageAction ->
     UTCTime ->
     IO AuditEntry
-createScheduledMessageDeletedEntry userId sendMessageAction sendAt =
+createScheduledMessageCanceledEntry userId sendMessageAction sendAt =
     createEntry
         userId
         (get #toId sendMessageAction)
-        ScheduledMessageDeleted
+        ScheduledMessageCanceled
         ( show
             ScheduledMessageContext
                 { sendMessageActionId = get #id sendMessageAction
