@@ -4,6 +4,7 @@ module Web.Controller.Communications where
 
 import qualified Application.Action.ActionRunState as ActionRunState
 import qualified Application.Action.SendMessageAction as SendMessageAction
+import qualified Application.Base.AuditEntry as AuditEntry
 import qualified Application.Base.PhoneNumber as PhoneNumber
 import qualified Application.People.Person as Person
 import qualified Application.People.Query as People.Query
@@ -366,19 +367,37 @@ instance Controller CommunicationsController where
                     |> ifValid \case
                         Left sendMessageAction ->
                             pure ()
-                        Right sendMessageAction ->
-                            sendMessageAction
-                                |> updateRecord
-                                >> pure ()
+                        Right sendMessageAction -> do
+                            sendMessageAction |> updateRecord
+                            AuditEntry.createScheduledMessageEditedEntry
+                                (get #id currentUser)
+                                (get #toId sendMessageAction)
+                                (get #body sendMessageAction)
+                                (get #runsAt actionRunState)
+                            pure ()
             Nothing ->
                 pure ()
 
         let state = paramOrNothing @Text "state"
         if state == Just ActionRunState.canceled
-            then ActionRunState.updateCanceled actionRunState >> pure ()
+            then do
+                ActionRunState.updateCanceled actionRunState
+                AuditEntry.createScheduledMessageDeletedEntry
+                    (Just $ get #id currentUser)
+                    (get #toId sendMessageAction)
+                    (get #body sendMessageAction)
+                    (get #runsAt actionRunState)
+                pure ()
             else
                 if state == Just ActionRunState.notStarted
-                    then ActionRunState.updateNotStarted actionRunState >> pure ()
+                    then do
+                        ActionRunState.updateNotStarted actionRunState
+                        AuditEntry.createScheduledMessageResumedEntry
+                            (Just $ get #id currentUser)
+                            (get #toId sendMessageAction)
+                            (get #body sendMessageAction)
+                            (get #runsAt actionRunState)
+                        pure ()
                     else pure ()
 
         redirectTo $ CommunicationsPersonSelectionAction {..}

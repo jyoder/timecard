@@ -235,6 +235,61 @@ createReviewRequestScheduledEntry toPhoneNumberId body sendAt =
         ReviewRequestScheduled
         (show ScheduledMessageContext {..})
 
+createScheduledMessageEditedEntry ::
+    (?modelContext :: ModelContext) =>
+    Id User ->
+    Id PhoneNumber ->
+    Text ->
+    UTCTime ->
+    IO AuditEntry
+createScheduledMessageEditedEntry userId toPhoneNumberId body sendAt =
+    createEntry
+        (Just userId)
+        toPhoneNumberId
+        ScheduledMessageEdited
+        (show ScheduledMessageContext {..})
+
+createScheduledMessageSuspendedEntry ::
+    (?modelContext :: ModelContext) =>
+    Id PhoneNumber ->
+    Text ->
+    UTCTime ->
+    IO AuditEntry
+createScheduledMessageSuspendedEntry toPhoneNumberId body sendAt =
+    createEntry
+        Nothing
+        toPhoneNumberId
+        ScheduledMessageSuspended
+        (show ScheduledMessageContext {..})
+
+createScheduledMessageResumedEntry ::
+    (?modelContext :: ModelContext) =>
+    Maybe (Id User) ->
+    Id PhoneNumber ->
+    Text ->
+    UTCTime ->
+    IO AuditEntry
+createScheduledMessageResumedEntry userId toPhoneNumberId body sendAt =
+    createEntry
+        userId
+        toPhoneNumberId
+        ScheduledMessageResumed
+        (show ScheduledMessageContext {..})
+
+createScheduledMessageDeletedEntry ::
+    (?modelContext :: ModelContext) =>
+    Maybe (Id User) ->
+    Id PhoneNumber ->
+    Text ->
+    UTCTime ->
+    IO AuditEntry
+createScheduledMessageDeletedEntry userId toPhoneNumberId body sendAt =
+    createEntry
+        userId
+        toPhoneNumberId
+        ScheduledMessageDeleted
+        (show ScheduledMessageContext {..})
+
 createEntry ::
     (?modelContext :: ModelContext) =>
     Maybe (Id User) ->

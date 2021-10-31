@@ -1,6 +1,7 @@
 module Application.Brain.Act where
 
 import qualified Application.Action.ActionRunState as ActionRunState
+import qualified Application.Base.AuditEntry as AuditEntry
 import Application.Brain.Decide as Decide
 import qualified Application.Timecard.Entry as Entry
 import qualified Application.Timecard.EntryRequest as EntryRequest
@@ -13,7 +14,19 @@ import IHP.ControllerPrelude
 act :: (?modelContext :: ModelContext) => Text -> Decide.Plan -> IO ()
 act _ Decide.SuspendScheduledMessages {..} = do
     actionRunState <- fetch actionRunStateIds
-    mapM_ ActionRunState.updateSuspended actionRunState
+    mapM_
+        ( \actionRunState -> do
+            sendMessageAction <-
+                query @SendMessageAction
+                    |> filterWhere (#actionRunStateId, get #id actionRunState)
+                    |> fetchOne
+            ActionRunState.updateSuspended actionRunState
+            AuditEntry.createScheduledMessageSuspendedEntry
+                (get #toId sendMessageAction)
+                (get #body sendMessageAction)
+                (get #runsAt actionRunState)
+        )
+        actionRunState
 act baseUrl Decide.CreateTimecardEntry {..} = do
     worker <- fetch workerId
 

@@ -295,15 +295,47 @@ spec = do
 
             context "when the plan says to suspend an existing scheduled reminder" do
                 itIO "suspends scheduled messages" do
+                    botPhoneNumber <-
+                        newRecord @PhoneNumber
+                            |> set #number "+14444444444"
+                            |> createRecord
+
+                    workerPhoneNumber <-
+                        newRecord @PhoneNumber
+                            |> set #number "+15555555555"
+                            |> createRecord
+
                     actionRunState1 <-
                         newRecord @ActionRunState
                             |> set #state ActionRunState.notStarted
+                            |> createRecord
+
+                    sendMessageAction1 <-
+                        newRecord @SendMessageAction
+                            |> set #actionRunStateId (get #id actionRunState1)
+                            |> set #fromId (get #id botPhoneNumber)
+                            |> set #toId (get #id workerPhoneNumber)
+                            |> set #body "1st message"
                             |> createRecord
 
                     actionRunState2 <-
                         newRecord @ActionRunState
                             |> set #state ActionRunState.notStarted
                             |> createRecord
+
+                    sendMessageAction2 <-
+                        newRecord @SendMessageAction
+                            |> set #actionRunStateId (get #id actionRunState2)
+                            |> set #fromId (get #id botPhoneNumber)
+                            |> set #toId (get #id workerPhoneNumber)
+                            |> set #body "2nd message"
+                            |> createRecord
+
+                    auditEntryCount <-
+                        query @AuditEntry
+                            |> filterWhere (#phoneNumberId, get #id workerPhoneNumber)
+                            |> filterWhere (#action, ScheduledMessageSuspended)
+                            |> fetchCount
 
                     Act.act
                         "https://timecard.company.com"
@@ -319,6 +351,13 @@ spec = do
 
                     actionRunState2 <- fetch $ get #id actionRunState2
                     get #state actionRunState2 `shouldBe` ActionRunState.suspended
+
+                    auditEntryCount' <-
+                        query @AuditEntry
+                            |> filterWhere (#phoneNumberId, get #id workerPhoneNumber)
+                            |> filterWhere (#action, ScheduledMessageSuspended)
+                            |> fetchCount
+                    auditEntryCount' `shouldBe` auditEntryCount + 2
 
             context "when the plan says to do nothing" do
                 itIO "does nothing" do

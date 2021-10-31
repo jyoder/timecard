@@ -92,4 +92,4 @@ spec = do
                     query @AuditEntry
                         |> filterWhere (#phoneNumberId, get #fromId twilioMessage)
                         |> fetchCount
-                auditEntryCount' `shouldBe` auditEntryCount + 1
+                auditEntryCount' `shouldBe` auditEntryCount + 2

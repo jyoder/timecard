@@ -290,7 +290,7 @@ spec = do
                 get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
 
         describe "createReviewRequestScheduledEntry" do
-            itIO "returns a daily reminder scheduled entry" do
+            itIO "returns a review request scheduled entry" do
                 phoneNumber <-
                     newRecord @PhoneNumber
                         |> set #number "+15555555555"
@@ -305,6 +305,87 @@ spec = do
                 get #phoneNumberId auditEntry `shouldBe` get #id phoneNumber
                 get #userId auditEntry `shouldBe` Nothing
                 get #action auditEntry `shouldBe` ReviewRequestScheduled
+                get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
+
+        describe "createScheduledMessageEditedEntry" do
+            itIO "returns a scheduled message edited entry" do
+                user <-
+                    newRecord @User
+                        |> set #email "test@company.com"
+                        |> set #passwordHash "some password hash"
+                        |> createRecord
+
+                phoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+15555555555"
+                        |> createRecord
+
+                auditEntry <-
+                    createScheduledMessageEditedEntry
+                        (get #id user)
+                        (get #id phoneNumber)
+                        "Yo!"
+                        (toUtc "2021-10-30 07:00:00 PDT")
+
+                get #phoneNumberId auditEntry `shouldBe` get #id phoneNumber
+                get #userId auditEntry `shouldBe` Just (get #id user)
+                get #action auditEntry `shouldBe` ScheduledMessageEdited
+                get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
+
+        describe "createScheduledMessageSuspendedEntry" do
+            itIO "returns a scheduled message suspended entry" do
+                phoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+15555555555"
+                        |> createRecord
+
+                auditEntry <-
+                    createScheduledMessageSuspendedEntry
+                        (get #id phoneNumber)
+                        "Yo!"
+                        (toUtc "2021-10-30 07:00:00 PDT")
+
+                get #phoneNumberId auditEntry `shouldBe` get #id phoneNumber
+                get #userId auditEntry `shouldBe` Nothing
+                get #action auditEntry `shouldBe` ScheduledMessageSuspended
+                get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
+
+        describe "createScheduledMessageResumedEntry" do
+            itIO "returns a scheduled message resumed entry" do
+                phoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+15555555555"
+                        |> createRecord
+
+                auditEntry <-
+                    createScheduledMessageResumedEntry
+                        Nothing
+                        (get #id phoneNumber)
+                        "Yo!"
+                        (toUtc "2021-10-30 07:00:00 PDT")
+
+                get #phoneNumberId auditEntry `shouldBe` get #id phoneNumber
+                get #userId auditEntry `shouldBe` Nothing
+                get #action auditEntry `shouldBe` ScheduledMessageResumed
+                get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
+
+        describe "createScheduledMessageDeletedEntry" do
+            itIO "returns a scheduled message deleted entry" do
+                phoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+15555555555"
+                        |> createRecord
+
+                auditEntry <-
+                    createScheduledMessageDeletedEntry
+                        Nothing
+                        (get #id phoneNumber)
+                        "Yo!"
+                        (toUtc "2021-10-30 07:00:00 PDT")
+
+                get #phoneNumberId auditEntry `shouldBe` get #id phoneNumber
+                get #userId auditEntry `shouldBe` Nothing
+                get #action auditEntry `shouldBe` ScheduledMessageDeleted
                 get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
 
         describe "createEntry" do
