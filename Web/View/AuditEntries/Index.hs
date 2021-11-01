@@ -61,7 +61,7 @@ data ColumnNavigation = ColumnNavigation
 
 data Column
     = PeopleColumn
-    | AuditColumn
+    | EntriesColumn
     deriving (Eq, Show)
 
 instance View IndexView where
@@ -79,12 +79,12 @@ buildPage view =
                     ( \selectedPersonId ->
                         AuditEntriesPersonSelectionAction
                             { selectedPersonId
-                            , column = Just $ columnToParam AuditColumn
+                            , column = Just $ columnToParam EntriesColumn
                             }
                     )
                     selectedPerson
                     people
-            , auditColumnClasses = columnClasses AuditColumn currentColumn
+            , auditColumnClasses = columnClasses EntriesColumn currentColumn
             , auditColumn = buildAuditColumn view
             , columnNavigation = buildColumnNavigation personSelection currentColumn
             }
@@ -93,15 +93,24 @@ buildPage view =
         NoPersonSelected -> Nothing
         PersonSelected {..} -> Just selectedPerson
 
+columnClasses :: Column -> Column -> Text
+columnClasses column currentColumn =
+    if currentColumn == column
+        then "d-flex flex-grow-1 flex-lg-grow-0"
+        else "d-none d-lg-flex"
+
 buildAuditColumn :: IndexView -> AuditColumn
 buildAuditColumn IndexView {..} =
     case personSelection of
         NoPersonSelected -> AuditColumnNotVisible
         PersonSelected {..} ->
-            AuditColumnVisible $
-                AuditEntriesTable
-                    { auditEntryRows = buildAuditEntryRow <$> auditEntries
-                    }
+            case auditEntries of
+                [] -> AuditColumnNotVisible
+                auditEntries ->
+                    AuditColumnVisible $
+                        AuditEntriesTable
+                            { auditEntryRows = buildAuditEntryRow <$> auditEntries
+                            }
 
 buildAuditEntryRow :: Audit.Query.Row -> AuditEntryRow
 buildAuditEntryRow Audit.Query.Row {..} =
@@ -119,8 +128,8 @@ buildColumnNavigation personSelection currentColumn =
     ColumnNavigation
         { peopleLinkClass = linkClass PeopleColumn
         , peopleAction = action PeopleColumn
-        , auditLinkClass = linkClass AuditColumn
-        , auditAction = action AuditColumn
+        , auditLinkClass = linkClass EntriesColumn
+        , auditAction = action EntriesColumn
         }
   where
     linkClass column = if column == currentColumn then "text-dark" else "text-muted"
@@ -134,13 +143,7 @@ buildColumnNavigation personSelection currentColumn =
 
 columnToParam :: Column -> Text
 columnToParam PeopleColumn = "people"
-columnToParam AuditColumn = "audit"
-
-columnClasses :: Column -> Column -> Text
-columnClasses column currentColumn =
-    if currentColumn == column
-        then "d-flex flex-grow-1 flex-lg-grow-0"
-        else "d-none d-lg-flex"
+columnToParam EntriesColumn = "entries"
 
 renderPage :: Page -> Html
 renderPage Page {..} =
@@ -163,8 +166,8 @@ renderPage Page {..} =
     |]
 
 renderAuditColumn :: AuditColumn -> Html
-renderAuditColumn timecardsColumn =
-    case timecardsColumn of
+renderAuditColumn auditColumn =
+    case auditColumn of
         AuditColumnNotVisible ->
             [hsx||]
         AuditColumnVisible {..} ->
@@ -178,7 +181,7 @@ renderAuditColumn timecardsColumn =
 renderAuditEntriesTable :: AuditEntriesTable -> Html
 renderAuditEntriesTable AuditEntriesTable {..} =
     [hsx|
-        <table class="table sticky-header">
+        <table class="table table-striped sticky-header">
             <thead>
                 <tr>
                     <th scope="col">Occurred At</th>
@@ -212,7 +215,7 @@ renderColumnNavigation ColumnNavigation {..} =
                 <a class={"column-nav-link text-center " <> peopleLinkClass} href={peopleAction}>People</a>
             </li>
             <li class="column-nav-item flex-even d-flex justify-content-center">
-                <a class={"column-nav-link text-center " <> auditLinkClass} href={auditAction}>Timecards</a>
+                <a class={"column-nav-link text-center " <> auditLinkClass} href={auditAction}>Entries</a>
             </li>
         </ul>
     |]
@@ -275,7 +278,11 @@ styles =
             }
 
             .created-at {
-                width: 10rem;
+                width: 12rem;
+            }
+
+            .flex-even {
+                flex: 1;
             }
 
             body {

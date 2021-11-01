@@ -46,5 +46,5 @@ instance Controller AuditEntriesController where
 
 paramToColumn :: Text -> Column
 paramToColumn "people" = PeopleColumn
-paramToColumn "audit" = AuditColumn
+paramToColumn "entries" = EntriesColumn
 paramToColumn _ = PeopleColumn
