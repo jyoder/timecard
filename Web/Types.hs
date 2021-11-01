@@ -126,3 +126,11 @@ data WorkerSettingsController
     | UpdateWorkerSettingAction {workerSettingId :: !(Id WorkerSetting)}
     | DeleteWorkerSettingAction {workerSettingId :: !(Id WorkerSetting)}
     deriving (Eq, Show, Data)
+
+data AuditEntriesController
+    = AuditEntriesAction
+    | AuditEntriesPersonSelectionAction
+        { selectedPersonId :: !(Id Person)
+        , column :: !(Maybe Text)
+        }
+    deriving (Eq, Show, Data)

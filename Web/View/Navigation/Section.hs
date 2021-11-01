@@ -6,6 +6,7 @@ import Web.View.Prelude
 data Section
     = Timecards
     | Communications
+    | AuditEntries
     deriving (Eq)
 
 renderSectionNavigation :: Section -> Maybe Person -> Html
@@ -13,16 +14,15 @@ renderSectionNavigation currentSection selectedPerson =
     [hsx|
         <nav class="navbar navbar-expand navbar-light bg-light m-0 mb-3">
             <div class="container-fluid">
-                <span class="navbar-brand mb-0 h1 d-none d-lg-inline" href="#">Constructable</span>
-                <div class="collapse navbar-collapse">
-                    <ul class="navbar-nav mb-0">
+                <div class="navbar-brand h1 m-0 pb-4 pr-3 d-none d-lg-inline" href="#">Constructable</div>
+                <div class="collapse navbar-collapse m-0" style="overflow-x: scroll;">
+                    <ul class="navbar-nav">
                         {renderItem timecardsAction Timecards "Timecards" currentSection}
                         {renderItem communicationsAction Communications "Communications" currentSection}
+                        {renderItem auditEntriesAction AuditEntries "Audit" currentSection}
                     </ul>
                 </div>
-                <a 
-                    href={DeleteSessionAction}
-                    class="btn btn-outline-primary js-delete js-delete-no-confirm">
+                <a href={DeleteSessionAction} class="btn btn-outline-primary js-delete js-delete-no-confirm ml-3 mb-3">
                     Logout
                 </a>
             </div>
@@ -44,6 +44,13 @@ renderSectionNavigation currentSection selectedPerson =
                 , column = Nothing
                 }
         Nothing -> CommunicationsAction
+    auditEntriesAction = case selectedPerson of
+        Just selectedPerson ->
+            AuditEntriesPersonSelectionAction
+                { selectedPersonId = get #id selectedPerson
+                , column = Nothing
+                }
+        Nothing -> AuditEntriesAction
 
 renderItem :: (HasPath action) => action -> Section -> Text -> Section -> Html
 renderItem action newSection label currentSection =
