@@ -4,7 +4,7 @@ module Web.Controller.Communications where
 
 import qualified Application.Action.ActionRunState as ActionRunState
 import qualified Application.Action.SendMessageAction as SendMessageAction
-import qualified Application.Base.AuditEntry as AuditEntry
+import qualified Application.Audit.Entry as Audit.Entry
 import qualified Application.Base.PhoneNumber as PhoneNumber
 import qualified Application.People.Person as Person
 import qualified Application.People.Query as People.Query
@@ -369,7 +369,7 @@ instance Controller CommunicationsController where
                             pure ()
                         Right sendMessageAction -> do
                             sendMessageAction |> updateRecord
-                            AuditEntry.createScheduledMessageEditedEntry
+                            Audit.Entry.createScheduledMessageEdited
                                 (get #id currentUser)
                                 sendMessageAction
                                 (get #runsAt actionRunState)
@@ -381,7 +381,7 @@ instance Controller CommunicationsController where
         if state == Just ActionRunState.canceled
             then do
                 ActionRunState.updateCanceled actionRunState
-                AuditEntry.createScheduledMessageCanceledEntry
+                Audit.Entry.createScheduledMessageCanceled
                     (Just $ get #id currentUser)
                     sendMessageAction
                     (get #runsAt actionRunState)
@@ -390,7 +390,7 @@ instance Controller CommunicationsController where
                 if state == Just ActionRunState.notStarted
                     then do
                         ActionRunState.updateNotStarted actionRunState
-                        AuditEntry.createScheduledMessageResumedEntry
+                        Audit.Entry.createScheduledMessageResumed
                             (Just $ get #id currentUser)
                             sendMessageAction
                             (get #runsAt actionRunState)

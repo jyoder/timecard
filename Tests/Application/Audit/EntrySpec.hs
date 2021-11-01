@@ -1,6 +1,6 @@
-module Tests.Application.Base.AuditEntrySpec where
+module Tests.Application.Audit.EntrySpec where
 
-import Application.Base.AuditEntry
+import Application.Audit.Entry
 import Generated.Types
 import IHP.ControllerPrelude
 import IHP.Test.Mocking
@@ -10,7 +10,7 @@ import Tests.Support
 spec :: Spec
 spec = do
     aroundAll (withApp RootApplication testConfig) do
-        describe "createMessageSentEntry" do
+        describe "createMessageSent" do
             itIO "returns a message sent entry" do
                 fromPhoneNumber <-
                     newRecord @PhoneNumber
@@ -31,7 +31,7 @@ spec = do
                         |> createRecord
 
                 auditEntry <-
-                    createMessageSentEntry
+                    createMessageSent
                         Nothing
                         twilioMessage
                         "+15555555555"
@@ -45,7 +45,7 @@ spec = do
                                     <> ", twilioMessageSid = \"1234\", fromPhoneNumber = \"+15555555555\", messageBody = \"Hi there!\"}"
                                )
 
-        describe "createMessageReceivedEntry" do
+        describe "createMessageReceived" do
             itIO "returns a message received entry" do
                 fromPhoneNumber <-
                     newRecord @PhoneNumber
@@ -66,7 +66,7 @@ spec = do
                         |> createRecord
 
                 auditEntry <-
-                    createMessageReceivedEntry
+                    createMessageReceived
                         twilioMessage
                         "+16666666666"
 
@@ -79,7 +79,7 @@ spec = do
                                     <> "\", twilioMessageSid = \"1234\", toPhoneNumber = \"+16666666666\", messageBody = \"Hi there!\"}"
                                )
 
-        describe "createMessageProcessedEntry" do
+        describe "createMessageProcessed" do
             itIO "returns a message processed entry" do
                 fromPhoneNumber <-
                     newRecord @PhoneNumber
@@ -100,7 +100,7 @@ spec = do
                         |> createRecord
 
                 auditEntry <-
-                    createMessageProcessedEntry
+                    createMessageProcessed
                         twilioMessage
                         "SomeSituation"
                         "SomePlan"
@@ -114,7 +114,7 @@ spec = do
                                     <> "\", messageBody = \"Hi there!\", situation = \"SomeSituation\", plan = \"SomePlan\"}"
                                )
 
-        describe "createMessageReceivedEntry" do
+        describe "createMessageReceived" do
             itIO "returns a message received entry" do
                 fromPhoneNumber <-
                     newRecord @PhoneNumber
@@ -135,7 +135,7 @@ spec = do
                         |> createRecord
 
                 auditEntry <-
-                    createMessageReceivedEntry
+                    createMessageReceived
                         twilioMessage
                         "+16666666666"
 
@@ -148,7 +148,7 @@ spec = do
                                     <> "\", twilioMessageSid = \"1234\", toPhoneNumber = \"+16666666666\", messageBody = \"Hi there!\"}"
                                )
 
-        describe "createTimecardCreatedEntry" do
+        describe "createTimecardCreated" do
             itIO "returns a timecard created entry" do
                 phoneNumber <-
                     newRecord @PhoneNumber
@@ -167,7 +167,7 @@ spec = do
                             |> set #invoiceTranslation "Installed doors."
 
                 auditEntry <-
-                    createTimecardEntryCreatedEntry
+                    createTimecardEntryCreated
                         Nothing
                         (get #id phoneNumber)
                         timecardEntry
@@ -178,7 +178,7 @@ spec = do
                 get #actionContext auditEntry
                     `shouldBe` "TimecardEntryContext {timecardEntryId = 00000000-0000-0000-0000-000000000000, date = 2021-10-30, jobName = \"Costco\", clockedInAt = Just 07:00:00, clockedOutAt = Just 07:00:01, lunchDuration = Just 30, hoursWorked = 8.0, workDone = \"Ate chips.\", invoiceTranslation = \"Installed doors.\"}"
 
-        describe "createTimecardEditedEntry" do
+        describe "createTimecardEdited" do
             itIO "returns a timecard edited entry" do
                 phoneNumber <-
                     newRecord @PhoneNumber
@@ -197,7 +197,7 @@ spec = do
                             |> set #invoiceTranslation "Installed doors."
 
                 auditEntry <-
-                    createTimecardEntryEditedEntry
+                    createTimecardEntryEdited
                         Nothing
                         (get #id phoneNumber)
                         timecardEntry
@@ -208,7 +208,7 @@ spec = do
                 get #actionContext auditEntry
                     `shouldBe` "TimecardEntryContext {timecardEntryId = 00000000-0000-0000-0000-000000000000, date = 2021-10-30, jobName = \"Costco\", clockedInAt = Just 07:00:00, clockedOutAt = Just 07:00:01, lunchDuration = Just 30, hoursWorked = 8.0, workDone = \"Ate chips.\", invoiceTranslation = \"Installed doors.\"}"
 
-        describe "createTimecardDeletedEntry" do
+        describe "createTimecardDeleted" do
             itIO "returns a timecard deleted entry" do
                 phoneNumber <-
                     newRecord @PhoneNumber
@@ -227,7 +227,7 @@ spec = do
                             |> set #invoiceTranslation "Installed doors."
 
                 auditEntry <-
-                    createTimecardEntryDeletedEntry
+                    createTimecardEntryDeleted
                         Nothing
                         (get #id phoneNumber)
                         timecardEntry
@@ -238,7 +238,7 @@ spec = do
                 get #actionContext auditEntry
                     `shouldBe` "TimecardEntryContext {timecardEntryId = 00000000-0000-0000-0000-000000000000, date = 2021-10-30, jobName = \"Costco\", clockedInAt = Just 07:00:00, clockedOutAt = Just 07:00:01, lunchDuration = Just 30, hoursWorked = 8.0, workDone = \"Ate chips.\", invoiceTranslation = \"Installed doors.\"}"
 
-        describe "createReviewLinkGeneratedEntry" do
+        describe "createReviewLinkGenerated" do
             itIO "returns a review link generated entry" do
                 phoneNumber <-
                     newRecord @PhoneNumber
@@ -246,7 +246,7 @@ spec = do
                         |> createRecord
 
                 auditEntry <-
-                    createReviewLinkGeneratedEntry
+                    createReviewLinkGenerated
                         Nothing
                         (get #id phoneNumber)
                         "https://barf.com"
@@ -264,14 +264,14 @@ spec = do
                         |> set #number "+15555555555"
                         |> createRecord
 
-                auditEntry <- createReviewSignedEntry (get #id phoneNumber) "Dustin Hoffman"
+                auditEntry <- createReviewSigned (get #id phoneNumber) "Dustin Hoffman"
 
                 get #phoneNumberId auditEntry `shouldBe` get #id phoneNumber
                 get #userId auditEntry `shouldBe` Nothing
                 get #action auditEntry `shouldBe` ReviewSigned
                 get #actionContext auditEntry `shouldBe` "Dustin Hoffman"
 
-        describe "createDailyReminderScheduledEntry" do
+        describe "createDailyReminderScheduled" do
             itIO "returns a daily reminder scheduled entry" do
                 phoneNumber <-
                     newRecord @PhoneNumber
@@ -285,7 +285,7 @@ spec = do
                             |> set #body "Yo!"
 
                 auditEntry <-
-                    createDailyReminderScheduledEntry
+                    createDailyReminderScheduled
                         sendMessageAction
                         (toUtc "2021-10-30 07:00:00 PDT")
 
@@ -294,7 +294,7 @@ spec = do
                 get #action auditEntry `shouldBe` DailyReminderScheduled
                 get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendMessageActionId = 10000000-0000-0000-0000-000000000000, sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
 
-        describe "createReviewRequestScheduledEntry" do
+        describe "createReviewRequestScheduled" do
             itIO "returns a review request scheduled entry" do
                 phoneNumber <-
                     newRecord @PhoneNumber
@@ -308,7 +308,7 @@ spec = do
                             |> set #body "Yo!"
 
                 auditEntry <-
-                    createReviewRequestScheduledEntry
+                    createReviewRequestScheduled
                         sendMessageAction
                         (toUtc "2021-10-30 07:00:00 PDT")
 
@@ -317,7 +317,7 @@ spec = do
                 get #action auditEntry `shouldBe` ReviewRequestScheduled
                 get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendMessageActionId = 10000000-0000-0000-0000-000000000000, sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
 
-        describe "createScheduledMessageEditedEntry" do
+        describe "createScheduledMessageEdited" do
             itIO "returns a scheduled message edited entry" do
                 user <-
                     newRecord @User
@@ -337,7 +337,7 @@ spec = do
                             |> set #body "Yo!"
 
                 auditEntry <-
-                    createScheduledMessageEditedEntry
+                    createScheduledMessageEdited
                         (get #id user)
                         sendMessageAction
                         (toUtc "2021-10-30 07:00:00 PDT")
@@ -347,7 +347,7 @@ spec = do
                 get #action auditEntry `shouldBe` ScheduledMessageEdited
                 get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendMessageActionId = 10000000-0000-0000-0000-000000000000, sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
 
-        describe "createScheduledMessageSuspendedEntry" do
+        describe "createScheduledMessageSuspended" do
             itIO "returns a scheduled message suspended entry" do
                 phoneNumber <-
                     newRecord @PhoneNumber
@@ -361,7 +361,7 @@ spec = do
                             |> set #body "Yo!"
 
                 auditEntry <-
-                    createScheduledMessageSuspendedEntry
+                    createScheduledMessageSuspended
                         sendMessageAction
                         (toUtc "2021-10-30 07:00:00 PDT")
 
@@ -370,7 +370,7 @@ spec = do
                 get #action auditEntry `shouldBe` ScheduledMessageSuspended
                 get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendMessageActionId = 10000000-0000-0000-0000-000000000000, sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
 
-        describe "createScheduledMessageResumedEntry" do
+        describe "createScheduledMessageResumed" do
             itIO "returns a scheduled message resumed entry" do
                 phoneNumber <-
                     newRecord @PhoneNumber
@@ -384,7 +384,7 @@ spec = do
                             |> set #body "Yo!"
 
                 auditEntry <-
-                    createScheduledMessageResumedEntry
+                    createScheduledMessageResumed
                         Nothing
                         sendMessageAction
                         (toUtc "2021-10-30 07:00:00 PDT")
@@ -394,7 +394,7 @@ spec = do
                 get #action auditEntry `shouldBe` ScheduledMessageResumed
                 get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendMessageActionId = 10000000-0000-0000-0000-000000000000, sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
 
-        describe "createScheduledMessageCanceledEntry" do
+        describe "createScheduledMessageCanceled" do
             itIO "returns a scheduled message canceled entry" do
                 phoneNumber <-
                     newRecord @PhoneNumber
@@ -408,7 +408,7 @@ spec = do
                             |> set #body "Yo!"
 
                 auditEntry <-
-                    createScheduledMessageCanceledEntry
+                    createScheduledMessageCanceled
                         Nothing
                         sendMessageAction
                         (toUtc "2021-10-30 07:00:00 PDT")

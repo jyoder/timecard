@@ -1,7 +1,7 @@
 module Application.Brain.Act where
 
 import qualified Application.Action.ActionRunState as ActionRunState
-import qualified Application.Base.AuditEntry as AuditEntry
+import qualified Application.Audit.Entry as Audit.Entry
 import Application.Brain.Decide as Decide
 import qualified Application.Timecard.Entry as Entry
 import qualified Application.Timecard.EntryRequest as EntryRequest
@@ -21,7 +21,7 @@ act _ Decide.SuspendScheduledMessages {..} = do
                     |> filterWhere (#actionRunStateId, get #id actionRunState)
                     |> fetchOne
             ActionRunState.updateSuspended actionRunState
-            AuditEntry.createScheduledMessageSuspendedEntry
+            Audit.Entry.createScheduledMessageSuspended
                 sendMessageAction
                 (get #runsAt actionRunState)
         )

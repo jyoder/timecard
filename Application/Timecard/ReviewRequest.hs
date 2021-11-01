@@ -1,7 +1,7 @@
 module Application.Timecard.ReviewRequest where
 
 import qualified Application.Action.SendMessageAction as SendMessageAction
-import qualified Application.Base.AuditEntry as AuditEntry
+import qualified Application.Audit.Entry as Audit.Entry
 import Application.Base.WorkerSettings (Language (..))
 import qualified Application.Base.WorkerSettings as WorkerSettings
 import qualified Application.Timecard.AccessToken as Timecard.AccessToken
@@ -31,10 +31,10 @@ scheduleRequest userId baseUrl now timecardId worker fromPhoneNumberId toPhoneNu
     let link = reviewLink baseUrl (get #value accessToken)
         sendAt = requestTime now
         body = requestBody language (get #goesBy worker) link
-    AuditEntry.createReviewLinkGeneratedEntry userId toPhoneNumberId link
+    Audit.Entry.createReviewLinkGenerated userId toPhoneNumberId link
 
     sendMessageAction <- SendMessageAction.schedule fromPhoneNumberId toPhoneNumberId body sendAt
-    AuditEntry.createReviewRequestScheduledEntry sendMessageAction sendAt
+    Audit.Entry.createReviewRequestScheduled sendMessageAction sendAt
     pure sendMessageAction
   where
     expiresAt = Timecard.AccessToken.expirationFrom now

@@ -5,7 +5,7 @@ module Application.Timecard.Entry (
     validate,
 ) where
 
-import qualified Application.Base.AuditEntry as AuditEntry
+import qualified Application.Audit.Entry as Audit.Entry
 import Application.Service.Time (startOfWeek)
 import Application.Service.Transaction (withTransactionOrSavepoint)
 import Application.Timecard.EntryMessage as Timecard.EntryMessage
@@ -30,7 +30,7 @@ create userId personId phoneNumberId twilioMessageIds timecardEntry =
                     pure $ Left timecardEntry
                 Right timecardEntry -> do
                     timecardEntry <- createRecord timecardEntry
-                    AuditEntry.createTimecardEntryCreatedEntry userId phoneNumberId timecardEntry
+                    Audit.Entry.createTimecardEntryCreated userId phoneNumberId timecardEntry
                     Timecard.EntryMessage.createAll (get #id timecardEntry) twilioMessageIds
                     pure $ Right timecardEntry
 
@@ -51,7 +51,7 @@ update userId phoneNumberId twilioMessageIds timecardEntry = do
                     pure $ Left timecardEntry
                 Right timecardEntry -> do
                     timecardEntry <- updateRecord timecardEntry
-                    AuditEntry.createTimecardEntryEditedEntry userId phoneNumberId timecardEntry
+                    Audit.Entry.createTimecardEntryEdited userId phoneNumberId timecardEntry
                     Timecard.EntryMessage.replaceAll (get #id timecardEntry) twilioMessageIds
                     pure $ Right timecardEntry
 
@@ -66,7 +66,7 @@ delete userId phoneNumberId timecardEntryId =
         Timecard.EntryMessage.deleteAll timecardEntryId
         timecardEntry <- fetch timecardEntryId
         deleteRecord timecardEntry
-        AuditEntry.createTimecardEntryDeletedEntry userId phoneNumberId timecardEntry
+        Audit.Entry.createTimecardEntryDeleted userId phoneNumberId timecardEntry
         pure ()
 
 setTimecardId ::

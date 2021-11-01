@@ -4,7 +4,7 @@ module Application.Twilio.TwilioMessage (
     delivered,
 ) where
 
-import qualified Application.Base.AuditEntry as AuditEntry
+import qualified Application.Audit.Entry as Audit.Entry
 import Application.Service.Transaction (withTransactionOrSavepoint)
 import Application.Service.Validation (validateAndCreate)
 import qualified Application.Twilio.Client as Client
@@ -56,7 +56,7 @@ send userId fromPhoneNumber toPhoneNumber body = do
                 |> set #numMedia numMedia
                 |> validateAndCreate validate
 
-        AuditEntry.createMessageSentEntry
+        Audit.Entry.createMessageSent
             userId
             twilioMessage
             (get #number fromPhoneNumber)

@@ -1,6 +1,6 @@
 module Web.Controller.TwilioCallbacks where
 
-import qualified Application.Base.AuditEntry as AuditEntry
+import qualified Application.Audit.Entry as Audit.Entry
 import qualified Application.Base.FetchEntityPredictionJob as FetchEntityPredictionJob
 import qualified Application.Brain.Process as Brain.Process
 import Application.Service.Transaction (withTransactionOrSavepoint)
@@ -62,7 +62,7 @@ instance Controller TwilioCallbacksController where
                 Right twilioMessage -> do
                     twilioMessage <- withTransactionOrSavepoint do
                         twilioMessage <- createRecord twilioMessage
-                        AuditEntry.createMessageReceivedEntry twilioMessage (get #number toPhoneNumber)
+                        Audit.Entry.createMessageReceived twilioMessage (get #number toPhoneNumber)
                         pure twilioMessage
 
                     newRecord @FetchEntityPredictionJob

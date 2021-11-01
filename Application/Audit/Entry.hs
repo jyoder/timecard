@@ -1,4 +1,4 @@
-module Application.Base.AuditEntry where
+module Application.Audit.Entry where
 
 import Generated.Types
 import IHP.ModelSupport
@@ -48,13 +48,13 @@ data ScheduledMessageContext = ScheduledMessageContext
     }
     deriving (Eq, Show)
 
-createMessageSentEntry ::
+createMessageSent ::
     (?modelContext :: ModelContext) =>
     Maybe (Id User) ->
     TwilioMessage ->
     Text ->
     IO AuditEntry
-createMessageSentEntry userId twilioMessage fromPhoneNumber =
+createMessageSent userId twilioMessage fromPhoneNumber =
     createEntry
         userId
         (get #toId twilioMessage)
@@ -70,12 +70,12 @@ messageSentContext twilioMessage fromPhoneNumber =
         , messageBody = get #body twilioMessage
         }
 
-createMessageReceivedEntry ::
+createMessageReceived ::
     (?modelContext :: ModelContext) =>
     TwilioMessage ->
     Text ->
     IO AuditEntry
-createMessageReceivedEntry twilioMessage toPhoneNumber =
+createMessageReceived twilioMessage toPhoneNumber =
     createEntry
         Nothing
         (get #fromId twilioMessage)
@@ -91,13 +91,13 @@ messageReceivedContext twilioMessage toPhoneNumber =
         , messageBody = get #body twilioMessage
         }
 
-createMessageProcessedEntry ::
+createMessageProcessed ::
     (?modelContext :: ModelContext) =>
     TwilioMessage ->
     Text ->
     Text ->
     IO AuditEntry
-createMessageProcessedEntry twilioMessage situation plan =
+createMessageProcessed twilioMessage situation plan =
     createEntry
         Nothing
         (get #fromId twilioMessage)
@@ -112,13 +112,13 @@ messageProcessedContext twilioMessage situation plan =
         , ..
         }
 
-createTimecardEntryCreatedEntry ::
+createTimecardEntryCreated ::
     (?modelContext :: ModelContext) =>
     Maybe (Id User) ->
     Id PhoneNumber ->
     TimecardEntry ->
     IO AuditEntry
-createTimecardEntryCreatedEntry userId phoneNumberId timecardEntry =
+createTimecardEntryCreated userId phoneNumberId timecardEntry =
     createEntry
         userId
         phoneNumberId
@@ -137,13 +137,13 @@ createTimecardEntryCreatedEntry userId phoneNumberId timecardEntry =
                 }
         )
 
-createTimecardEntryEditedEntry ::
+createTimecardEntryEdited ::
     (?modelContext :: ModelContext) =>
     Maybe (Id User) ->
     Id PhoneNumber ->
     TimecardEntry ->
     IO AuditEntry
-createTimecardEntryEditedEntry userId phoneNumberId timecardEntry =
+createTimecardEntryEdited userId phoneNumberId timecardEntry =
     createEntry
         userId
         phoneNumberId
@@ -162,13 +162,13 @@ createTimecardEntryEditedEntry userId phoneNumberId timecardEntry =
                 }
         )
 
-createTimecardEntryDeletedEntry ::
+createTimecardEntryDeleted ::
     (?modelContext :: ModelContext) =>
     Maybe (Id User) ->
     Id PhoneNumber ->
     TimecardEntry ->
     IO AuditEntry
-createTimecardEntryDeletedEntry userId phoneNumberId timecardEntry =
+createTimecardEntryDeleted userId phoneNumberId timecardEntry =
     createEntry
         userId
         phoneNumberId
@@ -187,35 +187,35 @@ createTimecardEntryDeletedEntry userId phoneNumberId timecardEntry =
                 }
         )
 
-createReviewLinkGeneratedEntry ::
+createReviewLinkGenerated ::
     (?modelContext :: ModelContext) =>
     Maybe (Id User) ->
     Id PhoneNumber ->
     Text ->
     IO AuditEntry
-createReviewLinkGeneratedEntry userId phoneNumberId =
+createReviewLinkGenerated userId phoneNumberId =
     createEntry
         userId
         phoneNumberId
         ReviewLinkGenerated
 
-createReviewSignedEntry ::
+createReviewSigned ::
     (?modelContext :: ModelContext) =>
     Id PhoneNumber ->
     Text ->
     IO AuditEntry
-createReviewSignedEntry phoneNumberId =
+createReviewSigned phoneNumberId =
     createEntry
         Nothing
         phoneNumberId
         ReviewSigned
 
-createDailyReminderScheduledEntry ::
+createDailyReminderScheduled ::
     (?modelContext :: ModelContext) =>
     SendMessageAction ->
     UTCTime ->
     IO AuditEntry
-createDailyReminderScheduledEntry sendMessageAction sendAt =
+createDailyReminderScheduled sendMessageAction sendAt =
     createEntry
         Nothing
         (get #toId sendMessageAction)
@@ -228,12 +228,12 @@ createDailyReminderScheduledEntry sendMessageAction sendAt =
                 }
         )
 
-createReviewRequestScheduledEntry ::
+createReviewRequestScheduled ::
     (?modelContext :: ModelContext) =>
     SendMessageAction ->
     UTCTime ->
     IO AuditEntry
-createReviewRequestScheduledEntry sendMessageAction sendAt =
+createReviewRequestScheduled sendMessageAction sendAt =
     createEntry
         Nothing
         (get #toId sendMessageAction)
@@ -246,13 +246,13 @@ createReviewRequestScheduledEntry sendMessageAction sendAt =
                 }
         )
 
-createScheduledMessageEditedEntry ::
+createScheduledMessageEdited ::
     (?modelContext :: ModelContext) =>
     Id User ->
     SendMessageAction ->
     UTCTime ->
     IO AuditEntry
-createScheduledMessageEditedEntry userId sendMessageAction sendAt =
+createScheduledMessageEdited userId sendMessageAction sendAt =
     createEntry
         (Just userId)
         (get #toId sendMessageAction)
@@ -265,12 +265,12 @@ createScheduledMessageEditedEntry userId sendMessageAction sendAt =
                 }
         )
 
-createScheduledMessageSuspendedEntry ::
+createScheduledMessageSuspended ::
     (?modelContext :: ModelContext) =>
     SendMessageAction ->
     UTCTime ->
     IO AuditEntry
-createScheduledMessageSuspendedEntry sendMessageAction sendAt =
+createScheduledMessageSuspended sendMessageAction sendAt =
     createEntry
         Nothing
         (get #toId sendMessageAction)
@@ -283,13 +283,13 @@ createScheduledMessageSuspendedEntry sendMessageAction sendAt =
                 }
         )
 
-createScheduledMessageResumedEntry ::
+createScheduledMessageResumed ::
     (?modelContext :: ModelContext) =>
     Maybe (Id User) ->
     SendMessageAction ->
     UTCTime ->
     IO AuditEntry
-createScheduledMessageResumedEntry userId sendMessageAction sendAt =
+createScheduledMessageResumed userId sendMessageAction sendAt =
     createEntry
         userId
         (get #toId sendMessageAction)
@@ -302,13 +302,13 @@ createScheduledMessageResumedEntry userId sendMessageAction sendAt =
                 }
         )
 
-createScheduledMessageCanceledEntry ::
+createScheduledMessageCanceled ::
     (?modelContext :: ModelContext) =>
     Maybe (Id User) ->
     SendMessageAction ->
     UTCTime ->
     IO AuditEntry
-createScheduledMessageCanceledEntry userId sendMessageAction sendAt =
+createScheduledMessageCanceled userId sendMessageAction sendAt =
     createEntry
         userId
         (get #toId sendMessageAction)

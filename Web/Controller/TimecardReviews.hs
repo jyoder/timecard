@@ -1,7 +1,7 @@
 module Web.Controller.TimecardReviews where
 
+import qualified Application.Audit.Entry as Audit.Entry
 import qualified Application.Base.AccessToken as AccessToken
-import qualified Application.Base.AuditEntry as AuditEntry
 import qualified Application.Base.PhoneNumber as PhoneNumber
 import qualified Application.Base.Signing as Signing
 import qualified Application.People.Person as Person
@@ -97,7 +97,7 @@ instance Controller TimecardReviewsController where
                         let timecardId = get #id timecard
                         let signingId = get #id signing
                         Timecard.Signing.create timecardId signingId
-                        AuditEntry.createReviewSignedEntry (get #id phoneNumber) name
+                        Audit.Entry.createReviewSigned (get #id phoneNumber) name
                         pure ()
 
         redirectTo $ ShowTimecardReviewAction accessTokenValue
