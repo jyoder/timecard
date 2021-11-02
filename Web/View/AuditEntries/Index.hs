@@ -200,10 +200,10 @@ renderAuditEntryRow :: AuditEntryRow -> Html
 renderAuditEntryRow AuditEntryRow {..} =
     [hsx|
         <tr>
-            <td class="created-at"><time class="date-time" datetime={createdAt}>{createdAt}</time></td>
-            <td>{createdBy}</td>
+            <td class="occurred-at"><time class="date-time" datetime={createdAt}>{createdAt}</time></td>
+            <td class="performed-by">{createdBy}</td>
             <td>{action}</td>
-            <td class="d-none d-md-table-cell">{actionContext}</td>
+            <td class="d-none d-md-table-cell"><pre><code class="audit-context">{nl2br actionContext}</code></pre></td>
         </tr>
     |]
 
@@ -277,8 +277,16 @@ styles =
                 border: none;
             }
 
-            .created-at {
+            .occurred-at {
                 width: 12rem;
+            }
+
+            .performed-by {
+                width: 12rem;
+            }
+
+            .audit-context {
+                white-space: pre-wrap;
             }
 
             .flex-even {

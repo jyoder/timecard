@@ -35,8 +35,8 @@ processIncomingMessage baseUrl twilioMessage = do
 
             Audit.Entry.createMessageProcessed
                 twilioMessage
-                (show situation)
-                (show plan)
+                situation
+                plan
 
             pure ()
         [] -> pure ()

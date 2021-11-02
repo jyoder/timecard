@@ -19,6 +19,7 @@ let
             memory
             monad-loops
             p.ihp
+            pretty-simple
             raw-strings-qq
             regex-tdfa
             req

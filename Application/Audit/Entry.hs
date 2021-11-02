@@ -1,8 +1,10 @@
 module Application.Audit.Entry where
 
+import qualified Data.Text as Text
 import Generated.Types
 import IHP.ModelSupport
 import IHP.Prelude
+import Text.Pretty.Simple (pShowNoColor)
 
 data MessageSentContext = MessageSentContext
     { twilioMessageId :: !(Id TwilioMessage)
@@ -20,11 +22,11 @@ data MessageReceivedContext = MessageReceivedContext
     }
     deriving (Eq, Show)
 
-data MessageProcessedContext = MessageProcessedContext
+data MessageProcessedContext a b = MessageProcessedContext
     { twilioMessageId :: !Text
     , messageBody :: !Text
-    , situation :: !Text
-    , plan :: !Text
+    , situation :: !a
+    , plan :: !b
     }
     deriving (Eq, Show)
 
@@ -59,7 +61,7 @@ createMessageSent userId twilioMessage fromPhoneNumber =
         userId
         (get #toId twilioMessage)
         MessageSent
-        (show $ messageSentContext twilioMessage fromPhoneNumber)
+        (showContext $ messageSentContext twilioMessage fromPhoneNumber)
 
 messageSentContext :: TwilioMessage -> Text -> MessageSentContext
 messageSentContext twilioMessage fromPhoneNumber =
@@ -80,7 +82,7 @@ createMessageReceived twilioMessage toPhoneNumber =
         Nothing
         (get #fromId twilioMessage)
         MessageReceived
-        (show $ messageReceivedContext twilioMessage toPhoneNumber)
+        (showContext $ messageReceivedContext twilioMessage toPhoneNumber)
 
 messageReceivedContext :: TwilioMessage -> Text -> MessageReceivedContext
 messageReceivedContext twilioMessage toPhoneNumber =
@@ -92,19 +94,22 @@ messageReceivedContext twilioMessage toPhoneNumber =
         }
 
 createMessageProcessed ::
-    (?modelContext :: ModelContext) =>
+    ( ?modelContext :: ModelContext
+    , Show a
+    , Show b
+    ) =>
     TwilioMessage ->
-    Text ->
-    Text ->
+    a ->
+    b ->
     IO AuditEntry
 createMessageProcessed twilioMessage situation plan =
     createEntry
         Nothing
         (get #fromId twilioMessage)
         MessageProcessed
-        (show $ messageProcessedContext twilioMessage situation plan)
+        (showContext $ messageProcessedContext twilioMessage situation plan)
 
-messageProcessedContext :: TwilioMessage -> Text -> Text -> MessageProcessedContext
+messageProcessedContext :: (Show a, Show b) => TwilioMessage -> a -> b -> MessageProcessedContext a b
 messageProcessedContext twilioMessage situation plan =
     MessageProcessedContext
         { twilioMessageId = show $ get #id twilioMessage
@@ -123,7 +128,7 @@ createTimecardEntryCreated userId phoneNumberId timecardEntry =
         userId
         phoneNumberId
         TimecardEntryCreated
-        ( show $
+        ( showContext
             TimecardEntryContext
                 { timecardEntryId = get #id timecardEntry
                 , date = get #date timecardEntry
@@ -148,7 +153,7 @@ createTimecardEntryEdited userId phoneNumberId timecardEntry =
         userId
         phoneNumberId
         TimecardEntryEdited
-        ( show $
+        ( showContext
             TimecardEntryContext
                 { timecardEntryId = get #id timecardEntry
                 , date = get #date timecardEntry
@@ -173,7 +178,7 @@ createTimecardEntryDeleted userId phoneNumberId timecardEntry =
         userId
         phoneNumberId
         TimecardEntryDeleted
-        ( show $
+        ( showContext
             TimecardEntryContext
                 { timecardEntryId = get #id timecardEntry
                 , date = get #date timecardEntry
@@ -220,7 +225,7 @@ createDailyReminderScheduled sendMessageAction sendAt =
         Nothing
         (get #toId sendMessageAction)
         DailyReminderScheduled
-        ( show
+        ( showContext
             ScheduledMessageContext
                 { sendMessageActionId = get #id sendMessageAction
                 , body = get #body sendMessageAction
@@ -238,7 +243,7 @@ createReviewRequestScheduled sendMessageAction sendAt =
         Nothing
         (get #toId sendMessageAction)
         ReviewRequestScheduled
-        ( show
+        ( showContext
             ScheduledMessageContext
                 { sendMessageActionId = get #id sendMessageAction
                 , body = get #body sendMessageAction
@@ -257,7 +262,7 @@ createScheduledMessageEdited userId sendMessageAction sendAt =
         (Just userId)
         (get #toId sendMessageAction)
         ScheduledMessageEdited
-        ( show
+        ( showContext
             ScheduledMessageContext
                 { sendMessageActionId = get #id sendMessageAction
                 , body = get #body sendMessageAction
@@ -275,7 +280,7 @@ createScheduledMessageSuspended sendMessageAction sendAt =
         Nothing
         (get #toId sendMessageAction)
         ScheduledMessageSuspended
-        ( show
+        ( showContext
             ScheduledMessageContext
                 { sendMessageActionId = get #id sendMessageAction
                 , body = get #body sendMessageAction
@@ -294,7 +299,7 @@ createScheduledMessageResumed userId sendMessageAction sendAt =
         userId
         (get #toId sendMessageAction)
         ScheduledMessageResumed
-        ( show
+        ( showContext
             ScheduledMessageContext
                 { sendMessageActionId = get #id sendMessageAction
                 , body = get #body sendMessageAction
@@ -313,7 +318,7 @@ createScheduledMessageCanceled userId sendMessageAction sendAt =
         userId
         (get #toId sendMessageAction)
         ScheduledMessageCanceled
-        ( show
+        ( showContext
             ScheduledMessageContext
                 { sendMessageActionId = get #id sendMessageAction
                 , body = get #body sendMessageAction
@@ -335,3 +340,6 @@ createEntry userId phoneNumberId auditAction actionContext =
         |> set #action auditAction
         |> set #actionContext actionContext
         |> createRecord
+
+showContext :: Show a => a -> Text
+showContext showable = showable |> pShowNoColor |> cs
