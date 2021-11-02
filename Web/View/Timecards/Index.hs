@@ -293,7 +293,7 @@ renderTimecardsColumn timecardsColumn =
             [hsx||]
         TimecardsColumnVisible {..} ->
             [hsx|
-                <div class="timecards-column mr-3 flex-grow-1">
+                <div class="timecards-column mr-lg-3 flex-grow-1">
                     <div class={jumpToTopClass <>  " d-none d-lg-block"}></div>
                     {forEach timecardTables renderTimecardTable}
                 </div>
