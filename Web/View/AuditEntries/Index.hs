@@ -172,7 +172,7 @@ renderAuditColumn auditColumn =
             [hsx||]
         AuditColumnVisible {..} ->
             [hsx|
-                <div class="audit-column mr-3 flex-grow-1">
+                <div class="audit-column mr-lg-3 flex-grow-1">
                     <div class="scroll-to-pinned d-none d-lg-block"></div>
                     {renderAuditEntriesTable auditEntriesTable}
                 </div>
@@ -203,7 +203,13 @@ renderAuditEntryRow AuditEntryRow {..} =
             <td class="occurred-at"><time class="date-time" datetime={createdAt}>{createdAt}</time></td>
             <td class="performed-by">{createdBy}</td>
             <td>{action}</td>
-            <td class="d-none d-md-table-cell"><pre><code class="audit-context">{nl2br actionContext}</code></pre></td>
+            <td class="d-none d-md-table-cell">
+                <pre>
+                    <code class="audit-context">
+                        {nl2br actionContext}
+                    </code>
+                </pre>
+            </td>
         </tr>
     |]
 
