@@ -5,25 +5,6 @@ function scrollToPinned() {
     }
 }
 
-function initDatePicker() {
-    if (!('flatpickr' in window)) {
-        return;
-    }
-    flatpickr("input[type='date']", {
-        allowInput: true,
-        dateFormat: "Y-m-d",
-        altInput: true,
-        altFormat: "m/d/Y"
-    });
-    flatpickr("input[type='datetime-local']", {
-        allowInput: true,
-        enableTime: false,
-        dateFormat: 'Z',
-        altInput: true,
-        altFormat: 'm/d/Y',
-    });
-}
-
 function initTimePicker() {
     flatpickr(".flatpickr-time-input", {
         allowInput: true,
@@ -32,6 +13,7 @@ function initTimePicker() {
         dateFormat: "H:i:S",
         altInput: true,
         altFormat: "h:i K",
+        disableMobile: true,
         onClose(dates, currentdatestring, picker) {
             picker.setDate(picker.altInput.value, true, picker.config.altFormat)
         }

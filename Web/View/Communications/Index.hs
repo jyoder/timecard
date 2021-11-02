@@ -858,7 +858,7 @@ renderTimecardEntryForm TimecardEntryForm {..} =
         <form method="POST" action={submitAction} class="edit-form m-2" data-disable-javascript-submission="false"> 
             <div class="form-group">
                 <label>Date</label>
-                <input type="date" name="date" class={"form-control " <> dateInvalidClass} value={date}>
+                <input type="date" name="date" class={"custom-date-input form-control " <> dateInvalidClass} value={date}>
                 {renderFieldError dateError}
             </div>
             

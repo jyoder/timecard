@@ -92,7 +92,7 @@ instance Controller CommunicationsController where
 
         render IndexView {..}
     --
-    action CommunicationsNewTimecardEntryAction {..} = autoRefresh do
+    action CommunicationsNewTimecardEntryAction {..} = do
         let currentColumn = TimecardsColumn
         let column = Just $ columnToParam currentColumn
         botId <- Person.fetchBotId
@@ -128,7 +128,7 @@ instance Controller CommunicationsController where
       where
         toLocalDay = localDay . utcToLocalTime companyTimeZone
     --
-    action CommunicationsEditTimecardEntryAction {..} = autoRefresh do
+    action CommunicationsEditTimecardEntryAction {..} = do
         let currentColumn = TimecardsColumn
         let column = Just $ columnToParam currentColumn
         botId <- Person.fetchBotId
@@ -160,7 +160,7 @@ instance Controller CommunicationsController where
             then redirectTo CommunicationsPersonSelectionAction {..}
             else render IndexView {..}
     --
-    action CommunicationsEditModifiedTimecardEntryAction {..} = autoRefresh do
+    action CommunicationsEditModifiedTimecardEntryAction {..} = do
         let currentColumn = TimecardsColumn
         let column = Just $ columnToParam currentColumn
         botId <- Person.fetchBotId

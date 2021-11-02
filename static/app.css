@@ -1,4 +1,6 @@
-/* Remove underlines in links. */
+/* 
+ * Remove underlines in links.
+ */
 a:link { text-decoration: none; }
 a:visited { text-decoration: none; }
 a:hover { text-decoration: none; }
@@ -11,4 +13,12 @@ a:active { text-decoration: none; }
 .navbar {
     height: 100px;
     margin: 10px 0px 40px 0px;
+}
+
+/*
+ * IHP initializes the date picker such that the background ends up as grey, making
+ * it appear disabled. This selector turns the background white.
+ */
+.custom-date-input.form-control:disabled, .custom-date-input.form-control[readonly] {
+    background-color: white;
 }
