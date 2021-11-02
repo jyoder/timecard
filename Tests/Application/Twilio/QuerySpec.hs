@@ -442,7 +442,7 @@ spec = do
                     insertStatement =
                         [i|
                             insert into 
-                                public.twilio_messages 
+                                twilio_messages 
                                     (api_version, message_sid, account_sid, messaging_service_sid, to_id, from_id, status, body, num_media) 
                                 values 
                                     #{intercalate ",\n" insertTuples};
