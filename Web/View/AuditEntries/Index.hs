@@ -173,7 +173,7 @@ renderAuditColumn auditColumn =
         AuditColumnVisible {..} ->
             [hsx|
                 <div class="audit-column mr-3 flex-grow-1">
-                    <div class="d-none d-lg-block"></div>
+                    <div class="scroll-to-pinned d-none d-lg-block"></div>
                     {renderAuditEntriesTable auditEntriesTable}
                 </div>
             |]
