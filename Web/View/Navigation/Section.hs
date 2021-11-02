@@ -12,7 +12,7 @@ data Section
 renderSectionNavigation :: Section -> Maybe Person -> Html
 renderSectionNavigation currentSection selectedPerson =
     [hsx|
-        <nav class="navbar navbar-expand navbar-light bg-light m-0 mb-3">
+        <nav class="navbar navbar-expand navbar-light bg-light p-0 pl-3 m-0 mb-3">
             <div class="container-fluid">
                 <div class="navbar-brand h1 m-0 pb-4 pr-3 d-none d-lg-inline" href="#">Constructable</div>
                 <div class="collapse navbar-collapse m-0" style="overflow-x: scroll;">
@@ -22,7 +22,7 @@ renderSectionNavigation currentSection selectedPerson =
                         {renderItem auditEntriesAction AuditEntries "Audit" currentSection}
                     </ul>
                 </div>
-                <a href={DeleteSessionAction} class="btn btn-outline-primary js-delete js-delete-no-confirm ml-3 mb-3">
+                <a href={DeleteSessionAction} class="btn btn-outline-primary js-delete js-delete-no-confirm ml-3 mr-3 mb-3">
                     Logout
                 </a>
             </div>
