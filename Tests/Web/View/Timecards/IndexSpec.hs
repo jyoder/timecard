@@ -29,28 +29,6 @@ spec = do
 
             let people = [person]
 
-            let timecardEntry =
-                    Timecard.View.TimecardEntry
-                        { id = "20000000-0000-0000-0000-000000000000"
-                        , date = toDay "2021-06-23"
-                        , jobName = "job name"
-                        , clockedInAt = Nothing
-                        , clockedOutAt = Nothing
-                        , lunchDuration = Nothing
-                        , hoursWorked = 5.5
-                        , workDone = "work done"
-                        , invoiceTranslation = "invoice translation"
-                        }
-
-            let timecard =
-                    Timecard.View.Timecard
-                        { id = "30000000-0000-0000-0000-000000000000"
-                        , personId = "40000000-0000-0000-0000-000000000000"
-                        , weekOf = toDay "2021-06-21"
-                        , status = Timecard.View.TimecardInProgress
-                        , entries = [timecardEntry]
-                        }
-
             let personActivity = Index.Viewing
 
             let personSelection = Index.NoPersonSelected
