@@ -4,8 +4,6 @@ import qualified Application.Base.WorkerSettings as WorkerSettings
 import qualified Application.Timecard.EntryRequest as Timecard.EntryRequest
 import Generated.Types
 import IHP.ControllerPrelude
-import IHP.Environment
-import IHP.Test.Mocking
 import Test.Hspec
 import Tests.Support
 import Text.Read (read)

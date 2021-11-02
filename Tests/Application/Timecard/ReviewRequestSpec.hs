@@ -5,7 +5,6 @@ import qualified Application.Timecard.ReviewRequest as ReviewRequest
 import Generated.Types
 import IHP.ControllerPrelude
 import IHP.Environment
-import IHP.Test.Mocking
 import Test.Hspec
 import Tests.Support
 import Text.Read (read)

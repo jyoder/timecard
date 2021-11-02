@@ -4,7 +4,6 @@ import qualified Application.Config.Environment as Environment
 import qualified Data.Text
 import Generated.Types
 import IHP.ControllerPrelude
-import IHP.Test.Mocking
 import System.Environment (setEnv)
 import System.Random (randomIO)
 import Test.Hspec

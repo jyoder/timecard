@@ -3,7 +3,6 @@ module Tests.Application.Action.ActionRunStateSpec where
 import qualified Application.Action.ActionRunState as ActionRunState
 import Generated.Types
 import IHP.ControllerPrelude
-import IHP.Test.Mocking
 import Test.Hspec
 import Tests.Support
 

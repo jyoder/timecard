@@ -3,7 +3,6 @@ module Tests.Application.People.PersonSpec where
 import qualified Application.People.Person as Person
 import Generated.Types
 import IHP.ControllerPrelude
-import IHP.Test.Mocking
 import Test.Hspec
 import Tests.Support
 

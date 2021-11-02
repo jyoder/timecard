@@ -5,7 +5,6 @@ import Data.Set (Set)
 import Data.Set as Set
 import Generated.Types
 import IHP.ControllerPrelude
-import IHP.Test.Mocking
 import Test.Hspec
 import Tests.Support
 

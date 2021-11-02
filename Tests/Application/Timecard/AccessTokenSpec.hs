@@ -3,7 +3,6 @@ module Tests.Application.Timecard.AccessTokenSpec where
 import qualified Application.Timecard.AccessToken as Timecard.AccessToken
 import Generated.Types
 import IHP.ControllerPrelude
-import IHP.Test.Mocking
 import Test.Hspec
 import Tests.Support
 

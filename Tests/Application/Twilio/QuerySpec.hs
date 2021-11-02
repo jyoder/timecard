@@ -6,7 +6,6 @@ import Data.Set (elems)
 import "string-interpolate" Data.String.Interpolate (i)
 import Generated.Types
 import IHP.ControllerPrelude
-import IHP.Test.Mocking
 import Test.Hspec
 import Tests.Support
 

@@ -3,7 +3,6 @@ module Tests.Application.Timecard.TimecardSpec where
 import qualified Application.Timecard.Timecard as Timecard.Timecard
 import Generated.Types
 import IHP.ControllerPrelude
-import IHP.Test.Mocking
 import Test.Hspec
 import Tests.Support
 

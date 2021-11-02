@@ -3,7 +3,6 @@ module Tests.Application.Audit.EntrySpec where
 import Application.Audit.Entry
 import Generated.Types
 import IHP.ControllerPrelude
-import IHP.Test.Mocking
 import Test.Hspec
 import Tests.Support
 import Text.Pretty.Simple (pShowNoColor)

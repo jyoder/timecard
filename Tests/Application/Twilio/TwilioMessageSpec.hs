@@ -3,7 +3,6 @@ module Tests.Application.Twilio.TwilioMessageSpec where
 import qualified Application.Twilio.TwilioMessage as TwilioMessage
 import Generated.Types
 import IHP.ControllerPrelude
-import IHP.Test.Mocking
 import Test.Hspec
 import Tests.Support
 

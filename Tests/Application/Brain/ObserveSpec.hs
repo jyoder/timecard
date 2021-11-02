@@ -8,7 +8,6 @@ import qualified Application.Twilio.Query as Twilio.Query
 import qualified Application.Twilio.View as Twilio.View
 import Generated.Types
 import IHP.ControllerPrelude
-import IHP.Test.Mocking
 import Test.Hspec
 import Tests.Support
 import Text.Read (read)

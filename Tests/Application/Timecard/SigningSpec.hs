@@ -3,7 +3,6 @@ module Tests.Application.Timecard.SigningSpec where
 import qualified Application.Timecard.Signing as Timecard.Signing
 import Generated.Types
 import IHP.ControllerPrelude
-import IHP.Test.Mocking
 import Test.Hspec
 import Tests.Support
 
