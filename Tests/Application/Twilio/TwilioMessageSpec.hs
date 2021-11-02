@@ -49,6 +49,12 @@ spec = do
                         |> set #number "+15555555555"
                         |> createRecord
 
+                auditEntryCount <-
+                    query @AuditEntry
+                        |> filterWhere (#userId, Just $ get #id user)
+                        |> filterWhere (#action, MessageSent)
+                        |> fetchCount
+
                 twilioMessage <-
                     TwilioMessage.send
                         (Just $ get #id user)
@@ -63,15 +69,10 @@ spec = do
                 get #toId twilioMessage `shouldBe` get #id toPhoneNumber
                 get #body twilioMessage `shouldBe` "Hi there!"
 
-                auditEntry <-
+                auditEntryCount' <-
                     query @AuditEntry
                         |> filterWhere (#userId, Just $ get #id user)
                         |> filterWhere (#phoneNumberId, get #toId twilioMessage)
-                        |> fetchOne
-
-                get #actionContext auditEntry
-                    `shouldBe` "MessageSentContext {twilioMessageId = "
-                        <> show (get #id twilioMessage)
-                        <> ", twilioMessageSid = "
-                        <> show (get #messageSid twilioMessage)
-                        <> ", fromPhoneNumber = \"+14444444444\", messageBody = \"Hi there!\"}"
+                        |> filterWhere (#action, MessageSent)
+                        |> fetchCount
+                auditEntryCount' `shouldBe` auditEntryCount + 1

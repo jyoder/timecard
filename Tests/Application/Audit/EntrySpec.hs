@@ -6,6 +6,7 @@ import IHP.ControllerPrelude
 import IHP.Test.Mocking
 import Test.Hspec
 import Tests.Support
+import Text.Pretty.Simple (pShowNoColor)
 
 spec :: Spec
 spec = do
@@ -40,9 +41,9 @@ spec = do
                 get #userId auditEntry `shouldBe` Nothing
                 get #action auditEntry `shouldBe` MessageSent
                 get #actionContext auditEntry
-                    `shouldBe` ( "MessageSentContext {twilioMessageId = "
-                                    <> show (get #id twilioMessage)
-                                    <> ", twilioMessageSid = \"1234\", fromPhoneNumber = \"+15555555555\", messageBody = \"Hi there!\"}"
+                    `shouldBe` ( "MessageSentContext\n    { twilioMessageId = "
+                                    <> cs (pShowNoColor $ get #id twilioMessage)
+                                    <> "\n    , twilioMessageSid = \"1234\"\n    , fromPhoneNumber = \"+15555555555\"\n    , messageBody = \"Hi there!\"\n    }"
                                )
 
         describe "createMessageReceived" do
@@ -74,9 +75,9 @@ spec = do
                 get #userId auditEntry `shouldBe` Nothing
                 get #action auditEntry `shouldBe` MessageReceived
                 get #actionContext auditEntry
-                    `shouldBe` ( "MessageReceivedContext {twilioMessageId = \""
+                    `shouldBe` ( "MessageReceivedContext\n    { twilioMessageId = \""
                                     <> show (get #id twilioMessage)
-                                    <> "\", twilioMessageSid = \"1234\", toPhoneNumber = \"+16666666666\", messageBody = \"Hi there!\"}"
+                                    <> "\"\n    , twilioMessageSid = \"1234\"\n    , toPhoneNumber = \"+16666666666\"\n    , messageBody = \"Hi there!\"\n    }"
                                )
 
         describe "createMessageProcessed" do
@@ -109,9 +110,9 @@ spec = do
                 get #userId auditEntry `shouldBe` Nothing
                 get #action auditEntry `shouldBe` MessageProcessed
                 get #actionContext auditEntry
-                    `shouldBe` ( "MessageProcessedContext {twilioMessageId = \""
+                    `shouldBe` ( "MessageProcessedContext\n    { twilioMessageId = \""
                                     <> show (get #id twilioMessage)
-                                    <> "\", messageBody = \"Hi there!\", situation = \"SomeSituation\", plan = \"SomePlan\"}"
+                                    <> "\"\n    , messageBody = \"Hi there!\"\n    , situation = \"SomeSituation\"\n    , plan = \"SomePlan\"\n    }"
                                )
 
         describe "createMessageReceived" do
@@ -143,9 +144,9 @@ spec = do
                 get #userId auditEntry `shouldBe` Nothing
                 get #action auditEntry `shouldBe` MessageReceived
                 get #actionContext auditEntry
-                    `shouldBe` ( "MessageReceivedContext {twilioMessageId = \""
+                    `shouldBe` ( "MessageReceivedContext\n    { twilioMessageId = \""
                                     <> show (get #id twilioMessage)
-                                    <> "\", twilioMessageSid = \"1234\", toPhoneNumber = \"+16666666666\", messageBody = \"Hi there!\"}"
+                                    <> "\"\n    , twilioMessageSid = \"1234\"\n    , toPhoneNumber = \"+16666666666\"\n    , messageBody = \"Hi there!\"\n    }"
                                )
 
         describe "createTimecardCreated" do
@@ -176,7 +177,7 @@ spec = do
                 get #userId auditEntry `shouldBe` Nothing
                 get #action auditEntry `shouldBe` TimecardEntryCreated
                 get #actionContext auditEntry
-                    `shouldBe` "TimecardEntryContext {timecardEntryId = 00000000-0000-0000-0000-000000000000, date = 2021-10-30, jobName = \"Costco\", clockedInAt = Just 07:00:00, clockedOutAt = Just 07:00:01, lunchDuration = Just 30, hoursWorked = 8.0, workDone = \"Ate chips.\", invoiceTranslation = \"Installed doors.\"}"
+                    `shouldBe` "TimecardEntryContext\n    { timecardEntryId = 00000000 - 0000 - 0000 - 0000 - 000000000000\n    , date = 2021 - 10 - 30\n    , jobName = \"Costco\"\n    , clockedInAt = Just 07 : 00 : 00\n    , clockedOutAt = Just 07 : 00 : 01\n    , lunchDuration = Just 30\n    , hoursWorked = 8.0\n    , workDone = \"Ate chips.\"\n    , invoiceTranslation = \"Installed doors.\"\n    }"
 
         describe "createTimecardEdited" do
             itIO "returns a timecard edited entry" do
@@ -206,7 +207,7 @@ spec = do
                 get #userId auditEntry `shouldBe` Nothing
                 get #action auditEntry `shouldBe` TimecardEntryEdited
                 get #actionContext auditEntry
-                    `shouldBe` "TimecardEntryContext {timecardEntryId = 00000000-0000-0000-0000-000000000000, date = 2021-10-30, jobName = \"Costco\", clockedInAt = Just 07:00:00, clockedOutAt = Just 07:00:01, lunchDuration = Just 30, hoursWorked = 8.0, workDone = \"Ate chips.\", invoiceTranslation = \"Installed doors.\"}"
+                    `shouldBe` "TimecardEntryContext\n    { timecardEntryId = 00000000 - 0000 - 0000 - 0000 - 000000000000\n    , date = 2021 - 10 - 30\n    , jobName = \"Costco\"\n    , clockedInAt = Just 07 : 00 : 00\n    , clockedOutAt = Just 07 : 00 : 01\n    , lunchDuration = Just 30\n    , hoursWorked = 8.0\n    , workDone = \"Ate chips.\"\n    , invoiceTranslation = \"Installed doors.\"\n    }"
 
         describe "createTimecardDeleted" do
             itIO "returns a timecard deleted entry" do
@@ -236,7 +237,7 @@ spec = do
                 get #userId auditEntry `shouldBe` Nothing
                 get #action auditEntry `shouldBe` TimecardEntryDeleted
                 get #actionContext auditEntry
-                    `shouldBe` "TimecardEntryContext {timecardEntryId = 00000000-0000-0000-0000-000000000000, date = 2021-10-30, jobName = \"Costco\", clockedInAt = Just 07:00:00, clockedOutAt = Just 07:00:01, lunchDuration = Just 30, hoursWorked = 8.0, workDone = \"Ate chips.\", invoiceTranslation = \"Installed doors.\"}"
+                    `shouldBe` "TimecardEntryContext\n    { timecardEntryId = 00000000 - 0000 - 0000 - 0000 - 000000000000\n    , date = 2021 - 10 - 30\n    , jobName = \"Costco\"\n    , clockedInAt = Just 07 : 00 : 00\n    , clockedOutAt = Just 07 : 00 : 01\n    , lunchDuration = Just 30\n    , hoursWorked = 8.0\n    , workDone = \"Ate chips.\"\n    , invoiceTranslation = \"Installed doors.\"\n    }"
 
         describe "createReviewLinkGenerated" do
             itIO "returns a review link generated entry" do
@@ -292,7 +293,7 @@ spec = do
                 get #phoneNumberId auditEntry `shouldBe` get #id phoneNumber
                 get #userId auditEntry `shouldBe` Nothing
                 get #action auditEntry `shouldBe` DailyReminderScheduled
-                get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendMessageActionId = 10000000-0000-0000-0000-000000000000, sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
+                get #actionContext auditEntry `shouldBe` "ScheduledMessageContext\n    { sendMessageActionId = 10000000 - 0000 - 0000 - 0000 - 000000000000\n    , sendAt = 2021 - 10 - 30 14 : 00 : 00 UTC\n    , body = \"Yo!\"\n    }"
 
         describe "createReviewRequestScheduled" do
             itIO "returns a review request scheduled entry" do
@@ -315,7 +316,7 @@ spec = do
                 get #phoneNumberId auditEntry `shouldBe` get #id phoneNumber
                 get #userId auditEntry `shouldBe` Nothing
                 get #action auditEntry `shouldBe` ReviewRequestScheduled
-                get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendMessageActionId = 10000000-0000-0000-0000-000000000000, sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
+                get #actionContext auditEntry `shouldBe` "ScheduledMessageContext\n    { sendMessageActionId = 10000000 - 0000 - 0000 - 0000 - 000000000000\n    , sendAt = 2021 - 10 - 30 14 : 00 : 00 UTC\n    , body = \"Yo!\"\n    }"
 
         describe "createScheduledMessageEdited" do
             itIO "returns a scheduled message edited entry" do
@@ -345,7 +346,7 @@ spec = do
                 get #phoneNumberId auditEntry `shouldBe` get #id phoneNumber
                 get #userId auditEntry `shouldBe` Just (get #id user)
                 get #action auditEntry `shouldBe` ScheduledMessageEdited
-                get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendMessageActionId = 10000000-0000-0000-0000-000000000000, sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
+                get #actionContext auditEntry `shouldBe` "ScheduledMessageContext\n    { sendMessageActionId = 10000000 - 0000 - 0000 - 0000 - 000000000000\n    , sendAt = 2021 - 10 - 30 14 : 00 : 00 UTC\n    , body = \"Yo!\"\n    }"
 
         describe "createScheduledMessageSuspended" do
             itIO "returns a scheduled message suspended entry" do
@@ -368,7 +369,7 @@ spec = do
                 get #phoneNumberId auditEntry `shouldBe` get #id phoneNumber
                 get #userId auditEntry `shouldBe` Nothing
                 get #action auditEntry `shouldBe` ScheduledMessageSuspended
-                get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendMessageActionId = 10000000-0000-0000-0000-000000000000, sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
+                get #actionContext auditEntry `shouldBe` "ScheduledMessageContext\n    { sendMessageActionId = 10000000 - 0000 - 0000 - 0000 - 000000000000\n    , sendAt = 2021 - 10 - 30 14 : 00 : 00 UTC\n    , body = \"Yo!\"\n    }"
 
         describe "createScheduledMessageResumed" do
             itIO "returns a scheduled message resumed entry" do
@@ -392,7 +393,7 @@ spec = do
                 get #phoneNumberId auditEntry `shouldBe` get #id phoneNumber
                 get #userId auditEntry `shouldBe` Nothing
                 get #action auditEntry `shouldBe` ScheduledMessageResumed
-                get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendMessageActionId = 10000000-0000-0000-0000-000000000000, sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
+                get #actionContext auditEntry `shouldBe` "ScheduledMessageContext\n    { sendMessageActionId = 10000000 - 0000 - 0000 - 0000 - 000000000000\n    , sendAt = 2021 - 10 - 30 14 : 00 : 00 UTC\n    , body = \"Yo!\"\n    }"
 
         describe "createScheduledMessageCanceled" do
             itIO "returns a scheduled message canceled entry" do
@@ -416,7 +417,7 @@ spec = do
                 get #phoneNumberId auditEntry `shouldBe` get #id phoneNumber
                 get #userId auditEntry `shouldBe` Nothing
                 get #action auditEntry `shouldBe` ScheduledMessageCanceled
-                get #actionContext auditEntry `shouldBe` "ScheduledMessageContext {sendMessageActionId = 10000000-0000-0000-0000-000000000000, sendAt = 2021-10-30 14:00:00 UTC, body = \"Yo!\"}"
+                get #actionContext auditEntry `shouldBe` "ScheduledMessageContext\n    { sendMessageActionId = 10000000 - 0000 - 0000 - 0000 - 000000000000\n    , sendAt = 2021 - 10 - 30 14 : 00 : 00 UTC\n    , body = \"Yo!\"\n    }"
 
         describe "createEntry" do
             itIO "saves and returns an audit entry" do
