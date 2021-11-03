@@ -274,7 +274,7 @@ renderPage Page {..} =
             {renderColumnNavigation columnNavigation}
             
             <div class="d-flex flex-row">
-                <div class={"mr-lg-3 flex-column " <> peopleNavigationClasses}>
+                <div class={"mr-lg-3 flex-column flex-shrink-1 " <> peopleNavigationClasses}>
                     {renderPeopleNavigation peopleNavigation}
                 </div>
                 <div class={"flex-column " <> timecardsColumnClasses}>
@@ -293,7 +293,7 @@ renderTimecardsColumn timecardsColumn =
             [hsx||]
         TimecardsColumnVisible {..} ->
             [hsx|
-                <div class="timecards-column mr-lg-3 flex-grow-1">
+                <div class="timecards-column mr-lg-3">
                     <div class={jumpToTopClass <>  " d-none d-lg-block"}></div>
                     {forEach timecardTables renderTimecardTable}
                 </div>
@@ -315,25 +315,27 @@ renderTimecardTable TimecardTable {..} =
                     {lastName}, {firstName}
                 </h5>
 
-                <table class="table sticky-header">
-                    <thead>
-                        <tr>
-                            <th scope="col">Day</th>
-                            <th scope="col" class="d-none d-md-table-cell">Date</th>
-                            <th scope="col">Job</th>
-                            <th scope="col" class="d-none d-md-table-cell">Clock In</th>
-                            <th scope="col" class="d-none d-md-table-cell">Clock Out</th>
-                            <th scope="col" class="d-none d-md-table-cell">Lunch (mins)</th>
-                            <th scope="col" class="d-none d-md-table-cell">Work Done</th>
-                            <th scope="col" class="d-none d-md-table-cell">Invoice Translation</th>
-                            <th scope="col">Hours</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {forEach jobRows renderJobRow}
-                        {renderTotalHoursRow totalHoursRow}
-                    </tbody>
-                </table>
+                <div class="table-responsive-lg">
+                    <table class="table sticky-header">
+                        <thead>
+                            <tr>
+                                <th scope="col">Day</th>
+                                <th scope="col">Date</th>
+                                <th scope="col">Job</th>
+                                <th scope="col">Clock In</th>
+                                <th scope="col">Clock Out</th>
+                                <th scope="col">Lunch (mins)</th>
+                                <th scope="col">Work Done</th>
+                                <th scope="col">Invoice Translation</th>
+                                <th scope="col">Hours</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {forEach jobRows renderJobRow}
+                            {renderTotalHoursRow totalHoursRow}
+                        </tbody>
+                    </table>
+                </div>
                 <a href={downloadAction} download={downloadFileName}>Download PDF</a>
             </div>
         </div>
@@ -351,15 +353,15 @@ renderJobRow :: JobRow -> Html
 renderJobRow JobRow {..} =
     [hsx|
         <tr>
-            <th scope="row">{dayOfWeek'}</th>
-            <td class="d-none d-md-table-cell">{date}</td>
-            <td>{jobName}</td>
-            <td class="d-none d-md-table-cell">{clockedInAt}</td>
-            <td class="d-none d-md-table-cell">{clockedOutAt}</td>
-            <td class="d-none d-md-table-cell">{lunchDuration}</td>
-            <td class="work-done d-none d-md-table-cell">{nl2br workDone}</td>
+            <th scope="row" class="day-of-week">{dayOfWeek'}</th>
+            <td scope="col">{date}</td>
+            <td scope="col" class="job-name">{jobName}</td>
+            <td scope="col" class="clocked-in-at">{clockedInAt}</td>
+            <td scope="col" class="clocked-out-at">{clockedOutAt}</td>
+            <td scope="col" class="lunch-duration">{lunchDuration}</td>
+            <td scope="col" class="work-done ">{nl2br workDone}</td>
             {renderInvoiceTranslationCell invoiceTranslationCell}
-            <td>{hoursWorked}</td>
+            <td scope="col">{hoursWorked}</td>
         </tr>
     |]
 
@@ -368,13 +370,13 @@ renderInvoiceTranslationCell invoiceTranslationCell =
     case invoiceTranslationCell of
         ShowInvoiceTranslation {..} ->
             [hsx|
-                <td class="invoice-translation d-none d-md-table-cell">
+                <td scope="col" class="invoice-translation">
                     {nl2br invoiceTranslation} (<a href={editAction}>Edit</a>)
                 </td>
             |]
         EditInvoiceTranslation {..} ->
             [hsx|
-                <td class="invoice-translation d-none d-md-table-cell">
+                <td class="invoice-translation">
                     <form method="POST" action={saveAction} class="edit-form" data-disable-javascript-submission="false">
                         <div class="form-group">
                             <textarea type="text" name="invoiceTranslation" placeholder="" class="invoice-translation-input form-control" value={invoiceTranslation}>
@@ -393,13 +395,13 @@ renderTotalHoursRow TotalHoursRow {..} =
     [hsx|
         <tr class="table-active">
             <th scope="row">Total Hours</th>
-            <td class="d-none d-md-table-cell"></td>
             <td></td>
-            <td class="d-none d-md-table-cell"></td>
-            <td class="d-none d-md-table-cell"></td>
-            <td class="d-none d-md-table-cell"></td>
-            <td class="d-none d-md-table-cell"></td>
-            <td class="d-none d-md-table-cell"></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
             <td>{totalHours}</td>
         </tr>
     |]
@@ -439,6 +441,7 @@ styles =
                 --section-nav-height: 7.25rem;
                 --total-nav-height: calc(var(--section-nav-height) + var(--column-nav-height) + var(--mobile-browser-bar-height));
                 --screen-height: 100vh;
+                --people-list-min-width: 18.75rem;
             }
 
             .column-nav {
@@ -456,7 +459,7 @@ styles =
 
             .people-list {
                 height: calc(var(--screen-height) - var(--total-nav-height));
-                min-width: 18.75rem;
+                min-width: var(--people-list-min-width);
                 overflow-y: scroll;
             }
 
@@ -466,25 +469,86 @@ styles =
                 font-size: .9rem;
             }
 
+            @media only screen and (min-width: 992px) {
+                .timecards-column {
+                    max-width: calc(100vw - calc(var(--people-list-min-width) + 2rem));
+                    overflow-x: hidden;
+                }
+
+                .day-of-week {
+                    width: 7rem;
+                }
+
+                .job-name {
+                    width: 8rem;
+                }
+
+                .clocked-in-at {
+                    width: 6rem;
+                }
+
+                .clocked-out-at {
+                    width: 6rem;
+                }
+
+                .lunch-duration {
+                    width: 8rem;
+                }
+
+                .work-done {
+                    width: 19rem;
+                }
+
+                .invoice-translation {
+                    width: 19rem;
+                }
+            }
+
+            @media only screen and (max-width: 992px) {
+                .timecards-column {
+                    max-width: 100vw;
+                }
+
+                .day-of-week {
+                    min-width: 7rem;
+                }
+
+                .job-name {
+                    min-width: 8rem;
+                }
+
+                .clocked-in-at {
+                    min-width: 6rem;
+                }
+
+                .clocked-out-at {
+                    min-width: 6rem;
+                }
+
+                .lunch-duration {
+                    min-width: 8rem;
+                }
+
+                .work-done {
+                    min-width: 19rem;
+                }
+
+                .invoice-translation {
+                    min-width: 19rem;
+                }
+            }
+
+            .invoice-translation-input.form-control {
+                font-size: .9rem;
+                height: 9.4rem;
+            }
+
             .sticky-header thead th { 
                 position: sticky;
                 top: 0;
                 z-index: 1;
                 background: white;
                 border: none;
-            }
-
-            .work-done {
-                width: 18.75rem;
-            }
-
-            .invoice-translation {
-                width: 18.75rem;
-            }
-
-            .invoice-translation-input.form-control {
-                font-size: .9rem;
-                height: 9.4rem;
             }
 
             .flex-even {
