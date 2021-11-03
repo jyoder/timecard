@@ -172,7 +172,7 @@ renderAuditColumn auditColumn =
             [hsx||]
         AuditColumnVisible {..} ->
             [hsx|
-                <div class="audit-column mr-lg-3 flex-grow-1">
+                <div class="entries-column mr-lg-3 flex-grow-1">
                     <div class="scroll-to-pinned d-none d-lg-block"></div>
                     {renderAuditEntriesTable auditEntriesTable}
                 </div>
@@ -187,7 +187,7 @@ renderAuditEntriesTable AuditEntriesTable {..} =
                     <th scope="col">Occurred At</th>
                     <th scope="col">Performed By</th>
                     <th scope="col">Action</th>
-                    <th scope="col" class="d-none d-md-table-cell">Context</th>
+                    <th scope="col">Context</th>
                 </tr>
             </thead>
             <tbody>
@@ -203,13 +203,7 @@ renderAuditEntryRow AuditEntryRow {..} =
             <td class="occurred-at"><time class="date-time" datetime={createdAt}>{createdAt}</time></td>
             <td class="performed-by">{createdBy}</td>
             <td>{action}</td>
-            <td class="d-none d-md-table-cell">
-                <pre>
-                    <code class="audit-context">
-                        {nl2br actionContext}
-                    </code>
-                </pre>
-            </td>
+            <td><pre><code class="audit-context">{nl2br actionContext}</code></pre></td>
         </tr>
     |]
 
@@ -248,6 +242,7 @@ styles =
                 --section-nav-height: 7.25rem;
                 --total-nav-height: calc(var(--section-nav-height) + var(--column-nav-height) + var(--mobile-browser-bar-height));
                 --screen-height: 100vh;
+                --people-list-min-width: 18.75rem;
             }
 
             .column-nav {
@@ -265,14 +260,26 @@ styles =
 
             .people-list {
                 height: calc(var(--screen-height) - var(--total-nav-height));
-                min-width: 18.75rem;
+                min-width: var(--people-list-min-width);
                 overflow-y: scroll;
             }
 
-            .audit-column {
+            .entries-column {
                 height: calc(var(--screen-height) - var(--total-nav-height));
                 overflow-y: scroll;
                 font-size: .9rem;
+            }
+
+            @media only screen and (min-width: 992px) {
+                .entries-column {
+                    max-width: calc(100vw - calc(var(--people-list-min-width) + 2rem));
+                }
+            }
+
+            @media only screen and (max-width: 992px) {
+                .entries-column {
+                    max-width: 100vw;
+                }
             }
 
             .sticky-header thead th { 
@@ -284,11 +291,11 @@ styles =
             }
 
             .occurred-at {
-                width: 12rem;
+                min-width: 12rem;
             }
 
             .performed-by {
-                width: 12rem;
+                min-width: 14rem;
             }
 
             .audit-context {
