@@ -2,6 +2,7 @@ module Web.View.Timecards.Index where
 
 import qualified Application.People.View as V
 import qualified Application.Timecard.View as V
+import qualified Text.Blaze.Html5 as Html5
 import Web.View.Navigation.People (BadgeVisibility (..), PeopleNavigation, buildPeopleNavigation, renderPeopleNavigation)
 import Web.View.Navigation.Section (Section (Timecards), renderSectionNavigation)
 import Web.View.Prelude hiding (Page)
@@ -26,7 +27,11 @@ data PersonSelection
 
 data PersonActivity
     = Viewing
-    | EditingInvoiceTranslation
+    | Editing
+        { selectedTimecardEntry :: !TimecardEntry
+        , editingField :: !EditableField
+        }
+    | EditingHoursWorked
         { selectedTimecardEntry :: !TimecardEntry
         }
 
@@ -63,13 +68,13 @@ data TimecardTable = TimecardTable
 data JobRow = JobRow
     { dayOfWeek' :: !Text
     , date :: !Text
-    , jobName :: !Text
-    , clockedInAt :: !Text
-    , clockedOutAt :: !Text
-    , lunchDuration :: !Text
-    , hoursWorked :: !Text
+    , jobNameCell :: !TableCell
+    , clockedInAtCell :: !TableCell
+    , clockedOutAtCell :: !TableCell
+    , lunchDurationCell :: !TableCell
     , workDone :: !Text
-    , invoiceTranslationCell :: !InvoiceTranslationCell
+    , invoiceTranslationCell :: !TableCell
+    , hoursWorkedCell :: !TableCell
     }
     deriving (Eq, Show)
 
@@ -78,13 +83,15 @@ newtype TotalHoursRow = TotalHoursRow
     }
     deriving (Eq, Show)
 
-data InvoiceTranslationCell
-    = ShowInvoiceTranslation
-        { invoiceTranslation :: !Text
+data TableCell
+    = ShowCell
+        { editableField :: !EditableField
+        , value :: !Text
         , editAction :: !TimecardsController
         }
-    | EditInvoiceTranslation
-        { invoiceTranslation :: !Text
+    | EditCell
+        { editableField :: !EditableField
+        , value :: !Text
         , timecardEntryId :: !Text
         , saveAction :: !TimecardsController
         , cancelAction :: !TimecardsController
@@ -102,6 +109,15 @@ data ColumnNavigation = ColumnNavigation
 data Column
     = PeopleColumn
     | TimecardsColumn
+    deriving (Eq, Show)
+
+data EditableField
+    = JobNameField
+    | ClockedInAtField
+    | ClockedOutAtField
+    | LunchDurationField
+    | InvoiceTranslationField
+    | HoursWorkedField
     deriving (Eq, Show)
 
 instance View IndexView where
@@ -183,44 +199,78 @@ buildJobRow selectedPerson personActivity timecardEntry =
     JobRow
         { dayOfWeek' = show $ dayOfWeek $ get #date timecardEntry
         , date = formatDay $ get #date timecardEntry
-        , jobName = get #jobName timecardEntry
-        , clockedInAt = maybe "--" formatTimeOfDay (get #clockedInAt timecardEntry)
-        , clockedOutAt = maybe "--" formatTimeOfDay (get #clockedOutAt timecardEntry)
-        , lunchDuration = maybe "--" show (get #lunchDuration timecardEntry)
-        , hoursWorked = show $ get #hoursWorked timecardEntry
-        , workDone = get #workDone timecardEntry
-        , invoiceTranslationCell =
-            buildInvoiceTranslationCell
+        , jobNameCell =
+            buildTableCell
                 selectedPerson
                 personActivity
+                JobNameField
                 timecardEntry
+                (get #jobName timecardEntry)
+        , clockedInAtCell =
+            buildTableCell
+                selectedPerson
+                personActivity
+                ClockedInAtField
+                timecardEntry
+                (maybe "" formatTimeOfDay (get #clockedInAt timecardEntry))
+        , clockedOutAtCell =
+            buildTableCell
+                selectedPerson
+                personActivity
+                ClockedOutAtField
+                timecardEntry
+                (maybe "" formatTimeOfDay (get #clockedOutAt timecardEntry))
+        , lunchDurationCell =
+            buildTableCell
+                selectedPerson
+                personActivity
+                LunchDurationField
+                timecardEntry
+                (maybe "" show (get #lunchDuration timecardEntry))
+        , workDone = get #workDone timecardEntry
+        , invoiceTranslationCell =
+            buildTableCell
+                selectedPerson
+                personActivity
+                InvoiceTranslationField
+                timecardEntry
+                (get #invoiceTranslation timecardEntry)
+        , hoursWorkedCell =
+            buildTableCell
+                selectedPerson
+                personActivity
+                HoursWorkedField
+                timecardEntry
+                (show $ get #hoursWorked timecardEntry)
         }
 
-buildInvoiceTranslationCell ::
+buildTableCell ::
     Person ->
     PersonActivity ->
+    EditableField ->
     V.TimecardEntry ->
-    InvoiceTranslationCell
-buildInvoiceTranslationCell
+    Text ->
+    TableCell
+buildTableCell
     selectedPerson
     personActivity
-    timecardEntry =
+    editableField
+    timecardEntry
+    value =
         case personActivity of
-            Viewing ->
-                ShowInvoiceTranslation
-                    { invoiceTranslation = get #invoiceTranslation timecardEntry
-                    , editAction =
-                        TimecardEditTimecardEntryAction
-                            { timecardEntryId = get #id timecardEntry
-                            }
-                    }
-            EditingInvoiceTranslation {..} ->
-                if get #id timecardEntry == get #id selectedTimecardEntry
+            Editing {..} ->
+                if (get #id timecardEntry == get #id selectedTimecardEntry)
+                    && editingField == editableField
                     then
-                        EditInvoiceTranslation
-                            { invoiceTranslation = get #invoiceTranslation timecardEntry
+                        EditCell
+                            { editableField
+                            , value
                             , timecardEntryId = show $ get #id timecardEntry
-                            , saveAction = TimecardUpdateTimecardEntryAction $ get #id timecardEntry
+                            , saveAction =
+                                TimecardUpdateTimecardEntryAction
+                                    { timecardEntryId = get #id timecardEntry
+                                    , editingField = editableFieldToParam editableField
+                                    }
                             , cancelAction =
                                 TimecardPersonSelectionAction
                                     { selectedPersonId = get #id selectedPerson
@@ -229,13 +279,25 @@ buildInvoiceTranslationCell
                                     }
                             }
                     else
-                        ShowInvoiceTranslation
-                            { invoiceTranslation = get #invoiceTranslation timecardEntry
+                        ShowCell
+                            { editableField
+                            , value
                             , editAction =
                                 TimecardEditTimecardEntryAction
                                     { timecardEntryId = get #id timecardEntry
+                                    , editingField = editableFieldToParam editableField
                                     }
                             }
+            _ ->
+                ShowCell
+                    { editableField
+                    , value
+                    , editAction =
+                        TimecardEditTimecardEntryAction
+                            { timecardEntryId = get #id timecardEntry
+                            , editingField = editableFieldToParam editableField
+                            }
+                    }
 
 buildTotalHoursRow :: [V.TimecardEntry] -> TotalHoursRow
 buildTotalHoursRow timecardEntries =
@@ -261,10 +323,6 @@ buildColumnNavigation personSelection currentColumn =
                 , column = Just $ columnToParam column
                 , jumpToTop = Just 1
                 }
-
-columnToParam :: Column -> Text
-columnToParam PeopleColumn = "people"
-columnToParam TimecardsColumn = "timecards"
 
 renderPage :: Page -> Html
 renderPage Page {..} =
@@ -355,33 +413,31 @@ renderJobRow JobRow {..} =
         <tr>
             <th scope="row" class="day-of-week">{dayOfWeek'}</th>
             <td scope="col">{date}</td>
-            <td scope="col" class="job-name">{jobName}</td>
-            <td scope="col" class="clocked-in-at">{clockedInAt}</td>
-            <td scope="col" class="clocked-out-at">{clockedOutAt}</td>
-            <td scope="col" class="lunch-duration">{lunchDuration}</td>
-            <td scope="col" class="work-done ">{nl2br workDone}</td>
-            {renderInvoiceTranslationCell invoiceTranslationCell}
-            <td scope="col">{hoursWorked}</td>
+            {renderTableCell jobNameCell}
+            {renderTableCell clockedInAtCell}
+            {renderTableCell clockedOutAtCell}
+            {renderTableCell lunchDurationCell}
+            <td scope="col" class="work-done" tabindex="0" role="button" data-toggle="tooltip" data-placement="left" title="This field was created by the crew-member and cannot be edited.">{joinWithLineBreaks workDone}</td>
+            {renderTableCell invoiceTranslationCell}
+            {renderTableCell hoursWorkedCell}
         </tr>
     |]
 
-renderInvoiceTranslationCell :: InvoiceTranslationCell -> Html
-renderInvoiceTranslationCell invoiceTranslationCell =
-    case invoiceTranslationCell of
-        ShowInvoiceTranslation {..} ->
+renderTableCell :: TableCell -> Html
+renderTableCell tableCell =
+    case tableCell of
+        ShowCell {..} ->
             [hsx|
-                <td scope="col" class="invoice-translation">
-                    {nl2br invoiceTranslation} (<a href={editAction}>Edit</a>)
+                <td scope="col" class={editableFieldToClass editableField}>
+                    <a href={editAction} class="cell-value">{value}</a>
                 </td>
             |]
-        EditInvoiceTranslation {..} ->
+        EditCell {..} ->
             [hsx|
-                <td class="invoice-translation">
+                <td class={editableFieldToClass editableField}>
                     <form method="POST" action={saveAction} class="edit-form" data-disable-javascript-submission="false">
                         <div class="form-group">
-                            <textarea type="text" name="invoiceTranslation" placeholder="" class="invoice-translation-input form-control" value={invoiceTranslation}>
-                                {invoiceTranslation}
-                            </textarea> 
+                            {renderCellInput editableField value}
                         </div>
                         
                         <button class="btn btn-primary btn btn-primary btn-sm">Save</button>
@@ -389,6 +445,32 @@ renderInvoiceTranslationCell invoiceTranslationCell =
                     </form>
                 </td>
             |]
+
+renderCellInput :: EditableField -> Text -> Html
+renderCellInput editableField value =
+    case editableField of
+        InvoiceTranslationField ->
+            [hsx|
+                <textarea type="text" name={editableFieldParam} placeholder="" class={editableFieldClasses} value={value}>
+                    {value}
+                </textarea> 
+            |]
+        ClockedInAtField ->
+            [hsx|
+                <input type="text" name={editableFieldParam} placeholder="" class={editableTimeFieldClasses} value={value}>
+            |]
+        ClockedOutAtField ->
+            [hsx|
+                <input type="text" name={editableFieldParam} placeholder="" class={editableTimeFieldClasses} value={value}>
+            |]
+        _ ->
+            [hsx|
+                <input type="text" name={editableFieldParam} placeholder="" class={editableFieldClasses} value={value}>
+            |]
+  where
+    editableFieldParam = editableFieldToParam editableField
+    editableFieldClasses = editableFieldToClass editableField <> "-input editable-cell form-control"
+    editableTimeFieldClasses = editableFieldToClass editableField <> "-input editable-cell flatpickr-time-input form-control"
 
 renderTotalHoursRow :: TotalHoursRow -> Html
 renderTotalHoursRow TotalHoursRow {..} =
@@ -418,6 +500,36 @@ renderColumnNavigation ColumnNavigation {..} =
             </li>
         </ul>
     |]
+
+joinWithLineBreaks :: Text -> Html5.Html
+joinWithLineBreaks value = value |> atLeastOneLine |> toHtml |> joinHtml
+  where
+    atLeastOneLine value =
+        case lines value of
+            [] -> [""]
+            lines -> lines
+    toHtml = map (\line -> [hsx|{line}|])
+    joinHtml = foldl1' (\html line -> [hsx|{html}<br/>{line}|])
+
+columnToParam :: Column -> Text
+columnToParam PeopleColumn = "people"
+columnToParam TimecardsColumn = "timecards"
+
+editableFieldToParam :: EditableField -> Text
+editableFieldToParam JobNameField = "jobName"
+editableFieldToParam ClockedInAtField = "clockedInAt"
+editableFieldToParam ClockedOutAtField = "clockedOutAt"
+editableFieldToParam LunchDurationField = "lunchDuration"
+editableFieldToParam InvoiceTranslationField = "invoiceTranslation"
+editableFieldToParam HoursWorkedField = "hoursWorked"
+
+editableFieldToClass :: EditableField -> Text
+editableFieldToClass JobNameField = "job-name"
+editableFieldToClass ClockedInAtField = "clocked-in-at"
+editableFieldToClass ClockedOutAtField = "clocked-out-at"
+editableFieldToClass LunchDurationField = "lunch-duration"
+editableFieldToClass InvoiceTranslationField = "invoice-translation"
+editableFieldToClass HoursWorkedField = "hours-worked"
 
 styles :: Html
 styles =
@@ -480,15 +592,15 @@ styles =
                 }
 
                 .job-name {
-                    width: 8rem;
+                    width: 10rem;
                 }
 
                 .clocked-in-at {
-                    width: 6rem;
+                    width: 8rem;
                 }
 
                 .clocked-out-at {
-                    width: 6rem;
+                    width: 8rem;
                 }
 
                 .lunch-duration {
@@ -496,11 +608,15 @@ styles =
                 }
 
                 .work-done {
-                    width: 19rem;
+                    width: 14rem;
                 }
 
                 .invoice-translation {
-                    width: 19rem;
+                    width: 14rem;
+                }
+
+                .hours-worked {
+                    width: 5rem;
                 }
             }
 
@@ -514,15 +630,15 @@ styles =
                 }
 
                 .job-name {
-                    min-width: 8rem;
+                    min-width: 10rem;
                 }
 
                 .clocked-in-at {
-                    min-width: 6rem;
+                    min-width: 8rem;
                 }
 
                 .clocked-out-at {
-                    min-width: 6rem;
+                    min-width: 8rem;
                 }
 
                 .lunch-duration {
@@ -530,16 +646,32 @@ styles =
                 }
 
                 .work-done {
-                    min-width: 19rem;
+                    min-width: 14rem;
                 }
 
                 .invoice-translation {
-                    min-width: 19rem;
+                    min-width: 14rem;
+                }
+
+                .hours-worked {
+                    min-width: 5rem;
                 }
             }
 
-            .invoice-translation-input.form-control {
+            .cell-value:empty:before {
+                content: "--";
+            }
+
+            .cell-value {
+                color: inherit;
+            }
+
+            .editable-cell {
                 font-size: .9rem;
+                min-width: 7.5rem;
+            }
+
+            .invoice-translation-input.form-control {
                 height: 9.4rem;
             }
 

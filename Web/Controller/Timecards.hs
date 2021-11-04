@@ -66,6 +66,8 @@ instance Controller TimecardsController where
     action TimecardEditTimecardEntryAction {..} = do
         let jumpToTop = False
         let currentColumn = TimecardsColumn
+        let editingField = paramToEditableField $ param "editingField"
+
         people <-
             People.View.buildPeople
                 <$> People.Query.fetchActiveWorkers
@@ -81,7 +83,7 @@ instance Controller TimecardsController where
                     Timecard.Query.EntriesDateAscending
                     selectedPersonId
 
-        let personActivity = EditingInvoiceTranslation {..}
+        let personActivity = Editing {..}
         let personSelection = PersonSelected {..}
 
         render IndexView {..}
@@ -119,16 +121,29 @@ instance Controller TimecardsController where
     action TimecardUpdateTimecardEntryAction {..} = do
         let currentColumn = TimecardsColumn
         let column = Just $ columnToParam currentColumn
-        let invoiceTranslation = param @Text "invoiceTranslation"
+        let editingField = paramToEditableField $ param "editingField"
 
         timecardEntry <- fetch timecardEntryId
         timecard <- fetch (get #timecardId timecardEntry)
         let selectedPersonId = get #personId timecard
 
-        timecardEntry
-            |> set #invoiceTranslation invoiceTranslation
-            |> validateField #invoiceTranslation nonEmpty
-            |> ifValid \case
+        let timecardEntry' = case editingField of
+                JobNameField ->
+                    timecardEntry |> fill @["jobName", "jobName"]
+                ClockedInAtField ->
+                    timecardEntry |> fill @["clockedInAt", "clockedInAt"]
+                ClockedOutAtField ->
+                    timecardEntry |> fill @["clockedOutAt", "clockedOutAt"]
+                LunchDurationField ->
+                    timecardEntry |> fill @["lunchDuration", "lunchDuration"]
+                InvoiceTranslationField ->
+                    timecardEntry |> fill @["invoiceTranslation", "invoiceTranslation"]
+                HoursWorkedField ->
+                    timecardEntry |> fill @["hoursWorked", "hoursWorked"]
+
+        timecardEntry'
+            |> Timecard.Entry.validate
+            >>= ifValid \case
                 Left selectedTimecardEntry -> do
                     people <-
                         People.View.buildPeople
@@ -142,7 +157,7 @@ instance Controller TimecardsController where
                                 selectedPersonId
 
                     let jumpToTop = False
-                    let personActivity = EditingInvoiceTranslation {..}
+                    let personActivity = Editing {..}
                     let personSelection = PersonSelected {..}
 
                     render IndexView {..}
@@ -155,3 +170,12 @@ paramToColumn :: Text -> Column
 paramToColumn "people" = PeopleColumn
 paramToColumn "timecards" = TimecardsColumn
 paramToColumn _ = PeopleColumn
+
+paramToEditableField :: Text -> EditableField
+paramToEditableField "jobName" = JobNameField
+paramToEditableField "clockedInAt" = ClockedInAtField
+paramToEditableField "clockedOutAt" = ClockedOutAtField
+paramToEditableField "lunchDuration" = LunchDurationField
+paramToEditableField "invoiceTranslation" = InvoiceTranslationField
+paramToEditableField "hoursWorked" = HoursWorkedField
+paramToEditableField _ = InvoiceTranslationField

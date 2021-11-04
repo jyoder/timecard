@@ -101,12 +101,14 @@ data TimecardsController
         }
     | TimecardEditTimecardEntryAction
         { timecardEntryId :: !(Id TimecardEntry)
+        , editingField :: !Text
         }
     | TimecardDownloadTimecardAction
         { timecardId :: !(Id Timecard)
         }
     | TimecardUpdateTimecardEntryAction
         { timecardEntryId :: !(Id TimecardEntry)
+        , editingField :: !Text
         }
     deriving (Eq, Show, Data)
 
