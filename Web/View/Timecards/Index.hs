@@ -668,7 +668,7 @@ styles =
 
             .editable-cell {
                 font-size: .9rem;
-                min-width: 7.5rem;
+                min-width: 8rem;
             }
 
             .invoice-translation-input.form-control {
