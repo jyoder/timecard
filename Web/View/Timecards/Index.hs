@@ -31,9 +31,6 @@ data PersonActivity
         { selectedTimecardEntry :: !TimecardEntry
         , editingField :: !EditableField
         }
-    | EditingHoursWorked
-        { selectedTimecardEntry :: !TimecardEntry
-        }
 
 data Page = Page
     { selectedPerson :: !(Maybe Person)
@@ -501,16 +498,6 @@ renderColumnNavigation ColumnNavigation {..} =
         </ul>
     |]
 
-joinWithLineBreaks :: Text -> Html5.Html
-joinWithLineBreaks value = value |> atLeastOneLine |> toHtml |> joinHtml
-  where
-    atLeastOneLine value =
-        case lines value of
-            [] -> [""]
-            lines -> lines
-    toHtml = map (\line -> [hsx|{line}|])
-    joinHtml = foldl1' (\html line -> [hsx|{html}<br/>{line}|])
-
 columnToParam :: Column -> Text
 columnToParam PeopleColumn = "people"
 columnToParam TimecardsColumn = "timecards"
@@ -530,6 +517,16 @@ editableFieldToClass ClockedOutAtField = "clocked-out-at"
 editableFieldToClass LunchDurationField = "lunch-duration"
 editableFieldToClass InvoiceTranslationField = "invoice-translation"
 editableFieldToClass HoursWorkedField = "hours-worked"
+
+joinWithLineBreaks :: Text -> Html5.Html
+joinWithLineBreaks value = value |> atLeastOneLine |> toHtml |> joinHtml
+  where
+    atLeastOneLine value =
+        case lines value of
+            [] -> [""]
+            lines -> lines
+    toHtml = map (\line -> [hsx|{line}|])
+    joinHtml = foldl1' (\html line -> [hsx|{html}<br/>{line}|])
 
 styles :: Html
 styles =
