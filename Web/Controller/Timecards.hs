@@ -178,4 +178,4 @@ paramToEditableField "clockedOutAt" = ClockedOutAtField
 paramToEditableField "lunchDuration" = LunchDurationField
 paramToEditableField "invoiceTranslation" = InvoiceTranslationField
 paramToEditableField "hoursWorked" = HoursWorkedField
-paramToEditableField _ = InvoiceTranslationField
+paramToEditableField _ = JobNameField
