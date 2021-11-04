@@ -13,7 +13,6 @@ function initTimePicker() {
         dateFormat: "H:i:S",
         altInput: true,
         altFormat: "h:i K",
-        disableMobile: true,
         onClose(dates, currentdatestring, picker) {
             picker.setDate(picker.altInput.value, true, picker.config.altFormat)
         }
