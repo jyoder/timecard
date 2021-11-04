@@ -878,7 +878,6 @@ renderTimecardEntryForm TimecardEntryForm {..} =
                 <div class="col form-group">
                     <label>Clock Out</label>
                     <input type="text" name="clockedOutAt" placeholder="" class={"form-control flatpickr-time-input " <> clockedOutAtInvalidClass} value={clockedOutAt}>
-
                     {renderFieldError clockedOutAtError}
                 </div>
 
