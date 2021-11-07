@@ -472,4 +472,4 @@ defaultHoursWorked :: Double
 defaultHoursWorked = 8.0
 
 companyTimeZone :: TimeZone
-companyTimeZone = read "PDT"
+companyTimeZone = read "PST"

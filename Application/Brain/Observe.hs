@@ -44,4 +44,4 @@ observe event = do
     pure Observations {..}
 
 companyTimeZone' :: TimeZone
-companyTimeZone' = read "PDT"
+companyTimeZone' = read "PST"
