@@ -107,8 +107,8 @@ spec = do
 
                 let Observe.Observations {..} = observations
                 now' `shouldSatisfy` (>=) now
-                companyTimeZone `shouldBe` toTimeZone "PDT"
-                today `shouldSatisfy` (>=) (localDay (utcToLocalTime (toTimeZone "PDT") now'))
+                companyTimeZone `shouldBe` toTimeZone "PST"
+                today `shouldSatisfy` (>=) (localDay (utcToLocalTime (toTimeZone "PST") now'))
 
                 event
                     `shouldBe` Observe.IncomingMessage
