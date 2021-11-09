@@ -69,7 +69,7 @@ data JobRow = JobRow
     , clockedInAtCell :: !TableCell
     , clockedOutAtCell :: !TableCell
     , lunchDurationCell :: !TableCell
-    , workDone :: !Text
+    , workDoneCell :: !TableCell
     , invoiceTranslationCell :: !TableCell
     , hoursWorkedCell :: !TableCell
     }
@@ -113,6 +113,7 @@ data EditableField
     | ClockedInAtField
     | ClockedOutAtField
     | LunchDurationField
+    | WorkDoneField
     | InvoiceTranslationField
     | HoursWorkedField
     deriving (Eq, Show)
@@ -224,7 +225,13 @@ buildJobRow selectedPerson personActivity timecardEntry =
                 LunchDurationField
                 timecardEntry
                 (maybe "" show (get #lunchDuration timecardEntry))
-        , workDone = get #workDone timecardEntry
+        , workDoneCell =
+            buildTableCell
+                selectedPerson
+                personActivity
+                WorkDoneField
+                timecardEntry
+                (get #workDone timecardEntry)
         , invoiceTranslationCell =
             buildTableCell
                 selectedPerson
@@ -414,7 +421,7 @@ renderJobRow JobRow {..} =
             {renderTableCell clockedInAtCell}
             {renderTableCell clockedOutAtCell}
             {renderTableCell lunchDurationCell}
-            <td scope="col" class="work-done" tabindex="0" role="button" data-toggle="tooltip" data-placement="left" title="This field was created by the crew-member and cannot be edited.">{joinWithLineBreaks workDone}</td>
+            {renderTableCell workDoneCell}
             {renderTableCell invoiceTranslationCell}
             {renderTableCell hoursWorkedCell}
         </tr>
@@ -446,9 +453,15 @@ renderTableCell tableCell =
 renderCellInput :: EditableField -> Text -> Html
 renderCellInput editableField value =
     case editableField of
+        WorkDoneField ->
+            [hsx|
+                <textarea type="text" name={editableFieldParam} placeholder="" class={editableFieldClasses <> " work-done-input"} value={value}>
+                    {value}
+                </textarea> 
+            |]
         InvoiceTranslationField ->
             [hsx|
-                <textarea type="text" name={editableFieldParam} placeholder="" class={editableFieldClasses} value={value}>
+                <textarea type="text" name={editableFieldParam} placeholder="" class={editableFieldClasses <> " invoice-translation-input"} value={value}>
                     {value}
                 </textarea> 
             |]
@@ -507,6 +520,7 @@ editableFieldToParam JobNameField = "jobName"
 editableFieldToParam ClockedInAtField = "clockedInAt"
 editableFieldToParam ClockedOutAtField = "clockedOutAt"
 editableFieldToParam LunchDurationField = "lunchDuration"
+editableFieldToParam WorkDoneField = "workDone"
 editableFieldToParam InvoiceTranslationField = "invoiceTranslation"
 editableFieldToParam HoursWorkedField = "hoursWorked"
 
@@ -515,6 +529,7 @@ editableFieldToClass JobNameField = "job-name"
 editableFieldToClass ClockedInAtField = "clocked-in-at"
 editableFieldToClass ClockedOutAtField = "clocked-out-at"
 editableFieldToClass LunchDurationField = "lunch-duration"
+editableFieldToClass WorkDoneField = "work-done"
 editableFieldToClass InvoiceTranslationField = "invoice-translation"
 editableFieldToClass HoursWorkedField = "hours-worked"
 
@@ -663,13 +678,17 @@ styles =
                 color: inherit;
             }
 
+            .work-done-input {
+                min-height: 25rem;
+            }
+
+            .invoice-translation-input {
+                min-height: 25rem;
+            }
+
             .editable-cell {
                 font-size: .9rem;
                 min-width: 8rem;
-            }
-
-            .invoice-translation-input.form-control {
-                height: 9.4rem;
             }
 
             .sticky-header thead th { 

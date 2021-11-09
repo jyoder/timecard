@@ -244,7 +244,16 @@ spec = do
                                                     , editingField = "hoursWorked"
                                                     }
                                             }
-                                    , workDone = "work done"
+                                    , workDoneCell =
+                                        Index.ShowCell
+                                            { editableField = Index.WorkDoneField
+                                            , value = "work done"
+                                            , editAction =
+                                                TimecardEditTimecardEntryAction
+                                                    { timecardEntryId = "20000000-0000-0000-0000-000000000000"
+                                                    , editingField = "workDone"
+                                                    }
+                                            }
                                     , invoiceTranslationCell =
                                         Index.ShowCell
                                             { editableField = Index.InvoiceTranslationField
@@ -390,7 +399,16 @@ spec = do
                                                     , editingField = "hoursWorked"
                                                     }
                                             }
-                                    , workDone = "work done"
+                                    , workDoneCell =
+                                        Index.ShowCell
+                                            { editableField = Index.WorkDoneField
+                                            , value = "work done"
+                                            , editAction =
+                                                TimecardEditTimecardEntryAction
+                                                    { timecardEntryId = "20000000-0000-0000-0000-000000000000"
+                                                    , editingField = "workDone"
+                                                    }
+                                            }
                                     , invoiceTranslationCell =
                                         Index.ShowCell
                                             { editableField = Index.InvoiceTranslationField
@@ -514,7 +532,16 @@ spec = do
                                             , editingField = "hoursWorked"
                                             }
                                     }
-                            , workDone = "work done"
+                            , workDoneCell =
+                                Index.ShowCell
+                                    { editableField = Index.WorkDoneField
+                                    , value = "work done"
+                                    , editAction =
+                                        TimecardEditTimecardEntryAction
+                                            { timecardEntryId = "20000000-0000-0000-0000-000000000000"
+                                            , editingField = "workDone"
+                                            }
+                                    }
                             , invoiceTranslationCell =
                                 Index.ShowCell
                                     { editableField = Index.InvoiceTranslationField
@@ -614,7 +641,16 @@ spec = do
                                     , editingField = "hoursWorked"
                                     }
                             }
-                    , workDone = "work done"
+                    , workDoneCell =
+                        Index.ShowCell
+                            { editableField = Index.WorkDoneField
+                            , value = "work done"
+                            , editAction =
+                                TimecardEditTimecardEntryAction
+                                    { timecardEntryId = "20000000-0000-0000-0000-000000000000"
+                                    , editingField = "workDone"
+                                    }
+                            }
                     , invoiceTranslationCell =
                         Index.ShowCell
                             { editableField = Index.InvoiceTranslationField
@@ -837,6 +873,8 @@ spec = do
             Index.editableFieldToParam Index.ClockedOutAtField `shouldBe` "clockedOutAt"
         it "returns 'lunchDuration' for the lunch duration field" do
             Index.editableFieldToParam Index.LunchDurationField `shouldBe` "lunchDuration"
+        it "returns 'workDone' for the work done field" do
+            Index.editableFieldToParam Index.WorkDoneField `shouldBe` "workDone"
         it "returns 'invoiceTranslation' for the invoice translation field" do
             Index.editableFieldToParam Index.InvoiceTranslationField `shouldBe` "invoiceTranslation"
         it "returns 'hoursWorked' for the hours worked field" do
@@ -851,6 +889,8 @@ spec = do
             Index.editableFieldToClass Index.ClockedOutAtField `shouldBe` "clocked-out-at"
         it "returns 'lunch-duration' for the lunch duration field" do
             Index.editableFieldToClass Index.LunchDurationField `shouldBe` "lunch-duration"
+        it "returns 'work-done' for the work done field" do
+            Index.editableFieldToClass Index.WorkDoneField `shouldBe` "work-done"
         it "returns 'invoice-translation' for the invoice translation field" do
             Index.editableFieldToClass Index.InvoiceTranslationField `shouldBe` "invoice-translation"
         it "returns 'hours-worked' for the hours worked field" do

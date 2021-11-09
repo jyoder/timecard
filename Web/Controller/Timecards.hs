@@ -136,6 +136,8 @@ instance Controller TimecardsController where
                     timecardEntry |> fill @["clockedOutAt", "clockedOutAt"]
                 LunchDurationField ->
                     timecardEntry |> fill @["lunchDuration", "lunchDuration"]
+                WorkDoneField ->
+                    timecardEntry |> fill @["workDone", "workDone"]
                 InvoiceTranslationField ->
                     timecardEntry |> fill @["invoiceTranslation", "invoiceTranslation"]
                 HoursWorkedField ->
@@ -176,6 +178,7 @@ paramToEditableField "jobName" = JobNameField
 paramToEditableField "clockedInAt" = ClockedInAtField
 paramToEditableField "clockedOutAt" = ClockedOutAtField
 paramToEditableField "lunchDuration" = LunchDurationField
+paramToEditableField "workDone" = WorkDoneField
 paramToEditableField "invoiceTranslation" = InvoiceTranslationField
 paramToEditableField "hoursWorked" = HoursWorkedField
 paramToEditableField _ = JobNameField
