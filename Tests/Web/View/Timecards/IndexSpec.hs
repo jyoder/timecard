@@ -712,7 +712,7 @@ spec = do
                     , clockedInAtCell =
                         Index.EditCell
                             { editableField = Index.ClockedInAtField
-                            , value = "15:00:00"
+                            , value = "3:00 PM"
                             , timecardEntryId = "20000000-0000-0000-0000-000000000000"
                             , saveAction =
                                 TimecardUpdateTimecardEntryAction
@@ -837,7 +837,7 @@ spec = do
                     , clockedOutAtCell =
                         Index.EditCell
                             { editableField = Index.ClockedOutAtField
-                            , value = "16:00:00"
+                            , value = "4:00 PM"
                             , timecardEntryId = "20000000-0000-0000-0000-000000000000"
                             , saveAction =
                                 TimecardUpdateTimecardEntryAction
@@ -922,7 +922,6 @@ spec = do
                 Index.InvoiceTranslationField
                 timecardEntry
                 "invoice translation"
-                "invoice translation"
                 `shouldBe` Index.ShowCell
                     { editableField = Index.InvoiceTranslationField
                     , value = "invoice translation"
@@ -967,7 +966,6 @@ spec = do
                 Index.InvoiceTranslationField
                 timecardEntry
                 "invoice translation"
-                "invoice translation"
                 `shouldBe` Index.ShowCell
                     { editableField = Index.InvoiceTranslationField
                     , value = "invoice translation"
@@ -1011,7 +1009,6 @@ spec = do
                 personActivity
                 Index.InvoiceTranslationField
                 timecardEntry
-                "invoice translation"
                 "invoice translation"
                 `shouldBe` Index.EditCell
                     { editableField = Index.InvoiceTranslationField

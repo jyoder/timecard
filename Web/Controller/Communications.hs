@@ -451,13 +451,13 @@ buildTimecardEntry timecardEntry =
         |> fill
             @[ "date"
              , "jobName"
-             , "clockedInAt"
-             , "clockedOutAt"
              , "lunchDuration"
              , "hoursWorked"
              , "workDone"
              , "invoiceTranslation"
              ]
+        |> Timecard.Entry.setClockedInAt (param "clockedInAt")
+        |> Timecard.Entry.setClockedOutAt (param "clockedOutAt")
 
 paramToColumn :: Text -> Column
 paramToColumn "people" = PeopleColumn

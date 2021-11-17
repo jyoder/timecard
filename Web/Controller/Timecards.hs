@@ -1,5 +1,6 @@
 module Web.Controller.Timecards where
 
+import qualified Application.Brain.Normalize as Brain.Normalize
 import qualified Application.People.Person as Person
 import qualified Application.People.Query as People.Query
 import qualified Application.People.View as People.View
@@ -130,10 +131,14 @@ instance Controller TimecardsController where
         let timecardEntry' = case editingField of
                 JobNameField ->
                     timecardEntry |> fill @'["jobName"]
-                ClockedInAtField -> do
-                    timecardEntry |> fill @'["clockedInAt"] |> adjustHoursWorked
+                ClockedInAtField ->
+                    timecardEntry
+                        |> Timecard.Entry.setClockedInAt (param "clockedInAt")
+                        |> adjustHoursWorked
                 ClockedOutAtField ->
-                    timecardEntry |> fill @'["clockedOutAt"] |> adjustHoursWorked
+                    timecardEntry
+                        |> Timecard.Entry.setClockedOutAt (param "clockedOutAt")
+                        |> adjustHoursWorked
                 LunchDurationField ->
                     timecardEntry |> fill @'["lunchDuration"] |> adjustHoursWorked
                 WorkDoneField ->

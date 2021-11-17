@@ -4,12 +4,15 @@ module Application.Timecard.Entry (
     delete,
     validate,
     isBefore,
+    setClockedInAt,
+    setClockedOutAt,
     matchesClockDetails,
     clockDetailsMatchHoursWorked,
     clockDetailsToHoursWorked,
 ) where
 
 import qualified Application.Audit.Entry as Audit.Entry
+import qualified Application.Brain.Normalize as Brain.Normalize
 import Application.Service.Time (startOfWeek)
 import Application.Service.Transaction (withTransactionOrSavepoint)
 import Application.Timecard.EntryMessage as Timecard.EntryMessage
@@ -170,6 +173,30 @@ clockDetailsToHoursWorked maybeClockedInAt maybeClockedOutAt maybeLunch =
     picosecondsInHour :: Integer
     picosecondsInHour = picosecondsInSecond * 60 * 60
     picosecondsInSecond = 1000000000000
+
+setClockedInAt :: Maybe Text -> TimecardEntry -> TimecardEntry
+setClockedInAt maybeClockedInAt timecardEntry =
+    case maybeClockedInAt of
+        Just clockedInAtText ->
+            case Brain.Normalize.clockedInAt clockedInAtText of
+                Just clockedInAt ->
+                    timecardEntry |> set #clockedInAt (Just clockedInAt)
+                Nothing ->
+                    timecardEntry |> attachFailure #clockedInAt "should have the form hh:mm am/pm"
+        Nothing ->
+            timecardEntry |> set #clockedInAt Nothing
+
+setClockedOutAt :: Maybe Text -> TimecardEntry -> TimecardEntry
+setClockedOutAt maybeClockedOutAt timecardEntry =
+    case maybeClockedOutAt of
+        Just clockedOutAtText ->
+            case Brain.Normalize.clockedOutAt clockedOutAtText of
+                Just clockedOutAt ->
+                    timecardEntry |> set #clockedOutAt (Just clockedOutAt)
+                Nothing ->
+                    timecardEntry |> attachFailure #clockedOutAt "should have the form hh:mm am/pm"
+        Nothing ->
+            timecardEntry |> set #clockedOutAt Nothing
 
 toleranceMinutes :: Integer
 toleranceMinutes = 15

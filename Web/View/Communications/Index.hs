@@ -12,7 +12,7 @@ import Web.View.Navigation.People
 import Web.View.Navigation.Section (Section (Communications), renderSectionNavigation)
 import Web.View.Prelude hiding (Page)
 import Web.View.Service.Style (removeScrollbars)
-import Web.View.Service.Time (formatDateTime, formatDay)
+import Web.View.Service.Time (formatDateTime, formatDay, formatTimeOfDay)
 import Web.View.Timecards.Status
 
 data IndexView = IndexView
@@ -506,10 +506,10 @@ buildTimecardEntryForm
             , jobName = get #jobName timecardEntry
             , jobNameInvalidClass = if hasErrorFor "jobName" then invalidClass else ""
             , jobNameError = errorFor "jobName"
-            , clockedInAt = maybe "" show (get #clockedInAt timecardEntry)
+            , clockedInAt = maybe "" formatTimeOfDay (get #clockedInAt timecardEntry)
             , clockedInAtInvalidClass = if hasErrorFor "clockedInAt" then invalidClass else ""
             , clockedInAtError = errorFor "clockedInAt"
-            , clockedOutAt = maybe "" show (get #clockedOutAt timecardEntry)
+            , clockedOutAt = maybe "" formatTimeOfDay (get #clockedOutAt timecardEntry)
             , clockedOutAtInvalidClass = if hasErrorFor "clockedOutAt" then invalidClass else ""
             , clockedOutAtError = errorFor "clockedOutAt"
             , lunchDuration = maybe "" show (get #lunchDuration timecardEntry)
@@ -871,19 +871,19 @@ renderTimecardEntryForm TimecardEntryForm {..} =
             <div class="form-row">
                 <div class="col form-group">
                     <label>Clock In</label>
-                    <input type="text" name="clockedInAt" placeholder="" class={"form-control flatpickr-time-input " <> clockedInAtInvalidClass} value={clockedInAt}>
+                    <input type="text" name="clockedInAt" placeholder="" class={"form-control " <> clockedInAtInvalidClass} value={clockedInAt}>
                     {renderFieldError clockedInAtError}
                 </div>
 
                 <div class="col form-group">
                     <label>Clock Out</label>
-                    <input type="text" name="clockedOutAt" placeholder="" class={"form-control flatpickr-time-input " <> clockedOutAtInvalidClass} value={clockedOutAt}>
+                    <input type="text" name="clockedOutAt" placeholder="" class={"form-control " <> clockedOutAtInvalidClass} value={clockedOutAt}>
                     {renderFieldError clockedOutAtError}
                 </div>
 
                 <div class="col form-group">
                     <label>Lunch (mins)</label>
-                    <input type="text" name="lunchDuration" placeholder="" class={"form-control " <> lunchDurationInvalidClass} value={lunchDuration}>
+                    <input type="text" name="lunchDuration" placeholder="mins" class={"form-control " <> lunchDurationInvalidClass} value={lunchDuration}>
                     {renderFieldError lunchDurationError}
                 </div>
             </div>

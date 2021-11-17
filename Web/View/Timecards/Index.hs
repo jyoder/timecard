@@ -204,7 +204,6 @@ buildJobRow selectedPerson personActivity timecardEntry =
                 JobNameField
                 timecardEntry
                 (get #jobName timecardEntry)
-                (get #jobName timecardEntry)
         , clockedInAtCell =
             buildTableCell
                 selectedPerson
@@ -212,7 +211,6 @@ buildJobRow selectedPerson personActivity timecardEntry =
                 ClockedInAtField
                 timecardEntry
                 (maybe "" formatTimeOfDay (get #clockedInAt timecardEntry))
-                (maybe "" show (get #clockedInAt timecardEntry))
         , clockedOutAtCell =
             buildTableCell
                 selectedPerson
@@ -220,14 +218,12 @@ buildJobRow selectedPerson personActivity timecardEntry =
                 ClockedOutAtField
                 timecardEntry
                 (maybe "" formatTimeOfDay (get #clockedOutAt timecardEntry))
-                (maybe "" show (get #clockedOutAt timecardEntry))
         , lunchDurationCell =
             buildTableCell
                 selectedPerson
                 personActivity
                 LunchDurationField
                 timecardEntry
-                (maybe "" show (get #lunchDuration timecardEntry))
                 (maybe "" show (get #lunchDuration timecardEntry))
         , workDoneCell =
             buildTableCell
@@ -236,7 +232,6 @@ buildJobRow selectedPerson personActivity timecardEntry =
                 WorkDoneField
                 timecardEntry
                 (get #workDone timecardEntry)
-                (get #workDone timecardEntry)
         , invoiceTranslationCell =
             buildTableCell
                 selectedPerson
@@ -244,14 +239,12 @@ buildJobRow selectedPerson personActivity timecardEntry =
                 InvoiceTranslationField
                 timecardEntry
                 (get #invoiceTranslation timecardEntry)
-                (get #invoiceTranslation timecardEntry)
         , hoursWorkedCell =
             buildTableCell
                 selectedPerson
                 personActivity
                 HoursWorkedField
                 timecardEntry
-                (show $ get #hoursWorked timecardEntry)
                 (show $ get #hoursWorked timecardEntry)
         }
 
@@ -261,15 +254,13 @@ buildTableCell ::
     EditableField ->
     V.TimecardEntry ->
     Text ->
-    Text ->
     TableCell
 buildTableCell
     selectedPerson
     personActivity
     editableField
     timecardEntry
-    showValue
-    editValue =
+    value =
         case personActivity of
             Editing {..} ->
                 if (get #id timecardEntry == get #id selectedTimecardEntry)
@@ -277,7 +268,7 @@ buildTableCell
                     then
                         EditCell
                             { editableField
-                            , value = editValue
+                            , value = value
                             , timecardEntryId = show $ get #id timecardEntry
                             , saveAction =
                                 TimecardUpdateTimecardEntryAction
@@ -294,7 +285,7 @@ buildTableCell
                     else
                         ShowCell
                             { editableField
-                            , value = showValue
+                            , value = value
                             , editAction =
                                 TimecardEditTimecardEntryAction
                                     { timecardEntryId = get #id timecardEntry
@@ -304,7 +295,7 @@ buildTableCell
             _ ->
                 ShowCell
                     { editableField
-                    , value = showValue
+                    , value = value
                     , editAction =
                         TimecardEditTimecardEntryAction
                             { timecardEntryId = get #id timecardEntry
@@ -464,23 +455,15 @@ renderCellInput editableField value =
     case editableField of
         WorkDoneField ->
             [hsx|
-                <textarea type="text" name={editableFieldParam} placeholder="" class={editableFieldClasses <> " work-done-input"} value={value}>
+                <textarea type="text" name={editableFieldParam} placeholder="" class={editableFieldClasses} value={value}>
                     {value}
                 </textarea> 
             |]
         InvoiceTranslationField ->
             [hsx|
-                <textarea type="text" name={editableFieldParam} placeholder="" class={editableFieldClasses <> " invoice-translation-input"} value={value}>
+                <textarea type="text" name={editableFieldParam} placeholder="" class={editableFieldClasses} value={value}>
                     {value}
                 </textarea> 
-            |]
-        ClockedInAtField ->
-            [hsx|
-                <input type="text" name={editableFieldParam} placeholder="" class={editableTimeFieldClasses} value={value}>
-            |]
-        ClockedOutAtField ->
-            [hsx|
-                <input type="text" name={editableFieldParam} placeholder="" class={editableTimeFieldClasses} value={value}>
             |]
         _ ->
             [hsx|
@@ -489,7 +472,6 @@ renderCellInput editableField value =
   where
     editableFieldParam = editableFieldToParam editableField
     editableFieldClasses = editableFieldToClass editableField <> "-input editable-cell form-control"
-    editableTimeFieldClasses = editableFieldToClass editableField <> "-input editable-cell flatpickr-time-input form-control"
 
 renderTotalHoursRow :: TotalHoursRow -> Html
 renderTotalHoursRow TotalHoursRow {..} =

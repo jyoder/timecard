@@ -729,6 +729,58 @@ spec = do
                 8.0
                 `shouldBe` Failure "Must be within 15 minutes of clock details"
 
+    describe "setClockedInAt" do
+        it "parses and sets the clock in time using normalization" do
+            let timecardEntry =
+                    newRecord @TimecardEntry
+                        |> Timecard.Entry.setClockedInAt (Just "10am")
+             in get #clockedInAt timecardEntry `shouldBe` Just (toTimeOfDay "10:00:00")
+
+        it "sets the clock in time to nothing if no input is given" do
+            let timecardEntry =
+                    newRecord @TimecardEntry
+                        |> Timecard.Entry.setClockedInAt Nothing
+             in get #clockedInAt timecardEntry `shouldBe` Nothing
+
+        it "attaches an error validation if the input is not a time" do
+            let timecardEntry =
+                    newRecord @TimecardEntry
+                        |> Timecard.Entry.setClockedInAt (Just "not a time")
+             in timecardEntry |> get #meta |> get #annotations
+                    `shouldBe` [
+                                   ( "clockedInAt"
+                                   , TextViolation
+                                        { message = "should have the form hh:mm am/pm"
+                                        }
+                                   )
+                               ]
+
+    describe "setClockedOutAt" do
+        it "parses and sets the clock out time using normalization" do
+            let timecardEntry =
+                    newRecord @TimecardEntry
+                        |> Timecard.Entry.setClockedOutAt (Just "10am")
+             in get #clockedOutAt timecardEntry `shouldBe` Just (toTimeOfDay "10:00:00")
+
+        it "sets the clock out time to nothing if no input is given" do
+            let timecardEntry =
+                    newRecord @TimecardEntry
+                        |> Timecard.Entry.setClockedOutAt Nothing
+             in get #clockedOutAt timecardEntry `shouldBe` Nothing
+
+        it "attaches an error validation if the input is not a time" do
+            let timecardEntry =
+                    newRecord @TimecardEntry
+                        |> Timecard.Entry.setClockedOutAt (Just "not a time")
+             in timecardEntry |> get #meta |> get #annotations
+                    `shouldBe` [
+                                   ( "clockedOutAt"
+                                   , TextViolation
+                                        { message = "should have the form hh:mm am/pm"
+                                        }
+                                   )
+                               ]
+
     describe "matchesClockDetails" do
         it "returns success if clock details match hours worked" do
             Timecard.Entry.matchesClockDetails
