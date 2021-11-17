@@ -950,7 +950,3 @@ spec = do
     describe "assumedLunchDuration" do
         it "returns 30 minutes" do
             Orient.assumedLunchDuration `shouldBe` 30
-
-    describe "minutesWorkedTolerance" do
-        it "returns 15 minutes" do
-            Orient.minutesWorkedTolerance `shouldBe` 15

@@ -5,6 +5,7 @@ import qualified Application.Action.SendMessageAction as SendMessageAction
 import qualified Application.Brain.Normalize as Normalize
 import qualified Application.Brain.Observe as Observe
 import Application.Service.Time (nextWorkingDay)
+import qualified Application.Timecard.Entry as Timecard.Entry
 import qualified Application.Timecard.EntryRequest as EntryRequest
 import qualified Application.Timecard.Query as Timecard.Query
 import qualified Application.Twilio.Query as Twilio.Query
@@ -186,12 +187,11 @@ findEntities entityType = filter (\entity -> get #entityType entity == entityTyp
 
 jobDetailsMatch :: Job -> Bool
 jobDetailsMatch Job {..} =
-    case (clockedInAt, clockedOutAt) of
-        (Just clockedInAt, Just clockedOutAt) ->
-            let minutesWorkedByClock = minutesBetween clockedInAt clockedOutAt - lunchDuration
-                minutesWorked = hoursToMinutes hoursWorked
-             in abs (minutesWorked - minutesWorkedByClock) <= minutesWorkedTolerance
-        _ -> True -- For now, assume details match if clock info was not provided
+    Timecard.Entry.clockDetailsMatchHoursWorked
+        clockedInAt
+        clockedOutAt
+        (Just lunchDuration)
+        hoursWorked
 
 minutesBetween :: TimeOfDay -> TimeOfDay -> Int
 minutesBetween start end = round durationMinutes
@@ -209,6 +209,3 @@ entityConfidenceThreshold = 0.8
 
 assumedLunchDuration :: Int
 assumedLunchDuration = 30
-
-minutesWorkedTolerance :: Int
-minutesWorkedTolerance = 15
