@@ -9,8 +9,9 @@ module Application.Service.Validation (
     ValidationException (..),
 ) where
 
+import Application.Service.Text (isBlank)
 import qualified Control.Exception as Exception
-import Data.Text (strip, unpack)
+import Data.Text (unpack)
 import IHP.Controller.Param (ifValid)
 import IHP.ModelSupport
 import qualified IHP.ModelSupport as ModelSupport
@@ -27,9 +28,10 @@ instance Exception ValidationException where
         unpack $ "Validations failed: " <> description
 
 nonBlank :: Text -> ValidatorResult
-nonBlank text = case strip text of
-    "" -> Failure "This field cannot be blank"
-    _ -> Success
+nonBlank text =
+    if isBlank text
+        then Failure "This field cannot be blank"
+        else Success
 
 validateAndCreate ::
     ( ?modelContext :: ModelContext
