@@ -129,19 +129,19 @@ instance Controller TimecardsController where
 
         let timecardEntry' = case editingField of
                 JobNameField ->
-                    timecardEntry |> fill @["jobName", "jobName"]
-                ClockedInAtField ->
-                    timecardEntry |> fill @["clockedInAt", "clockedInAt"]
+                    timecardEntry |> fill @'["jobName"]
+                ClockedInAtField -> do
+                    timecardEntry |> fill @'["clockedInAt"] |> adjustHoursWorked
                 ClockedOutAtField ->
-                    timecardEntry |> fill @["clockedOutAt", "clockedOutAt"]
+                    timecardEntry |> fill @'["clockedOutAt"] |> adjustHoursWorked
                 LunchDurationField ->
-                    timecardEntry |> fill @["lunchDuration", "lunchDuration"]
+                    timecardEntry |> fill @'["lunchDuration"] |> adjustHoursWorked
                 WorkDoneField ->
-                    timecardEntry |> fill @["workDone", "workDone"]
+                    timecardEntry |> fill @'["workDone"]
                 InvoiceTranslationField ->
-                    timecardEntry |> fill @["invoiceTranslation", "invoiceTranslation"]
+                    timecardEntry |> fill @'["invoiceTranslation"]
                 HoursWorkedField ->
-                    timecardEntry |> fill @["hoursWorked", "hoursWorked"]
+                    timecardEntry |> fill @'["hoursWorked"]
 
         timecardEntry'
             |> Timecard.Entry.validate
@@ -167,6 +167,20 @@ instance Controller TimecardsController where
                     updateRecord timecardEntry
                     let jumpToTop = Nothing
                     redirectTo TimecardPersonSelectionAction {..}
+
+adjustHoursWorked :: TimecardEntry -> TimecardEntry
+adjustHoursWorked timecardEntry =
+    let maybeHoursWorked =
+            Timecard.Entry.clockDetailsToHoursWorked
+                (get #clockedInAt timecardEntry)
+                (get #clockedOutAt timecardEntry)
+                (get #lunchDuration timecardEntry)
+     in case maybeHoursWorked of
+            Just hoursWorked ->
+                timecardEntry
+                    |> set #hoursWorked hoursWorked
+            Nothing ->
+                timecardEntry
 
 paramToColumn :: Text -> Column
 paramToColumn "people" = PeopleColumn
