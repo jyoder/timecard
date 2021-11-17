@@ -932,17 +932,6 @@ spec = do
                         }
                     `shouldBe` False
 
-    describe "minutesBetween" do
-        it "returns the number of minutes between two times (inclusive)" do
-            Orient.minutesBetween (toTimeOfDay "07:00:00") (toTimeOfDay "08:45:00") `shouldBe` 105
-
-        it "rounds to the nearest minute" do
-            Orient.minutesBetween (toTimeOfDay "07:00:15") (toTimeOfDay "08:45:55") `shouldBe` 106
-
-    describe "hoursToMinutes" do
-        it "returns the number of hours in minutes" do
-            Orient.hoursToMinutes 2.5 `shouldBe` 150
-
     describe "entityConfidenceThreshold" do
         it "return 80% as the threshold below which entities will be discarded" do
             Orient.entityConfidenceThreshold `shouldBe` 0.8

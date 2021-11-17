@@ -123,12 +123,13 @@ buildJobs date Message {..} =
 
 inferHoursWorked :: Maybe TimeOfDay -> Maybe TimeOfDay -> Maybe Double -> Maybe Double
 inferHoursWorked clockedInAt clockedOutAt hoursWorked =
-    case (clockedInAt, clockedOutAt, hoursWorked) of
-        (_, _, Just hoursWorked) -> Just hoursWorked
-        (Just clockedInAt, Just clockedOutAt, Nothing) ->
-            let minutesWorked = minutesBetween clockedInAt clockedOutAt - assumedLunchDuration
-             in Just $ fromIntegral minutesWorked / 60.0
-        _ -> Nothing
+    case hoursWorked of
+        Just hoursWorked -> Just hoursWorked
+        Nothing ->
+            Timecard.Entry.clockDetailsToHoursWorked
+                clockedInAt
+                clockedOutAt
+                (Just assumedLunchDuration)
 
 nextTimecardEntryDay :: Day -> [Day] -> Day
 nextTimecardEntryDay today timecardEntryDays =
@@ -192,17 +193,6 @@ jobDetailsMatch Job {..} =
         clockedOutAt
         (Just lunchDuration)
         hoursWorked
-
-minutesBetween :: TimeOfDay -> TimeOfDay -> Int
-minutesBetween start end = round durationMinutes
-  where
-    durationMinutes = picosecondsToSeconds durationPicoseconds / 60.0
-    durationPicoseconds = diffTimeToPicoseconds duration
-    duration = timeOfDayToTime end - timeOfDayToTime start
-    picosecondsToSeconds picoseconds = fromInteger picoseconds / 1000000000000
-
-hoursToMinutes :: Double -> Int
-hoursToMinutes hours = round $ hours * 60
 
 entityConfidenceThreshold :: Double
 entityConfidenceThreshold = 0.8
