@@ -799,55 +799,55 @@ spec = do
                 7.24
                 `shouldBe` False
 
-    describe "clockDetailsToTimeWorked" do
+    describe "clockDetailsToHoursWorked" do
         it "assumes zero minutes for lunch when no lunch is provided" do
-            Timecard.Entry.clockDetailsToTimeWorked
+            Timecard.Entry.clockDetailsToHoursWorked
                 (Just $ toTimeOfDay "07:00:00")
                 (Just $ toTimeOfDay "15:00:00")
                 Nothing
-                `shouldBe` Just (fromHours 8.0)
+                `shouldBe` Just 8.0
 
         it "subtracts given lunch value" do
-            Timecard.Entry.clockDetailsToTimeWorked
+            Timecard.Entry.clockDetailsToHoursWorked
                 (Just $ toTimeOfDay "07:00:00")
                 (Just $ toTimeOfDay "15:00:00")
                 (Just 30)
-                `shouldBe` Just (fromHours 7.5)
+                `shouldBe` Just 7.5
 
         it "returns nothing when clock in is missing" do
-            Timecard.Entry.clockDetailsToTimeWorked
+            Timecard.Entry.clockDetailsToHoursWorked
                 Nothing
                 (Just $ toTimeOfDay "15:00:00")
                 (Just 30)
                 `shouldBe` Nothing
 
         it "returns nothing when clock out is missing" do
-            Timecard.Entry.clockDetailsToTimeWorked
+            Timecard.Entry.clockDetailsToHoursWorked
                 (Just $ toTimeOfDay "07:00:00")
                 Nothing
                 (Just 30)
                 `shouldBe` Nothing
 
         it "returns nothing when clock in and clock out are missing" do
-            Timecard.Entry.clockDetailsToTimeWorked
+            Timecard.Entry.clockDetailsToHoursWorked
                 Nothing
                 Nothing
                 (Just 30)
                 `shouldBe` Nothing
 
         it "returns nothing when all clock details are missing" do
-            Timecard.Entry.clockDetailsToTimeWorked
+            Timecard.Entry.clockDetailsToHoursWorked
                 Nothing
                 Nothing
                 Nothing
                 `shouldBe` Nothing
 
         it "returns a negative elapsed time when the clock out is before the clock in" do
-            Timecard.Entry.clockDetailsToTimeWorked
+            Timecard.Entry.clockDetailsToHoursWorked
                 (Just $ toTimeOfDay "15:00:00")
                 (Just $ toTimeOfDay "07:00:00")
                 (Just 30)
-                `shouldBe` Just (fromHours (-8.5))
+                `shouldBe` Just (-8.5)
 
 fromHours :: Double -> Integer
 fromHours hours = round (hours * 60 * 60) * 1000000000000

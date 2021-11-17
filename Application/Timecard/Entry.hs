@@ -6,7 +6,7 @@ module Application.Timecard.Entry (
     isBefore,
     matchesClockDetails,
     clockDetailsMatchHoursWorked,
-    clockDetailsToTimeWorked,
+    clockDetailsToHoursWorked,
 ) where
 
 import qualified Application.Audit.Entry as Audit.Entry
@@ -144,37 +144,35 @@ matchesClockDetails maybeClockedInAt maybeClockedOutAt maybeLunch hoursWorked =
 
 clockDetailsMatchHoursWorked :: Maybe TimeOfDay -> Maybe TimeOfDay -> Maybe Int -> Double -> Bool
 clockDetailsMatchHoursWorked maybeClockedInAt maybeClockedOutAt maybeLunch hoursWorked =
-    case clockDetailsToTimeWorked maybeClockedInAt maybeClockedOutAt maybeLunch of
-        Just computedTimeWorked -> approximatelyEqual tolerance timeWorked computedTimeWorked
+    case clockDetailsToHoursWorked maybeClockedInAt maybeClockedOutAt maybeLunch of
+        Just computedHoursWorked -> approximatelyEqual tolerance hoursWorked computedHoursWorked
         _ -> True
   where
-    approximatelyEqual :: Integer -> Integer -> Integer -> Bool
+    approximatelyEqual :: Double -> Double -> Double -> Bool
     approximatelyEqual tolerance a b = abs (a - b) <= tolerance
-    timeWorked :: Integer
-    timeWorked = fromHours hoursWorked
-    tolerance :: Integer
+    tolerance :: Double
     tolerance = fromMinutes toleranceMinutes
-    fromHours :: Double -> Integer
-    fromHours hours = fromSeconds $ round (hours * 60 * 60)
 
-clockDetailsToTimeWorked :: Maybe TimeOfDay -> Maybe TimeOfDay -> Maybe Int -> Maybe Integer
-clockDetailsToTimeWorked maybeClockedInAt maybeClockedOutAt maybeLunch =
+clockDetailsToHoursWorked :: Maybe TimeOfDay -> Maybe TimeOfDay -> Maybe Int -> Maybe Double
+clockDetailsToHoursWorked maybeClockedInAt maybeClockedOutAt maybeLunch =
     case (maybeClockedInAt, maybeClockedOutAt) of
         (Just clockedInAt, Just clockedOutAt) -> Just $ worked clockedInAt clockedOutAt lunch
         _ -> Nothing
   where
-    worked :: TimeOfDay -> TimeOfDay -> Integer -> Integer
+    worked :: TimeOfDay -> TimeOfDay -> Double -> Double
     worked start end lunch = (fromTimeOfDay end - fromTimeOfDay start) - lunch
-    lunch :: Integer
+    lunch :: Double
     lunch = fromMinutes $ toInteger $ fromMaybe 0 maybeLunch
-    fromTimeOfDay :: TimeOfDay -> Integer
-    fromTimeOfDay = diffTimeToPicoseconds . timeOfDayToTime
+    fromTimeOfDay :: TimeOfDay -> Double
+    fromTimeOfDay timeOfDay = fromIntegral (timeOfDayToPicoseconds timeOfDay) / fromIntegral picosecondsInHour
+    timeOfDayToPicoseconds :: TimeOfDay -> Integer
+    timeOfDayToPicoseconds timeOfDay = diffTimeToPicoseconds (timeOfDayToTime timeOfDay)
+    picosecondsInHour :: Integer
+    picosecondsInHour = picosecondsInSecond * 60 * 60
+    picosecondsInSecond = 1000000000000
 
 toleranceMinutes :: Integer
 toleranceMinutes = 15
 
-fromMinutes :: Integer -> Integer
-fromMinutes minutes = fromSeconds $ minutes * 60
-
-fromSeconds :: Integer -> Integer
-fromSeconds seconds = seconds * 1000000000000
+fromMinutes :: Integer -> Double
+fromMinutes minutes = fromIntegral minutes / 60
