@@ -75,7 +75,7 @@ spec = do
                             , linkedMessageId = get #id twilioMessage
                             , date = toDay "2021-08-30"
                             , jobName = "123 Something Rd."
-                            , hoursWorked = 7.5
+                            , hoursWorked = 8.0
                             , clockedInAt = Just $ toTimeOfDay "07:00:00"
                             , clockedOutAt = Just $ toTimeOfDay "15:30:00"
                             , lunchDuration = 30
@@ -102,7 +102,7 @@ spec = do
                         fetch (get #actionRunStateId sendMessageAction)
 
                     get #jobName timecardEntry `shouldBe` "123 Something Rd."
-                    get #hoursWorked timecardEntry `shouldBe` 7.5
+                    get #hoursWorked timecardEntry `shouldBe` 8.0
                     get #clockedInAt timecardEntry `shouldBe` Just (toTimeOfDay "07:00:00")
                     get #clockedOutAt timecardEntry `shouldBe` Just (toTimeOfDay "15:30:00")
                     get #lunchDuration timecardEntry `shouldBe` Just 30
@@ -228,7 +228,7 @@ spec = do
                             , linkedMessageId = get #id twilioMessage
                             , date = toDay "2021-09-03"
                             , jobName = "123 Something Rd."
-                            , hoursWorked = 7.5
+                            , hoursWorked = 8.0
                             , clockedInAt = Just $ toTimeOfDay "07:00:00"
                             , clockedOutAt = Just $ toTimeOfDay "15:30:00"
                             , lunchDuration = 30
@@ -275,7 +275,7 @@ spec = do
                         fetch (get #actionRunStateId reviewRequest)
 
                     get #jobName timecardEntryFriday `shouldBe` "123 Something Rd."
-                    get #hoursWorked timecardEntryFriday `shouldBe` 7.5
+                    get #hoursWorked timecardEntryFriday `shouldBe` 8.0
                     get #clockedInAt timecardEntryFriday `shouldBe` Just (toTimeOfDay "07:00:00")
                     get #clockedOutAt timecardEntryFriday `shouldBe` Just (toTimeOfDay "15:30:00")
                     get #lunchDuration timecardEntryFriday `shouldBe` Just 30

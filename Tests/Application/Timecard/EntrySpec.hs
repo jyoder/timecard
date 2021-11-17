@@ -636,7 +636,7 @@ spec = do
                 auditEntryCount' `shouldBe` auditEntryCount + 1
 
         describe "validate" do
-            itIO "validates all fields" do
+            itIO "does basic validation on all fields" do
                 ron <-
                     newRecord @Person
                         |> set #firstName "Ronald"
@@ -669,3 +669,185 @@ spec = do
                                , ("lunchDuration", TextViolation "This field must be greater than or equal to 0")
                                , ("jobName", TextViolation "This field cannot be empty")
                                ]
+
+            itIO "validates that clock details match hours worked" do
+                ron <-
+                    newRecord @Person
+                        |> set #firstName "Ronald"
+                        |> set #lastName "McDonald"
+                        |> set #goesBy "Ron"
+                        |> createRecord
+
+                timecard <-
+                    newRecord @Timecard
+                        |> set #weekOf (toDay "2021-06-21")
+                        |> set #personId (get #id ron)
+                        |> createRecord
+
+                let timecardEntry =
+                        newRecord @TimecardEntry
+                            |> set #timecardId (get #id timecard)
+                            |> set #date (toDay "2021-06-21")
+                            |> set #jobName "Some Job"
+                            |> set #clockedInAt (Just $ toTimeOfDay "07:00:00")
+                            |> set #clockedOutAt (Just $ toTimeOfDay "06:00:00")
+                            |> set #lunchDuration (Just 30)
+                            |> set #hoursWorked 8.0
+                            |> set #workDone "Hello"
+                            |> set #invoiceTranslation "Hello"
+
+                timecardEntry <- Timecard.Entry.validate timecardEntry
+                timecardEntry |> get #meta |> get #annotations
+                    `shouldBe` [ ("hoursWorked", TextViolation "Must be within 15 minutes of clock details")
+                               , ("clockedInAt", TextViolation "Must be earlier than clock out time")
+                               ]
+
+    describe "isBefore" do
+        it "returns success if the start time is before the end time" do
+            Timecard.Entry.isBefore
+                (Just $ toTimeOfDay "15:00:00")
+                (Just $ toTimeOfDay "07:00:00")
+                `shouldBe` Success
+
+        it "returns failure if the start time is equal to the end time" do
+            Timecard.Entry.isBefore
+                (Just $ toTimeOfDay "15:00:00")
+                (Just $ toTimeOfDay "15:00:00")
+                `shouldBe` Failure "must be before 15:00:00"
+
+        it "returns failure if the start time is after the end time" do
+            Timecard.Entry.isBefore
+                (Just $ toTimeOfDay "15:00:00")
+                (Just $ toTimeOfDay "16:00:00")
+                `shouldBe` Failure "must be before 15:00:00"
+
+        it "returns failure if clock details do not match hours worked" do
+            Timecard.Entry.matchesClockDetails
+                (Just $ toTimeOfDay "07:00:00")
+                (Just $ toTimeOfDay "16:00:00")
+                Nothing
+                8.0
+                `shouldBe` Failure "Must be within 15 minutes of clock details"
+
+    describe "matchesClockDetails" do
+        it "returns success if clock details match hours worked" do
+            Timecard.Entry.matchesClockDetails
+                (Just $ toTimeOfDay "07:00:00")
+                (Just $ toTimeOfDay "15:00:00")
+                Nothing
+                8.0
+                `shouldBe` Success
+
+        it "returns failure if clock details do not match hours worked" do
+            Timecard.Entry.matchesClockDetails
+                (Just $ toTimeOfDay "07:00:00")
+                (Just $ toTimeOfDay "16:00:00")
+                Nothing
+                8.0
+                `shouldBe` Failure "Must be within 15 minutes of clock details"
+
+    describe "clockDetailsMatchHoursWorked" do
+        it "returns true if the clock in and clock out times match hours worked perfectly" do
+            Timecard.Entry.clockDetailsMatchHoursWorked
+                (Just $ toTimeOfDay "07:00:00")
+                (Just $ toTimeOfDay "15:00:00")
+                Nothing
+                8.0
+                `shouldBe` True
+
+        it "returns true if the clock in, clock out, and lunch times match hours worked perfectly" do
+            Timecard.Entry.clockDetailsMatchHoursWorked
+                (Just $ toTimeOfDay "07:00:00")
+                (Just $ toTimeOfDay "15:00:00")
+                (Just 30)
+                7.5
+                `shouldBe` True
+
+        it "returns true if the clock in, clock out, and lunch times match hours worked within a 15 minute tolerance" do
+            Timecard.Entry.clockDetailsMatchHoursWorked
+                (Just $ toTimeOfDay "07:00:00")
+                (Just $ toTimeOfDay "15:00:00")
+                (Just 30)
+                7.75
+                `shouldBe` True
+            Timecard.Entry.clockDetailsMatchHoursWorked
+                (Just $ toTimeOfDay "07:00:00")
+                (Just $ toTimeOfDay "15:00:00")
+                (Just 30)
+                7.25
+                `shouldBe` True
+
+        it "returns true if the clock details are missing" do
+            Timecard.Entry.clockDetailsMatchHoursWorked
+                Nothing
+                Nothing
+                Nothing
+                7.75
+                `shouldBe` True
+
+        it "returns false if the clock in, clock out, and lunch times do not match hours worked within a 15 minute tolerance" do
+            Timecard.Entry.clockDetailsMatchHoursWorked
+                (Just $ toTimeOfDay "07:00:00")
+                (Just $ toTimeOfDay "15:00:00")
+                (Just 30)
+                7.76
+                `shouldBe` False
+            Timecard.Entry.clockDetailsMatchHoursWorked
+                (Just $ toTimeOfDay "07:00:00")
+                (Just $ toTimeOfDay "15:00:00")
+                (Just 30)
+                7.24
+                `shouldBe` False
+
+    describe "clockDetailsToTimeWorked" do
+        it "assumes zero minutes for lunch when no lunch is provided" do
+            Timecard.Entry.clockDetailsToTimeWorked
+                (Just $ toTimeOfDay "07:00:00")
+                (Just $ toTimeOfDay "15:00:00")
+                Nothing
+                `shouldBe` Just (fromHours 8.0)
+
+        it "subtracts given lunch value" do
+            Timecard.Entry.clockDetailsToTimeWorked
+                (Just $ toTimeOfDay "07:00:00")
+                (Just $ toTimeOfDay "15:00:00")
+                (Just 30)
+                `shouldBe` Just (fromHours 7.5)
+
+        it "returns nothing when clock in is missing" do
+            Timecard.Entry.clockDetailsToTimeWorked
+                Nothing
+                (Just $ toTimeOfDay "15:00:00")
+                (Just 30)
+                `shouldBe` Nothing
+
+        it "returns nothing when clock out is missing" do
+            Timecard.Entry.clockDetailsToTimeWorked
+                (Just $ toTimeOfDay "07:00:00")
+                Nothing
+                (Just 30)
+                `shouldBe` Nothing
+
+        it "returns nothing when clock in and clock out are missing" do
+            Timecard.Entry.clockDetailsToTimeWorked
+                Nothing
+                Nothing
+                (Just 30)
+                `shouldBe` Nothing
+
+        it "returns nothing when all clock details are missing" do
+            Timecard.Entry.clockDetailsToTimeWorked
+                Nothing
+                Nothing
+                Nothing
+                `shouldBe` Nothing
+
+        it "returns a negative elapsed time when the clock out is before the clock in" do
+            Timecard.Entry.clockDetailsToTimeWorked
+                (Just $ toTimeOfDay "15:00:00")
+                (Just $ toTimeOfDay "07:00:00")
+                (Just 30)
+                `shouldBe` Just (fromHours (-8.5))
+
+fromHours :: Double -> Integer
+fromHours hours = round (hours * 60 * 60) * 1000000000000
