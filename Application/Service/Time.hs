@@ -2,6 +2,7 @@ module Application.Service.Time (
     parseDay,
     startOfWeek,
     nextWorkingDay,
+    roundHours,
 ) where
 
 import Data.Text (unpack)
@@ -22,3 +23,11 @@ nextWorkingDay today =
         (_, _, 5) -> addDays 3 today -- Friday we add 3 days to get to Monday
         (_, _, 6) -> addDays 2 today -- Saturday we add 2 days to get to Monday
         _ -> addDays 1 today -- All other days we need only look to tomorrow
+
+roundHours :: Double -> Double
+roundHours = roundTo 3
+
+roundTo :: Integer -> Double -> Double
+roundTo precision num = (fromIntegral . round $ num * f) / f
+  where
+    f = 10 ^ precision

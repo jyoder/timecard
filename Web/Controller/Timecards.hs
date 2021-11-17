@@ -5,7 +5,7 @@ import qualified Application.People.Person as Person
 import qualified Application.People.Query as People.Query
 import qualified Application.People.View as People.View
 import qualified Application.Service.Pdf as Pdf
-import Application.Service.Time (parseDay)
+import Application.Service.Time (parseDay, roundHours)
 import qualified Application.Timecard.Entry as Timecard.Entry
 import qualified Application.Timecard.Query as Timecard.Query
 import qualified Application.Timecard.View as Timecard.View
@@ -146,7 +146,7 @@ instance Controller TimecardsController where
                 InvoiceTranslationField ->
                     timecardEntry |> fill @'["invoiceTranslation"]
                 HoursWorkedField ->
-                    timecardEntry |> fill @'["hoursWorked"]
+                    timecardEntry |> set #hoursWorked (roundHours $ param "hoursWorked")
 
         timecardEntry'
             |> Timecard.Entry.validate

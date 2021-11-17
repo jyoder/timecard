@@ -9,6 +9,7 @@ import qualified Application.Base.PhoneNumber as PhoneNumber
 import qualified Application.People.Person as Person
 import qualified Application.People.Query as People.Query
 import qualified Application.People.View as People.View
+import Application.Service.Time (roundHours)
 import qualified Application.Timecard.AccessToken as Timecard.AccessToken
 import qualified Application.Timecard.Entry as Timecard.Entry
 import qualified Application.Timecard.EntryMessage as Timecard.EntryMessage
@@ -452,12 +453,12 @@ buildTimecardEntry timecardEntry =
             @[ "date"
              , "jobName"
              , "lunchDuration"
-             , "hoursWorked"
              , "workDone"
              , "invoiceTranslation"
              ]
         |> Timecard.Entry.setClockedInAt (param "clockedInAt")
         |> Timecard.Entry.setClockedOutAt (param "clockedOutAt")
+        |> set #hoursWorked (roundHours $ param "hoursWorked")
 
 paramToColumn :: Text -> Column
 paramToColumn "people" = PeopleColumn

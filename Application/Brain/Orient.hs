@@ -4,7 +4,7 @@ import qualified Application.Action.ActionRunState as ActionRunState
 import qualified Application.Action.SendMessageAction as SendMessageAction
 import qualified Application.Brain.Normalize as Normalize
 import qualified Application.Brain.Observe as Observe
-import Application.Service.Time (nextWorkingDay)
+import Application.Service.Time (nextWorkingDay, roundHours)
 import qualified Application.Timecard.Entry as Timecard.Entry
 import qualified Application.Timecard.EntryRequest as EntryRequest
 import qualified Application.Timecard.Query as Timecard.Query
@@ -123,7 +123,7 @@ buildJobs date Message {..} =
 
 inferHoursWorked :: Maybe TimeOfDay -> Maybe TimeOfDay -> Maybe Double -> Maybe Double
 inferHoursWorked clockedInAt clockedOutAt hoursWorked =
-    case hoursWorked of
+    roundHours <$> case hoursWorked of
         Just hoursWorked -> Just hoursWorked
         Nothing ->
             Timecard.Entry.clockDetailsToHoursWorked

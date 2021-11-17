@@ -44,3 +44,16 @@ spec = do
             nextWorkingDay (toDay "2021-09-17") `shouldBe` toDay "2021-09-20"
         it "returns Monday if the given day is Saturday" do
             nextWorkingDay (toDay "2021-09-18") `shouldBe` toDay "2021-09-20"
+
+    describe "roundHours" do
+        it "rounds the given number of hours to the nearest 1000th" do
+            roundHours 2.0005 `shouldBe` 2.001
+            roundHours 2.0004 `shouldBe` 2.000
+        it "handles even more precise numbers" do
+            roundHours 2.00000004 `shouldBe` 2.000
+        it "rounds negative numbers to the nearest 1000th" do
+            roundHours (-2.0005) `shouldBe` (-2.001)
+        it "leaves numbers that don't need to be rounded alone" do
+            roundHours 2.25 `shouldBe` 2.25
+            roundHours 2.0 `shouldBe` 2.0
+            roundHours 2.005 `shouldBe` 2.005
