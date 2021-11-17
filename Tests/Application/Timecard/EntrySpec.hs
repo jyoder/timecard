@@ -698,7 +698,7 @@ spec = do
 
                 timecardEntry <- Timecard.Entry.validate timecardEntry
                 timecardEntry |> get #meta |> get #annotations
-                    `shouldBe` [ ("hoursWorked", TextViolation "Must be within 15 minutes of clock details")
+                    `shouldBe` [ ("hoursWorked", TextViolation "Must be within 20 minutes of clock details")
                                , ("clockedOutAt", TextViolation {message = "Must be later than clock in time"})
                                , ("clockedInAt", TextViolation "Must be earlier than clock out time")
                                ]
@@ -805,10 +805,10 @@ spec = do
         it "returns failure if clock details do not match hours worked" do
             Timecard.Entry.matchesClockDetails
                 (Just $ toTimeOfDay "07:00:00")
-                (Just $ toTimeOfDay "16:00:00")
+                (Just $ toTimeOfDay "16:10:00")
                 Nothing
                 8.0
-                `shouldBe` Failure "Must be within 15 minutes of clock details"
+                `shouldBe` Failure "Must be within 20 minutes of clock details"
 
     describe "clockDetailsMatchHoursWorked" do
         it "returns true if the clock in and clock out times match hours worked perfectly" do
@@ -827,7 +827,7 @@ spec = do
                 7.5
                 `shouldBe` True
 
-        it "returns true if the clock in, clock out, and lunch times match hours worked within a 15 minute tolerance" do
+        it "returns true if the clock in, clock out, and lunch times match hours worked within a 20 minute tolerance" do
             Timecard.Entry.clockDetailsMatchHoursWorked
                 (Just $ toTimeOfDay "07:00:00")
                 (Just $ toTimeOfDay "15:00:00")
@@ -849,18 +849,18 @@ spec = do
                 7.75
                 `shouldBe` True
 
-        it "returns false if the clock in, clock out, and lunch times do not match hours worked within a 15 minute tolerance" do
+        it "returns false if the clock in, clock out, and lunch times do not match hours worked within a 20 minute tolerance" do
             Timecard.Entry.clockDetailsMatchHoursWorked
                 (Just $ toTimeOfDay "07:00:00")
                 (Just $ toTimeOfDay "15:00:00")
                 (Just 30)
-                7.76
+                7.84
                 `shouldBe` False
             Timecard.Entry.clockDetailsMatchHoursWorked
                 (Just $ toTimeOfDay "07:00:00")
                 (Just $ toTimeOfDay "15:00:00")
                 (Just 30)
-                7.24
+                7.16
                 `shouldBe` False
 
     describe "clockDetailsToHoursWorked" do

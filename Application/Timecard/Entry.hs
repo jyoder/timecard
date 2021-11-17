@@ -170,7 +170,8 @@ clockDetailsMatchHoursWorked maybeClockedInAt maybeClockedOutAt maybeLunch hours
     approximatelyEqual :: Double -> Double -> Double -> Bool
     approximatelyEqual tolerance a b = abs (a - b) <= tolerance
     tolerance :: Double
-    tolerance = fromMinutes toleranceMinutes
+    tolerance = fromMinutes toleranceMinutes + epsilon
+    epsilon = 0.001
 
 clockDetailsToHoursWorked :: Maybe TimeOfDay -> Maybe TimeOfDay -> Maybe Int -> Maybe Double
 clockDetailsToHoursWorked maybeClockedInAt maybeClockedOutAt maybeLunch =
@@ -214,7 +215,7 @@ timeFormatErrorMessage :: Text
 timeFormatErrorMessage = "should have the form hh:mm am/pm"
 
 toleranceMinutes :: Integer
-toleranceMinutes = 15
+toleranceMinutes = 20
 
 fromMinutes :: Integer -> Double
 fromMinutes minutes = fromIntegral minutes / 60
