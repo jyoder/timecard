@@ -442,7 +442,7 @@ renderTableCell tableCell =
         ShowCell {..} ->
             [hsx|
                 <td scope="col" class={editableFieldToClass editableField}>
-                    <a href={editAction} class="cell-value">{value}</a>
+                    <a href={editAction} class="cell-value">{nl2br value}</a>
                 </td>
             |]
         EditCell {..} ->
