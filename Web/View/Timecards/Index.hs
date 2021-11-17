@@ -204,6 +204,7 @@ buildJobRow selectedPerson personActivity timecardEntry =
                 JobNameField
                 timecardEntry
                 (get #jobName timecardEntry)
+                (get #jobName timecardEntry)
         , clockedInAtCell =
             buildTableCell
                 selectedPerson
@@ -211,6 +212,7 @@ buildJobRow selectedPerson personActivity timecardEntry =
                 ClockedInAtField
                 timecardEntry
                 (maybe "" formatTimeOfDay (get #clockedInAt timecardEntry))
+                (maybe "" show (get #clockedInAt timecardEntry))
         , clockedOutAtCell =
             buildTableCell
                 selectedPerson
@@ -218,12 +220,14 @@ buildJobRow selectedPerson personActivity timecardEntry =
                 ClockedOutAtField
                 timecardEntry
                 (maybe "" formatTimeOfDay (get #clockedOutAt timecardEntry))
+                (maybe "" show (get #clockedOutAt timecardEntry))
         , lunchDurationCell =
             buildTableCell
                 selectedPerson
                 personActivity
                 LunchDurationField
                 timecardEntry
+                (maybe "" show (get #lunchDuration timecardEntry))
                 (maybe "" show (get #lunchDuration timecardEntry))
         , workDoneCell =
             buildTableCell
@@ -232,6 +236,7 @@ buildJobRow selectedPerson personActivity timecardEntry =
                 WorkDoneField
                 timecardEntry
                 (get #workDone timecardEntry)
+                (get #workDone timecardEntry)
         , invoiceTranslationCell =
             buildTableCell
                 selectedPerson
@@ -239,12 +244,14 @@ buildJobRow selectedPerson personActivity timecardEntry =
                 InvoiceTranslationField
                 timecardEntry
                 (get #invoiceTranslation timecardEntry)
+                (get #invoiceTranslation timecardEntry)
         , hoursWorkedCell =
             buildTableCell
                 selectedPerson
                 personActivity
                 HoursWorkedField
                 timecardEntry
+                (show $ get #hoursWorked timecardEntry)
                 (show $ get #hoursWorked timecardEntry)
         }
 
@@ -254,13 +261,15 @@ buildTableCell ::
     EditableField ->
     V.TimecardEntry ->
     Text ->
+    Text ->
     TableCell
 buildTableCell
     selectedPerson
     personActivity
     editableField
     timecardEntry
-    value =
+    showValue
+    editValue =
         case personActivity of
             Editing {..} ->
                 if (get #id timecardEntry == get #id selectedTimecardEntry)
@@ -268,7 +277,7 @@ buildTableCell
                     then
                         EditCell
                             { editableField
-                            , value
+                            , value = editValue
                             , timecardEntryId = show $ get #id timecardEntry
                             , saveAction =
                                 TimecardUpdateTimecardEntryAction
@@ -285,7 +294,7 @@ buildTableCell
                     else
                         ShowCell
                             { editableField
-                            , value
+                            , value = showValue
                             , editAction =
                                 TimecardEditTimecardEntryAction
                                     { timecardEntryId = get #id timecardEntry
@@ -295,7 +304,7 @@ buildTableCell
             _ ->
                 ShowCell
                     { editableField
-                    , value
+                    , value = showValue
                     , editAction =
                         TimecardEditTimecardEntryAction
                             { timecardEntryId = get #id timecardEntry

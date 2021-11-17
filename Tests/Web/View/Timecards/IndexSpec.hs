@@ -577,10 +577,10 @@ spec = do
                         { id = "20000000-0000-0000-0000-000000000000"
                         , date = toDay "2021-06-23"
                         , jobName = "job name"
-                        , clockedInAt = Nothing
-                        , clockedOutAt = Nothing
-                        , lunchDuration = Nothing
-                        , hoursWorked = 5.5
+                        , clockedInAt = Just $ toTimeOfDay "15:00:00"
+                        , clockedOutAt = Just $ toTimeOfDay "16:00:00"
+                        , lunchDuration = Just 30
+                        , hoursWorked = 0.5
                         , workDone = "work done"
                         , invoiceTranslation = "invoice translation"
                         }
@@ -604,7 +604,7 @@ spec = do
                     , clockedInAtCell =
                         Index.ShowCell
                             { editableField = Index.ClockedInAtField
-                            , value = ""
+                            , value = "3:00 PM"
                             , editAction =
                                 TimecardEditTimecardEntryAction
                                     { timecardEntryId = "20000000-0000-0000-0000-000000000000"
@@ -614,7 +614,7 @@ spec = do
                     , clockedOutAtCell =
                         Index.ShowCell
                             { editableField = Index.ClockedOutAtField
-                            , value = ""
+                            , value = "4:00 PM"
                             , editAction =
                                 TimecardEditTimecardEntryAction
                                     { timecardEntryId = "20000000-0000-0000-0000-000000000000"
@@ -624,7 +624,7 @@ spec = do
                     , lunchDurationCell =
                         Index.ShowCell
                             { editableField = Index.LunchDurationField
-                            , value = ""
+                            , value = "30"
                             , editAction =
                                 TimecardEditTimecardEntryAction
                                     { timecardEntryId = "20000000-0000-0000-0000-000000000000"
@@ -634,7 +634,237 @@ spec = do
                     , hoursWorkedCell =
                         Index.ShowCell
                             { editableField = Index.HoursWorkedField
-                            , value = "5.5"
+                            , value = "0.5"
+                            , editAction =
+                                TimecardEditTimecardEntryAction
+                                    { timecardEntryId = "20000000-0000-0000-0000-000000000000"
+                                    , editingField = "hoursWorked"
+                                    }
+                            }
+                    , workDoneCell =
+                        Index.ShowCell
+                            { editableField = Index.WorkDoneField
+                            , value = "work done"
+                            , editAction =
+                                TimecardEditTimecardEntryAction
+                                    { timecardEntryId = "20000000-0000-0000-0000-000000000000"
+                                    , editingField = "workDone"
+                                    }
+                            }
+                    , invoiceTranslationCell =
+                        Index.ShowCell
+                            { editableField = Index.InvoiceTranslationField
+                            , value = "invoice translation"
+                            , editAction =
+                                TimecardEditTimecardEntryAction
+                                    { timecardEntryId = "20000000-0000-0000-0000-000000000000"
+                                    , editingField = "invoiceTranslation"
+                                    }
+                            }
+                    }
+
+        it "formats clock in time in 24-hour format when editing" do
+            let person =
+                    newRecord @Person
+                        |> set #id "10000000-0000-0000-0000-000000000000"
+                        |> set #firstName "John"
+                        |> set #lastName "Cleese"
+
+            let people = [person]
+
+            let timecardEntry =
+                    newRecord @TimecardEntry
+                        |> set #id "20000000-0000-0000-0000-000000000000"
+
+            let timecardEntry' =
+                    Timecard.View.TimecardEntry
+                        { id = "20000000-0000-0000-0000-000000000000"
+                        , date = toDay "2021-06-23"
+                        , jobName = "job name"
+                        , clockedInAt = Just $ toTimeOfDay "15:00:00"
+                        , clockedOutAt = Just $ toTimeOfDay "16:00:00"
+                        , lunchDuration = Just 30
+                        , hoursWorked = 0.5
+                        , workDone = "work done"
+                        , invoiceTranslation = "invoice translation"
+                        }
+
+            let personActivity =
+                    Index.Editing
+                        { selectedTimecardEntry = timecardEntry
+                        , editingField = Index.ClockedInAtField
+                        }
+
+            Index.buildJobRow person personActivity timecardEntry'
+                `shouldBe` Index.JobRow
+                    { dayOfWeek' = "Wednesday"
+                    , date = "06/23/2021"
+                    , jobNameCell =
+                        Index.ShowCell
+                            { editableField = Index.JobNameField
+                            , value = "job name"
+                            , editAction =
+                                TimecardEditTimecardEntryAction
+                                    { timecardEntryId = "20000000-0000-0000-0000-000000000000"
+                                    , editingField = "jobName"
+                                    }
+                            }
+                    , clockedInAtCell =
+                        Index.EditCell
+                            { editableField = Index.ClockedInAtField
+                            , value = "15:00:00"
+                            , timecardEntryId = "20000000-0000-0000-0000-000000000000"
+                            , saveAction =
+                                TimecardUpdateTimecardEntryAction
+                                    { timecardEntryId = "20000000-0000-0000-0000-000000000000"
+                                    , editingField = "clockedInAt"
+                                    }
+                            , cancelAction =
+                                TimecardPersonSelectionAction
+                                    { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                                    , column = Just "timecards"
+                                    , jumpToTop = Nothing
+                                    }
+                            }
+                    , clockedOutAtCell =
+                        Index.ShowCell
+                            { editableField = Index.ClockedOutAtField
+                            , value = "4:00 PM"
+                            , editAction =
+                                TimecardEditTimecardEntryAction
+                                    { timecardEntryId = "20000000-0000-0000-0000-000000000000"
+                                    , editingField = "clockedOutAt"
+                                    }
+                            }
+                    , lunchDurationCell =
+                        Index.ShowCell
+                            { editableField = Index.LunchDurationField
+                            , value = "30"
+                            , editAction =
+                                TimecardEditTimecardEntryAction
+                                    { timecardEntryId = "20000000-0000-0000-0000-000000000000"
+                                    , editingField = "lunchDuration"
+                                    }
+                            }
+                    , hoursWorkedCell =
+                        Index.ShowCell
+                            { editableField = Index.HoursWorkedField
+                            , value = "0.5"
+                            , editAction =
+                                TimecardEditTimecardEntryAction
+                                    { timecardEntryId = "20000000-0000-0000-0000-000000000000"
+                                    , editingField = "hoursWorked"
+                                    }
+                            }
+                    , workDoneCell =
+                        Index.ShowCell
+                            { editableField = Index.WorkDoneField
+                            , value = "work done"
+                            , editAction =
+                                TimecardEditTimecardEntryAction
+                                    { timecardEntryId = "20000000-0000-0000-0000-000000000000"
+                                    , editingField = "workDone"
+                                    }
+                            }
+                    , invoiceTranslationCell =
+                        Index.ShowCell
+                            { editableField = Index.InvoiceTranslationField
+                            , value = "invoice translation"
+                            , editAction =
+                                TimecardEditTimecardEntryAction
+                                    { timecardEntryId = "20000000-0000-0000-0000-000000000000"
+                                    , editingField = "invoiceTranslation"
+                                    }
+                            }
+                    }
+
+        it "formats clock out time in 24-hour format when editing" do
+            let person =
+                    newRecord @Person
+                        |> set #id "10000000-0000-0000-0000-000000000000"
+                        |> set #firstName "John"
+                        |> set #lastName "Cleese"
+
+            let people = [person]
+
+            let timecardEntry =
+                    newRecord @TimecardEntry
+                        |> set #id "20000000-0000-0000-0000-000000000000"
+
+            let timecardEntry' =
+                    Timecard.View.TimecardEntry
+                        { id = "20000000-0000-0000-0000-000000000000"
+                        , date = toDay "2021-06-23"
+                        , jobName = "job name"
+                        , clockedInAt = Just $ toTimeOfDay "15:00:00"
+                        , clockedOutAt = Just $ toTimeOfDay "16:00:00"
+                        , lunchDuration = Just 30
+                        , hoursWorked = 0.5
+                        , workDone = "work done"
+                        , invoiceTranslation = "invoice translation"
+                        }
+
+            let personActivity =
+                    Index.Editing
+                        { selectedTimecardEntry = timecardEntry
+                        , editingField = Index.ClockedOutAtField
+                        }
+
+            Index.buildJobRow person personActivity timecardEntry'
+                `shouldBe` Index.JobRow
+                    { dayOfWeek' = "Wednesday"
+                    , date = "06/23/2021"
+                    , jobNameCell =
+                        Index.ShowCell
+                            { editableField = Index.JobNameField
+                            , value = "job name"
+                            , editAction =
+                                TimecardEditTimecardEntryAction
+                                    { timecardEntryId = "20000000-0000-0000-0000-000000000000"
+                                    , editingField = "jobName"
+                                    }
+                            }
+                    , clockedInAtCell =
+                        Index.ShowCell
+                            { editableField = Index.ClockedInAtField
+                            , value = "3:00 PM"
+                            , editAction =
+                                TimecardEditTimecardEntryAction
+                                    { timecardEntryId = "20000000-0000-0000-0000-000000000000"
+                                    , editingField = "clockedInAt"
+                                    }
+                            }
+                    , clockedOutAtCell =
+                        Index.EditCell
+                            { editableField = Index.ClockedOutAtField
+                            , value = "16:00:00"
+                            , timecardEntryId = "20000000-0000-0000-0000-000000000000"
+                            , saveAction =
+                                TimecardUpdateTimecardEntryAction
+                                    { timecardEntryId = "20000000-0000-0000-0000-000000000000"
+                                    , editingField = "clockedOutAt"
+                                    }
+                            , cancelAction =
+                                TimecardPersonSelectionAction
+                                    { selectedPersonId = "10000000-0000-0000-0000-000000000000"
+                                    , column = Just "timecards"
+                                    , jumpToTop = Nothing
+                                    }
+                            }
+                    , lunchDurationCell =
+                        Index.ShowCell
+                            { editableField = Index.LunchDurationField
+                            , value = "30"
+                            , editAction =
+                                TimecardEditTimecardEntryAction
+                                    { timecardEntryId = "20000000-0000-0000-0000-000000000000"
+                                    , editingField = "lunchDuration"
+                                    }
+                            }
+                    , hoursWorkedCell =
+                        Index.ShowCell
+                            { editableField = Index.HoursWorkedField
+                            , value = "0.5"
                             , editAction =
                                 TimecardEditTimecardEntryAction
                                     { timecardEntryId = "20000000-0000-0000-0000-000000000000"
@@ -686,7 +916,13 @@ spec = do
 
             let personActivity = Index.Viewing
 
-            Index.buildTableCell person personActivity Index.InvoiceTranslationField timecardEntry "invoice translation"
+            Index.buildTableCell
+                person
+                personActivity
+                Index.InvoiceTranslationField
+                timecardEntry
+                "invoice translation"
+                "invoice translation"
                 `shouldBe` Index.ShowCell
                     { editableField = Index.InvoiceTranslationField
                     , value = "invoice translation"
@@ -731,6 +967,7 @@ spec = do
                 Index.InvoiceTranslationField
                 timecardEntry
                 "invoice translation"
+                "invoice translation"
                 `shouldBe` Index.ShowCell
                     { editableField = Index.InvoiceTranslationField
                     , value = "invoice translation"
@@ -774,6 +1011,7 @@ spec = do
                 personActivity
                 Index.InvoiceTranslationField
                 timecardEntry
+                "invoice translation"
                 "invoice translation"
                 `shouldBe` Index.EditCell
                     { editableField = Index.InvoiceTranslationField
