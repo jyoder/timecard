@@ -4,6 +4,7 @@ module Application.Timecard.Entry (
     delete,
     validate,
     isBefore,
+    isAfter,
     setClockedInAt,
     setClockedOutAt,
     matchesClockDetails,
@@ -13,6 +14,7 @@ module Application.Timecard.Entry (
 
 import qualified Application.Audit.Entry as Audit.Entry
 import qualified Application.Brain.Normalize as Brain.Normalize
+import Application.Service.Text (isBlank)
 import Application.Service.Time (startOfWeek)
 import Application.Service.Transaction (withTransactionOrSavepoint)
 import Application.Timecard.EntryMessage as Timecard.EntryMessage
@@ -102,6 +104,11 @@ validate timecardEntry =
                 |> withCustomErrorMessage "Must be earlier than clock out time"
             )
         |> validateField
+            #clockedOutAt
+            ( isAfter (get #clockedInAt timecardEntry)
+                |> withCustomErrorMessage "Must be later than clock in time"
+            )
+        |> validateField
             #lunchDuration
             ( validateAny [isInList [Nothing, Just 0], isGreaterThan (Just 0)]
                 |> withCustomErrorMessage "This field must be greater than or equal to 0"
@@ -123,6 +130,15 @@ isBefore maybeEndTime maybeStartTime =
             if startTime < endTime
                 then Success
                 else Failure $ "must be before " <> show endTime
+        _ -> Success
+
+isAfter :: Maybe TimeOfDay -> Maybe TimeOfDay -> ValidatorResult
+isAfter maybeStartTime maybeEndTime =
+    case (maybeStartTime, maybeEndTime) of
+        (Just startTime, Just endTime) ->
+            if startTime < endTime
+                then Success
+                else Failure $ "must be after " <> show startTime
         _ -> Success
 
 matchesTimecard ::
@@ -174,29 +190,28 @@ clockDetailsToHoursWorked maybeClockedInAt maybeClockedOutAt maybeLunch =
     picosecondsInHour = picosecondsInSecond * 60 * 60
     picosecondsInSecond = 1000000000000
 
-setClockedInAt :: Maybe Text -> TimecardEntry -> TimecardEntry
-setClockedInAt maybeClockedInAt timecardEntry =
-    case maybeClockedInAt of
-        Just clockedInAtText ->
-            case Brain.Normalize.clockedInAt clockedInAtText of
-                Just clockedInAt ->
-                    timecardEntry |> set #clockedInAt (Just clockedInAt)
-                Nothing ->
-                    timecardEntry |> attachFailure #clockedInAt "should have the form hh:mm am/pm"
-        Nothing ->
-            timecardEntry |> set #clockedInAt Nothing
+setClockedInAt :: Text -> TimecardEntry -> TimecardEntry
+setClockedInAt clockedInAt timecardEntry =
+    if not $ isBlank clockedInAt
+        then case Brain.Normalize.clockedInAt clockedInAt of
+            Just clockedInAt ->
+                timecardEntry |> set #clockedInAt (Just clockedInAt)
+            Nothing ->
+                timecardEntry |> attachFailure #clockedInAt timeFormatErrorMessage
+        else timecardEntry |> set #clockedInAt Nothing
 
-setClockedOutAt :: Maybe Text -> TimecardEntry -> TimecardEntry
-setClockedOutAt maybeClockedOutAt timecardEntry =
-    case maybeClockedOutAt of
-        Just clockedOutAtText ->
-            case Brain.Normalize.clockedOutAt clockedOutAtText of
-                Just clockedOutAt ->
-                    timecardEntry |> set #clockedOutAt (Just clockedOutAt)
-                Nothing ->
-                    timecardEntry |> attachFailure #clockedOutAt "should have the form hh:mm am/pm"
-        Nothing ->
-            timecardEntry |> set #clockedOutAt Nothing
+setClockedOutAt :: Text -> TimecardEntry -> TimecardEntry
+setClockedOutAt clockedOutAt timecardEntry =
+    if not $ isBlank clockedOutAt
+        then case Brain.Normalize.clockedOutAt clockedOutAt of
+            Just clockedOutAt ->
+                timecardEntry |> set #clockedOutAt (Just clockedOutAt)
+            Nothing ->
+                timecardEntry |> attachFailure #clockedOutAt timeFormatErrorMessage
+        else timecardEntry |> set #clockedOutAt Nothing
+
+timeFormatErrorMessage :: Text
+timeFormatErrorMessage = "should have the form hh:mm am/pm"
 
 toleranceMinutes :: Integer
 toleranceMinutes = 15

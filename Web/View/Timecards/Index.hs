@@ -2,6 +2,7 @@ module Web.View.Timecards.Index where
 
 import qualified Application.People.View as V
 import qualified Application.Timecard.View as V
+import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5 as Html5
 import Web.View.Navigation.People (BadgeVisibility (..), PeopleNavigation, buildPeopleNavigation, renderPeopleNavigation)
 import Web.View.Navigation.Section (Section (Timecards), renderSectionNavigation)
@@ -89,6 +90,8 @@ data TableCell
     | EditCell
         { editableField :: !EditableField
         , value :: !Text
+        , valueInvalidClass :: !Text
+        , valueError :: !(Maybe Violation)
         , timecardEntryId :: !Text
         , saveAction :: !TimecardsController
         , cancelAction :: !TimecardsController
@@ -269,6 +272,8 @@ buildTableCell
                         EditCell
                             { editableField
                             , value = value
+                            , valueInvalidClass = if hasErrorFor (editableFieldToParam editableField) selectedTimecardEntry then "is-invalid" else ""
+                            , valueError = errorFor (editableFieldToParam editableField) selectedTimecardEntry
                             , timecardEntryId = show $ get #id timecardEntry
                             , saveAction =
                                 TimecardUpdateTimecardEntryAction
@@ -302,6 +307,10 @@ buildTableCell
                             , editingField = editableFieldToParam editableField
                             }
                     }
+      where
+        hasErrorFor fieldName entry = isJust $ errorFor fieldName entry
+        errorFor fieldName entry = snd <$> find (\(name, _) -> name == fieldName) (annotations entry)
+        annotations entry = entry |> get #meta |> get #annotations
 
 buildTotalHoursRow :: [V.TimecardEntry] -> TotalHoursRow
 buildTotalHoursRow timecardEntries =
@@ -441,7 +450,7 @@ renderTableCell tableCell =
                 <td class={editableFieldToClass editableField}>
                     <form method="POST" action={saveAction} class="edit-form" data-disable-javascript-submission="false">
                         <div class="form-group">
-                            {renderCellInput editableField value}
+                            {renderCellInput editableField value valueInvalidClass valueError}
                         </div>
                         
                         <button class="btn btn-primary btn btn-primary btn-sm">Save</button>
@@ -450,28 +459,44 @@ renderTableCell tableCell =
                 </td>
             |]
 
-renderCellInput :: EditableField -> Text -> Html
-renderCellInput editableField value =
+renderCellInput :: EditableField -> Text -> Text -> Maybe Violation -> Html
+renderCellInput editableField value valueInvalidClass valueError =
     case editableField of
         WorkDoneField ->
             [hsx|
                 <textarea type="text" name={editableFieldParam} placeholder="" class={editableFieldClasses} value={value}>
                     {value}
-                </textarea> 
+                </textarea>
+                {renderFieldError valueError}
             |]
         InvoiceTranslationField ->
             [hsx|
                 <textarea type="text" name={editableFieldParam} placeholder="" class={editableFieldClasses} value={value}>
                     {value}
                 </textarea> 
+                {renderFieldError valueError}
             |]
         _ ->
             [hsx|
                 <input type="text" name={editableFieldParam} placeholder="" class={editableFieldClasses} value={value}>
+                {renderFieldError valueError}
             |]
   where
     editableFieldParam = editableFieldToParam editableField
-    editableFieldClasses = editableFieldToClass editableField <> "-input editable-cell form-control"
+    editableFieldClasses = editableFieldToClass editableField <> "-input editable-cell form-control " <> valueInvalidClass
+
+renderFieldError :: Maybe Violation -> Html
+renderFieldError Nothing = [hsx||]
+renderFieldError (Just violation) =
+    [hsx| 
+        <div class="invalid-feedback">{unwrapViolation violation}</div>
+    |]
+
+unwrapViolation :: Violation -> Html
+unwrapViolation violation =
+    case violation of
+        TextViolation errorMessage -> [hsx| {errorMessage} |]
+        HtmlViolation errorMessage -> H.preEscapedToHtml errorMessage
 
 renderTotalHoursRow :: TotalHoursRow -> Html
 renderTotalHoursRow TotalHoursRow {..} =

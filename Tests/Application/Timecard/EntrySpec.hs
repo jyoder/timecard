@@ -699,6 +699,7 @@ spec = do
                 timecardEntry <- Timecard.Entry.validate timecardEntry
                 timecardEntry |> get #meta |> get #annotations
                     `shouldBe` [ ("hoursWorked", TextViolation "Must be within 15 minutes of clock details")
+                               , ("clockedOutAt", TextViolation {message = "Must be later than clock in time"})
                                , ("clockedInAt", TextViolation "Must be earlier than clock out time")
                                ]
 
@@ -721,31 +722,42 @@ spec = do
                 (Just $ toTimeOfDay "16:00:00")
                 `shouldBe` Failure "must be before 15:00:00"
 
-        it "returns failure if clock details do not match hours worked" do
-            Timecard.Entry.matchesClockDetails
+    describe "isAfter" do
+        it "returns success if the end time is after the start time" do
+            Timecard.Entry.isAfter
                 (Just $ toTimeOfDay "07:00:00")
+                (Just $ toTimeOfDay "15:00:00")
+                `shouldBe` Success
+
+        it "returns failure if the end time is equal to the start time" do
+            Timecard.Entry.isAfter
+                (Just $ toTimeOfDay "15:00:00")
+                (Just $ toTimeOfDay "15:00:00")
+                `shouldBe` Failure "must be after 15:00:00"
+
+        it "returns failure if the start time is after the end time" do
+            Timecard.Entry.isAfter
                 (Just $ toTimeOfDay "16:00:00")
-                Nothing
-                8.0
-                `shouldBe` Failure "Must be within 15 minutes of clock details"
+                (Just $ toTimeOfDay "15:00:00")
+                `shouldBe` Failure "must be after 16:00:00"
 
     describe "setClockedInAt" do
         it "parses and sets the clock in time using normalization" do
             let timecardEntry =
                     newRecord @TimecardEntry
-                        |> Timecard.Entry.setClockedInAt (Just "10am")
+                        |> Timecard.Entry.setClockedInAt "10am"
              in get #clockedInAt timecardEntry `shouldBe` Just (toTimeOfDay "10:00:00")
 
         it "sets the clock in time to nothing if no input is given" do
             let timecardEntry =
                     newRecord @TimecardEntry
-                        |> Timecard.Entry.setClockedInAt Nothing
+                        |> Timecard.Entry.setClockedInAt ""
              in get #clockedInAt timecardEntry `shouldBe` Nothing
 
         it "attaches an error validation if the input is not a time" do
             let timecardEntry =
                     newRecord @TimecardEntry
-                        |> Timecard.Entry.setClockedInAt (Just "not a time")
+                        |> Timecard.Entry.setClockedInAt "not a time"
              in timecardEntry |> get #meta |> get #annotations
                     `shouldBe` [
                                    ( "clockedInAt"
@@ -759,19 +771,19 @@ spec = do
         it "parses and sets the clock out time using normalization" do
             let timecardEntry =
                     newRecord @TimecardEntry
-                        |> Timecard.Entry.setClockedOutAt (Just "10am")
+                        |> Timecard.Entry.setClockedOutAt "10am"
              in get #clockedOutAt timecardEntry `shouldBe` Just (toTimeOfDay "10:00:00")
 
         it "sets the clock out time to nothing if no input is given" do
             let timecardEntry =
                     newRecord @TimecardEntry
-                        |> Timecard.Entry.setClockedOutAt Nothing
+                        |> Timecard.Entry.setClockedOutAt ""
              in get #clockedOutAt timecardEntry `shouldBe` Nothing
 
         it "attaches an error validation if the input is not a time" do
             let timecardEntry =
                     newRecord @TimecardEntry
-                        |> Timecard.Entry.setClockedOutAt (Just "not a time")
+                        |> Timecard.Entry.setClockedOutAt "not a time"
              in timecardEntry |> get #meta |> get #annotations
                     `shouldBe` [
                                    ( "clockedOutAt"
