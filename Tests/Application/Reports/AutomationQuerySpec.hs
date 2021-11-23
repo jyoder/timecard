@@ -90,84 +90,84 @@ spec = do
                 rows <- Reports.AutomationQuery.fetch Reports.AutomationQuery.ByDay (toDay "2021-10-30")
                 rows
                     `shouldBe` [ Reports.AutomationQuery.Row
-                                    { weekOf = toDay "2021-10-30"
+                                    { date = toDay "2021-10-30"
                                     , personId = get #id person1
                                     , personFirstName = "Bob"
                                     , personLastName = "Builder"
                                     , automationStatus = Reports.AutomationQuery.FullyAutomated
                                     }
                                , Reports.AutomationQuery.Row
-                                    { weekOf = toDay "2021-10-30"
+                                    { date = toDay "2021-10-29"
+                                    , personId = get #id person1
+                                    , personFirstName = "Bob"
+                                    , personLastName = "Builder"
+                                    , automationStatus = Reports.AutomationQuery.NoActivity
+                                    }
+                               , Reports.AutomationQuery.Row
+                                    { date = toDay "2021-10-28"
+                                    , personId = get #id person1
+                                    , personFirstName = "Bob"
+                                    , personLastName = "Builder"
+                                    , automationStatus = Reports.AutomationQuery.NoActivity
+                                    }
+                               , Reports.AutomationQuery.Row
+                                    { date = toDay "2021-10-27"
+                                    , personId = get #id person1
+                                    , personFirstName = "Bob"
+                                    , personLastName = "Builder"
+                                    , automationStatus = Reports.AutomationQuery.NoActivity
+                                    }
+                               , Reports.AutomationQuery.Row
+                                    { date = toDay "2021-10-26"
+                                    , personId = get #id person1
+                                    , personFirstName = "Bob"
+                                    , personLastName = "Builder"
+                                    , automationStatus = Reports.AutomationQuery.NoActivity
+                                    }
+                               , Reports.AutomationQuery.Row
+                                    { date = toDay "2021-10-25"
+                                    , personId = get #id person1
+                                    , personFirstName = "Bob"
+                                    , personLastName = "Builder"
+                                    , automationStatus = Reports.AutomationQuery.NoActivity
+                                    }
+                               , Reports.AutomationQuery.Row
+                                    { date = toDay "2021-10-30"
                                     , personId = get #id person2
                                     , personFirstName = "Rob"
                                     , personLastName = "Destroyer"
                                     , automationStatus = Reports.AutomationQuery.NotFullyAutomated
                                     }
                                , Reports.AutomationQuery.Row
-                                    { weekOf = toDay "2021-10-29"
-                                    , personId = get #id person1
-                                    , personFirstName = "Bob"
-                                    , personLastName = "Builder"
-                                    , automationStatus = Reports.AutomationQuery.NoActivity
-                                    }
-                               , Reports.AutomationQuery.Row
-                                    { weekOf = toDay "2021-10-29"
+                                    { date = toDay "2021-10-29"
                                     , personId = get #id person2
                                     , personFirstName = "Rob"
                                     , personLastName = "Destroyer"
                                     , automationStatus = Reports.AutomationQuery.NoActivity
                                     }
                                , Reports.AutomationQuery.Row
-                                    { weekOf = toDay "2021-10-28"
-                                    , personId = get #id person1
-                                    , personFirstName = "Bob"
-                                    , personLastName = "Builder"
-                                    , automationStatus = Reports.AutomationQuery.NoActivity
-                                    }
-                               , Reports.AutomationQuery.Row
-                                    { weekOf = toDay "2021-10-28"
+                                    { date = toDay "2021-10-28"
                                     , personId = get #id person2
                                     , personFirstName = "Rob"
                                     , personLastName = "Destroyer"
                                     , automationStatus = Reports.AutomationQuery.NoActivity
                                     }
                                , Reports.AutomationQuery.Row
-                                    { weekOf = toDay "2021-10-27"
-                                    , personId = get #id person1
-                                    , personFirstName = "Bob"
-                                    , personLastName = "Builder"
-                                    , automationStatus = Reports.AutomationQuery.NoActivity
-                                    }
-                               , Reports.AutomationQuery.Row
-                                    { weekOf = toDay "2021-10-27"
+                                    { date = toDay "2021-10-27"
                                     , personId = get #id person2
                                     , personFirstName = "Rob"
                                     , personLastName = "Destroyer"
                                     , automationStatus = Reports.AutomationQuery.NoActivity
                                     }
                                , Reports.AutomationQuery.Row
-                                    { weekOf = toDay "2021-10-26"
-                                    , personId = get #id person1
-                                    , personFirstName = "Bob"
-                                    , personLastName = "Builder"
-                                    , automationStatus = Reports.AutomationQuery.NoActivity
-                                    }
-                               , Reports.AutomationQuery.Row
-                                    { weekOf = toDay "2021-10-26"
+                                    { date = toDay "2021-10-26"
                                     , personId = get #id person2
                                     , personFirstName = "Rob"
                                     , personLastName = "Destroyer"
                                     , automationStatus = Reports.AutomationQuery.NoActivity
                                     }
                                , Reports.AutomationQuery.Row
-                                    { weekOf = toDay "2021-10-25"
-                                    , personId = get #id person1
-                                    , personFirstName = "Bob"
-                                    , personLastName = "Builder"
-                                    , automationStatus = Reports.AutomationQuery.NoActivity
-                                    }
-                               , Reports.AutomationQuery.Row
-                                    { weekOf = toDay "2021-10-25"
+                                    { date = toDay "2021-10-25"
                                     , personId = get #id person2
                                     , personFirstName = "Rob"
                                     , personLastName = "Destroyer"
@@ -254,42 +254,42 @@ spec = do
                 rows <- Reports.AutomationQuery.fetch Reports.AutomationQuery.ByWeek (toDay "2021-11-08")
                 rows
                     `shouldBe` [ Reports.AutomationQuery.Row
-                                    { weekOf = toDay "2021-11-08"
+                                    { date = toDay "2021-11-08"
                                     , personId = get #id person1
                                     , personFirstName = "Bob"
                                     , personLastName = "Builder"
                                     , automationStatus = Reports.AutomationQuery.NoActivity
                                     }
                                , Reports.AutomationQuery.Row
-                                    { weekOf = toDay "2021-11-08"
-                                    , personId = get #id person2
-                                    , personFirstName = "Rob"
-                                    , personLastName = "Destroyer"
-                                    , automationStatus = Reports.AutomationQuery.NoActivity
-                                    }
-                               , Reports.AutomationQuery.Row
-                                    { weekOf = toDay "2021-11-01"
+                                    { date = toDay "2021-11-01"
                                     , personId = get #id person1
                                     , personFirstName = "Bob"
                                     , personLastName = "Builder"
                                     , automationStatus = Reports.AutomationQuery.NoActivity
                                     }
                                , Reports.AutomationQuery.Row
-                                    { weekOf = toDay "2021-11-01"
-                                    , personId = get #id person2
-                                    , personFirstName = "Rob"
-                                    , personLastName = "Destroyer"
-                                    , automationStatus = Reports.AutomationQuery.NoActivity
-                                    }
-                               , Reports.AutomationQuery.Row
-                                    { weekOf = toDay "2021-10-25"
+                                    { date = toDay "2021-10-25"
                                     , personId = get #id person1
                                     , personFirstName = "Bob"
                                     , personLastName = "Builder"
                                     , automationStatus = Reports.AutomationQuery.FullyAutomated
                                     }
                                , Reports.AutomationQuery.Row
-                                    { weekOf = toDay "2021-10-25"
+                                    { date = toDay "2021-11-08"
+                                    , personId = get #id person2
+                                    , personFirstName = "Rob"
+                                    , personLastName = "Destroyer"
+                                    , automationStatus = Reports.AutomationQuery.NoActivity
+                                    }
+                               , Reports.AutomationQuery.Row
+                                    { date = toDay "2021-11-01"
+                                    , personId = get #id person2
+                                    , personFirstName = "Rob"
+                                    , personLastName = "Destroyer"
+                                    , automationStatus = Reports.AutomationQuery.NoActivity
+                                    }
+                               , Reports.AutomationQuery.Row
+                                    { date = toDay "2021-10-25"
                                     , personId = get #id person2
                                     , personFirstName = "Rob"
                                     , personLastName = "Destroyer"

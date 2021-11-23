@@ -15,7 +15,7 @@ import IHP.Prelude
 import Text.Read (read)
 
 data Row = Row
-    { weekOf :: !Day
+    { date :: !Day
     , personId :: !(Id Types.Person)
     , personFirstName :: !Text
     , personLastName :: !Text
@@ -107,15 +107,15 @@ query reportInterval =
                     and people_by_date.date = automations.audit_entry_date
                 )
         group by
-            people_by_date.date,
-            people_by_date.first_name,
+            people_by_date.id,
             people_by_date.last_name,
-            people_by_date.id
+            people_by_date.first_name,
+            people_by_date.date
         order by
-            people_by_date.date desc,
             people_by_date.last_name asc,
             people_by_date.first_name asc,
-            people_by_date.id asc;
+            people_by_date.id asc,
+            people_by_date.date desc;
     |]
 
 datesSql :: ReportInterval -> Text
