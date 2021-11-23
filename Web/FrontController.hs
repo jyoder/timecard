@@ -6,6 +6,7 @@ import Web.View.Layout (defaultLayout)
 
 -- Controller Imports
 import Web.Controller.AuditEntries
+import Web.Controller.Reports
 import Web.Controller.TimecardReviews
 import Web.Controller.Timecards
 import Web.Controller.TwilioCallbacks
@@ -24,7 +25,8 @@ instance FrontController WebApplication where
         [ startPage WelcomeAction
         , parseRoute @SessionsController
         , -- Generator Marker
-          parseRoute @AuditEntriesController
+          parseRoute @ReportsController
+        , parseRoute @AuditEntriesController
         , parseRoute @WorkerSettingsController
         , parseRoute @TimecardReviewsController
         , parseRoute @TimecardsController

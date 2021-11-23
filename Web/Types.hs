@@ -136,3 +136,7 @@ data AuditEntriesController
         , column :: !(Maybe Text)
         }
     deriving (Eq, Show, Data)
+
+data ReportsController
+    = ReportsAction
+    deriving (Eq, Show, Data)

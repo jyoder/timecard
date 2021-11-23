@@ -7,6 +7,7 @@ data Section
     = Timecards
     | Communications
     | AuditEntries
+    | Reports
     deriving (Eq)
 
 renderSectionNavigation :: Section -> Maybe Person -> Html
@@ -20,6 +21,7 @@ renderSectionNavigation currentSection selectedPerson =
                         {renderItem timecardsAction Timecards "Timecards" currentSection}
                         {renderItem communicationsAction Communications "Communications" currentSection}
                         {renderItem auditEntriesAction AuditEntries "Audit" currentSection}
+                        {renderItem ReportsAction Reports "Reports" currentSection}
                     </ul>
                 </div>
                 <a href={DeleteSessionAction} class="btn btn-outline-primary js-delete js-delete-no-confirm ml-3 mr-3 mb-3">
@@ -51,6 +53,7 @@ renderSectionNavigation currentSection selectedPerson =
                 , column = Nothing
                 }
         Nothing -> AuditEntriesAction
+    ReportsAction = ReportsAction
 
 renderItem :: (HasPath action) => action -> Section -> Text -> Section -> Html
 renderItem action newSection label currentSection =
