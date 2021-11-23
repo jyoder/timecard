@@ -11,6 +11,10 @@ spec = do
         it "returns a string with 'mm/dd/yyyy' format" do
             formatDay (toDay "2021-08-01") `shouldBe` "08/01/2021"
 
+    describe "formatDayNoYear" do
+        it "returns a string with 'mm/dd' format" do
+            formatDayNoYear (toDay "2021-08-01") `shouldBe` "08/01"
+
     describe "formatTimeOfDay" do
         it "returns a string with 'h:mm AM/PM' format" do
             formatTimeOfDay (toTimeOfDay "07:03:01") `shouldBe` "7:03 AM"

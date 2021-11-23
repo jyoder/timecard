@@ -1,5 +1,6 @@
 module Web.View.Service.Time (
     formatDay,
+    formatDayNoYear,
     formatTimeOfDay,
     formatDateTime,
 ) where
@@ -11,6 +12,9 @@ import Web.View.Prelude
 
 formatDay :: Day -> Text
 formatDay = pack . formatTime defaultTimeLocale "%m/%d/%Y"
+
+formatDayNoYear :: Day -> Text
+formatDayNoYear = pack . formatTime defaultTimeLocale "%m/%d"
 
 formatTimeOfDay :: TimeOfDay -> Text
 formatTimeOfDay timeOfDay =
