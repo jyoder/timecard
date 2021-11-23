@@ -52,8 +52,8 @@ instance FromField AutomationStatus where
             Just _data -> returnError ConversionFailed field (cs _data)
             Nothing -> returnError UnexpectedNull field ""
 
-fetch :: (?modelContext :: ModelContext) => ReportInterval -> Day -> IO [Row]
-fetch reportInterval asOf = sqlQuery (query reportInterval) (Only asOf)
+fetch :: (?modelContext :: ModelContext) => ReportInterval -> Day -> Day -> IO [Row]
+fetch reportInterval startDate endDate = sqlQuery (query reportInterval) (startDate, endDate)
 
 query :: ReportInterval -> Query
 query reportInterval =
@@ -70,7 +70,7 @@ query reportInterval =
                 dates cross join people
             where
                 worker_settings.person_id = people.id
-
+                and worker_settings.is_active
         ),
         automations as (
             select
@@ -128,7 +128,7 @@ datesSql reportInterval =
             select
                 date::date
             from
-                generate_series('#{show startDate}', ?, '#{show interval} day'::interval) date
+                generate_series(?, ?, '#{show interval} day'::interval) date
         )
     |]
   where
@@ -147,7 +147,3 @@ auditEntryDateSql reportInterval =
             [i|
                 audit_entries.created_at::date - ((6 + cast(extract(dow from audit_entries.created_at::date) as int)) % 7)
             |]
-
--- This is the date when we first began collecting audit information.
-startDate :: Day
-startDate = read "2021-10-25"

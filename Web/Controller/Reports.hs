@@ -8,10 +8,13 @@ instance Controller ReportsController where
     beforeAction = ensureIsUser
 
     action ReportsAction = do
-        now <- getCurrentTime
+        today <- utctDay <$> getCurrentTime
+        let startDate = addDays (-28) today
+
         dailyReportRows <-
             Reports.AutomationQuery.fetch
                 Reports.AutomationQuery.ByDay
-                (utctDay now)
+                startDate
+                today
 
         render IndexView {..}

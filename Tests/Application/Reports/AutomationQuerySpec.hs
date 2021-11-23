@@ -101,7 +101,20 @@ spec = do
                         |> set #actionContext "Entry 4"
                         |> createRecord
 
-                rows <- Reports.AutomationQuery.fetch Reports.AutomationQuery.ByDay (toDay "2021-10-30")
+                auditEntry5 <-
+                    newRecord @AuditEntry
+                        |> set #createdAt (toUtc "2021-01-01 01:00:00 PDT")
+                        |> set #phoneNumberId (get #id phoneNumber2)
+                        |> set #action MessageSent
+                        |> set #actionContext "Entry 5"
+                        |> createRecord
+
+                rows <-
+                    Reports.AutomationQuery.fetch
+                        Reports.AutomationQuery.ByDay
+                        (toDay "2021-10-25")
+                        (toDay "2021-10-30")
+
                 rows
                     `shouldBe` [ Reports.AutomationQuery.Row
                                     { date = toDay "2021-10-30"
@@ -279,7 +292,12 @@ spec = do
                         |> set #actionContext "Entry 4"
                         |> createRecord
 
-                rows <- Reports.AutomationQuery.fetch Reports.AutomationQuery.ByWeek (toDay "2021-11-08")
+                rows <-
+                    Reports.AutomationQuery.fetch
+                        Reports.AutomationQuery.ByWeek
+                        (toDay "2021-10-25")
+                        (toDay "2021-11-08")
+
                 rows
                     `shouldBe` [ Reports.AutomationQuery.Row
                                     { date = toDay "2021-11-08"
@@ -326,31 +344,98 @@ spec = do
                                ]
 
             itIO "only returns rows for active workers" do
-                person <-
+                person1 <-
                     newRecord @Person
                         |> set #firstName "Bob"
                         |> set #lastName "Builder"
                         |> set #goesBy "Bob the Builder"
                         |> createRecord
 
-                phoneNumber <-
+                workerSetting1 <-
+                    newRecord @WorkerSetting
+                        |> set #personId (get #id person1)
+                        |> set #sendDailyReminderAt (toTimeOfDay "15:30:00")
+                        |> set #isActive True
+                        |> createRecord
+
+                phoneNumber1 <-
                     newRecord @PhoneNumber
                         |> set #number "+15555555555"
                         |> createRecord
 
-                phoneContact <-
+                phoneContact1 <-
                     newRecord @PhoneContact
-                        |> set #personId (get #id person)
-                        |> set #phoneNumberId (get #id phoneNumber)
+                        |> set #personId (get #id person1)
+                        |> set #phoneNumberId (get #id phoneNumber1)
                         |> createRecord
 
-                auditEntry <-
+                auditEntry1 <-
                     newRecord @AuditEntry
                         |> set #createdAt (toUtc "2021-10-30 07:00:00 PDT")
-                        |> set #phoneNumberId (get #id phoneNumber)
+                        |> set #phoneNumberId (get #id phoneNumber1)
                         |> set #action MessageSent
                         |> set #actionContext "Entry 1"
                         |> createRecord
 
-                rows <- Reports.AutomationQuery.fetch Reports.AutomationQuery.ByWeek (toDay "2021-11-08")
-                rows `shouldBe` []
+                person2 <-
+                    newRecord @Person
+                        |> set #firstName "Bob"
+                        |> set #lastName "Builder"
+                        |> set #goesBy "Bob the Builder"
+                        |> createRecord
+
+                workerSetting2 <-
+                    newRecord @WorkerSetting
+                        |> set #personId (get #id person2)
+                        |> set #sendDailyReminderAt (toTimeOfDay "15:30:00")
+                        |> set #isActive False
+                        |> createRecord
+
+                phoneNumber2 <-
+                    newRecord @PhoneNumber
+                        |> set #number "+16666666666"
+                        |> createRecord
+
+                phoneContact2 <-
+                    newRecord @PhoneContact
+                        |> set #personId (get #id person2)
+                        |> set #phoneNumberId (get #id phoneNumber2)
+                        |> createRecord
+
+                auditEntry2 <-
+                    newRecord @AuditEntry
+                        |> set #createdAt (toUtc "2021-10-30 07:00:00 PDT")
+                        |> set #phoneNumberId (get #id phoneNumber2)
+                        |> set #action MessageSent
+                        |> set #actionContext "Entry 2"
+                        |> createRecord
+
+                rows <-
+                    Reports.AutomationQuery.fetch
+                        Reports.AutomationQuery.ByWeek
+                        (toDay "2021-10-25")
+                        (toDay "2021-11-08")
+
+                rows
+                    `shouldBe` [ Reports.AutomationQuery.Row
+                                    { date = toDay "2021-11-08"
+                                    , personId = get #id person1
+                                    , personFirstName = "Bob"
+                                    , personLastName = "Builder"
+                                    , automationStatus = Reports.AutomationQuery.NoActivity
+                                    }
+                               , Reports.AutomationQuery.Row
+                                    { date = toDay "2021-11-01"
+                                    , personId = get #id person1
+                                    , personFirstName = "Bob"
+                                    , personLastName = "Builder"
+                                    , automationStatus = Reports.AutomationQuery.NoActivity
+                                    }
+                               , Reports.AutomationQuery.Row
+                                    { date = toDay "2021-10-25"
+                                    , personId = get #id person1
+                                    , personFirstName = "Bob"
+                                    , personLastName = "Builder"
+                                    , automationStatus = Reports.AutomationQuery.FullyAutomated
+                                    }
+                               ]
