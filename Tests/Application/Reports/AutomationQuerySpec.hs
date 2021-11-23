@@ -25,6 +25,13 @@ spec = do
                         |> set #goesBy "Bob the Builder"
                         |> createRecord
 
+                workerSetting1 <-
+                    newRecord @WorkerSetting
+                        |> set #personId (get #id person1)
+                        |> set #sendDailyReminderAt (toTimeOfDay "15:30:00")
+                        |> set #isActive True
+                        |> createRecord
+
                 phoneNumber1 <-
                     newRecord @PhoneNumber
                         |> set #number "+15555555555"
@@ -62,6 +69,13 @@ spec = do
                         |> set #firstName "Rob"
                         |> set #lastName "Destroyer"
                         |> set #goesBy "Rob the Destroyer"
+                        |> createRecord
+
+                workerSetting2 <-
+                    newRecord @WorkerSetting
+                        |> set #personId (get #id person2)
+                        |> set #sendDailyReminderAt (toTimeOfDay "15:30:00")
+                        |> set #isActive True
                         |> createRecord
 
                 phoneContact2 <-
@@ -189,6 +203,13 @@ spec = do
                         |> set #goesBy "Bob the Builder"
                         |> createRecord
 
+                workerSetting1 <-
+                    newRecord @WorkerSetting
+                        |> set #personId (get #id person1)
+                        |> set #sendDailyReminderAt (toTimeOfDay "15:30:00")
+                        |> set #isActive True
+                        |> createRecord
+
                 phoneNumber1 <-
                     newRecord @PhoneNumber
                         |> set #number "+15555555555"
@@ -226,6 +247,13 @@ spec = do
                         |> set #firstName "Rob"
                         |> set #lastName "Destroyer"
                         |> set #goesBy "Rob the Destroyer"
+                        |> createRecord
+
+                workerSetting2 <-
+                    newRecord @WorkerSetting
+                        |> set #personId (get #id person2)
+                        |> set #sendDailyReminderAt (toTimeOfDay "15:30:00")
+                        |> set #isActive True
                         |> createRecord
 
                 phoneContact2 <-
@@ -296,3 +324,33 @@ spec = do
                                     , automationStatus = Reports.AutomationQuery.NotFullyAutomated
                                     }
                                ]
+
+            itIO "only returns rows for active workers" do
+                person <-
+                    newRecord @Person
+                        |> set #firstName "Bob"
+                        |> set #lastName "Builder"
+                        |> set #goesBy "Bob the Builder"
+                        |> createRecord
+
+                phoneNumber <-
+                    newRecord @PhoneNumber
+                        |> set #number "+15555555555"
+                        |> createRecord
+
+                phoneContact <-
+                    newRecord @PhoneContact
+                        |> set #personId (get #id person)
+                        |> set #phoneNumberId (get #id phoneNumber)
+                        |> createRecord
+
+                auditEntry <-
+                    newRecord @AuditEntry
+                        |> set #createdAt (toUtc "2021-10-30 07:00:00 PDT")
+                        |> set #phoneNumberId (get #id phoneNumber)
+                        |> set #action MessageSent
+                        |> set #actionContext "Entry 1"
+                        |> createRecord
+
+                rows <- Reports.AutomationQuery.fetch Reports.AutomationQuery.ByWeek (toDay "2021-11-08")
+                rows `shouldBe` []

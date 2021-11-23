@@ -66,8 +66,11 @@ query reportInterval =
                 people.first_name first_name,
                 people.last_name last_name
             from
-                dates cross join
-                    people
+                worker_settings,
+                dates cross join people
+            where
+                worker_settings.person_id = people.id
+
         ),
         automations as (
             select
