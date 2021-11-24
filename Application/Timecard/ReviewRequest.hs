@@ -17,7 +17,7 @@ scheduleRequest ::
     Person ->
     Id PhoneNumber ->
     Id PhoneNumber ->
-    IO SendMessageAction
+    IO (SendMessageAction, SendMessageAction)
 scheduleRequest userId baseUrl now timecardId worker fromPhoneNumberId toPhoneNumberId = do
     workerSettings <-
         query @WorkerSetting
@@ -29,32 +29,34 @@ scheduleRequest userId baseUrl now timecardId worker fromPhoneNumberId toPhoneNu
     accessToken <- fetchOne $ get #accessTokenId timecardAccessToken
 
     let link = reviewLink baseUrl (get #value accessToken)
-        sendAt = requestTime now
-        body = requestBody language (get #goesBy worker) link
+        sendRequestAt = requestTime now
+        sendLinkAt = linkTime now
+        body = requestBody language (get #goesBy worker)
     Audit.Entry.createReviewLinkGenerated userId toPhoneNumberId link
 
-    sendMessageAction <- SendMessageAction.schedule fromPhoneNumberId toPhoneNumberId body sendAt
-    Audit.Entry.createReviewRequestScheduled sendMessageAction sendAt
-    pure sendMessageAction
+    requestMessage <- SendMessageAction.schedule fromPhoneNumberId toPhoneNumberId body sendRequestAt
+    linkMessage <- SendMessageAction.schedule fromPhoneNumberId toPhoneNumberId link sendLinkAt
+    Audit.Entry.createReviewRequestScheduled requestMessage sendRequestAt
+    pure (requestMessage, linkMessage)
   where
     expiresAt = Timecard.AccessToken.expirationFrom now
-
-reviewLink :: Text -> Text -> Text
-reviewLink baseUrl accessToken = baseUrl <> "/ShowTimecardReview?accessToken=" <> accessToken
+    auditContext body link = body <> ": " <> link
 
 requestTime :: UTCTime -> UTCTime
 requestTime = addUTCTime (60 * 4)
 
-requestBody :: Language -> Text -> Text -> Text
-requestBody English name link =
+requestBody :: Language -> Text -> Text
+requestBody English name =
     "Thanks "
         <> name
-        <> ". Here's your timecard to review and sign:\n"
-        <> link
-        <> "\n\nLet me know if you need me to make any corrections on it."
-requestBody Spanish name link =
+        <> ". Here's your timecard to review and sign. Let me know if you need me to make any corrections on it:"
+requestBody Spanish name =
     "Gracias "
         <> name
-        <> ". Aquí está su tarjeta de tiempo para revisar y firmar:\n"
-        <> link
-        <> "\n\nAvíseme si necesita que le haga alguna corrección."
+        <> ". Aquí está su tarjeta de tiempo para revisar y firmar. Avíseme si necesita que le haga alguna corrección:"
+
+linkTime :: UTCTime -> UTCTime
+linkTime now = addUTCTime 10 (requestTime now)
+
+reviewLink :: Text -> Text -> Text
+reviewLink baseUrl accessToken = baseUrl <> "/ShowTimecardReview?accessToken=" <> accessToken
