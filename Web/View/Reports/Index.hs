@@ -57,14 +57,14 @@ buildRow rowGroup =
         , cells = buildCells rowGroup
         }
   where
-    name = getName rowGroup
+    name = formatName rowGroup
     formattedAutomationRate = show (round (automationRate * 100)) <> "%"
     automationRate = if activeRows > 0 then fromIntegral fullyAutomatedRows / fromIntegral activeRows else 0.0
     fullyAutomatedRows = length $ filter (\row -> get #automationStatus row == Reports.AutomationQuery.FullyAutomated) rowGroup
     activeRows = length $ filter (\row -> get #automationStatus row /= Reports.AutomationQuery.NoActivity) rowGroup
 
-getName :: [Reports.AutomationQuery.Row] -> Text
-getName rows =
+formatName :: [Reports.AutomationQuery.Row] -> Text
+formatName rows =
     case rows of
         row : _ -> get #personLastName row <> ", " <> get #personFirstName row
         [] -> "Unknown Person"
@@ -73,14 +73,14 @@ buildCells :: [Reports.AutomationQuery.Row] -> [Cell]
 buildCells rowGroup = buildCell <$> rowGroup
 
 buildCell :: Reports.AutomationQuery.Row -> Cell
-buildCell row =
+buildCell Reports.AutomationQuery.Row {..} =
     Cell
-        { date = formatDate $ get #date row
-        , classes = automationStatusClass $ get #automationStatus row
+        { date = formatDateIfMonday date
+        , classes = automationStatusClass automationStatus
         }
 
-formatDate :: Day -> Text
-formatDate date =
+formatDateIfMonday :: Day -> Text
+formatDateIfMonday date =
     case toWeekDate date of
         (_, _, 1) -> formatDayNoYear date
         _ -> ""
