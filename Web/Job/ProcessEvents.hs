@@ -14,11 +14,12 @@ instance Job ProcessEventsJob where
         whileM_ (pure True) do
             Log.info ("Running scheduled actions" :: Text)
 
-            now <- getCurrentTime
-            updateTimestamp id now
-
-            sendMessageActions <- SendMessageAction.fetchReadyToRun now
-            mapM_ runSendMessageAction sendMessageActions
+            result <- Control.Exception.try (processEvents id) :: IO (Either SomeException ())
+            case result of
+                Left exception ->
+                    Log.error ("Process events iteration failed: " <> show exception)
+                Right _ ->
+                    pure ()
 
             threadDelay runInterval
 
@@ -39,6 +40,18 @@ initSingleton configBuilder = do
 initModelContext :: FrameworkConfig -> IO ModelContext
 initModelContext FrameworkConfig {..} = do
     createModelContext dbPoolIdleTime dbPoolMaxConnections databaseUrl logger
+
+processEvents ::
+    ( ?modelContext :: ModelContext
+    , ?context :: FrameworkConfig
+    ) =>
+    Id ProcessEventsJob ->
+    IO ()
+processEvents id = do
+    now <- getCurrentTime
+    updateTimestamp id now
+    sendMessageActions <- SendMessageAction.fetchReadyToRun now
+    mapM_ runSendMessageAction sendMessageActions
 
 updateTimestamp :: (?modelContext :: ModelContext) => Id ProcessEventsJob -> UTCTime -> IO ()
 updateTimestamp processEventsJobId now = do
