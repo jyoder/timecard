@@ -3,7 +3,7 @@ module Tests.Application.Brain.ObserveSpec where
 import qualified Application.Action.ActionRunState as ActionRunState
 import qualified Application.Action.SendMessageAction as SendMessageAction
 import qualified Application.Brain.Observe as Observe
-import qualified Application.Timecard.Query as Timecard.Query
+import qualified Application.Timecard.View as Timecard.View
 import qualified Application.Twilio.Query as Twilio.Query
 import qualified Application.Twilio.View as Twilio.View
 import Generated.Types
@@ -131,26 +131,25 @@ spec = do
                         , botPhoneNumberId = get #id botPhoneNumber
                         }
 
-                timecardEntryRows
-                    `shouldBe` [ Timecard.Query.Row
-                                    { timecardId = get #id timecard
-                                    , timecardPersonId = get #id worker
-                                    , timecardWeekOf = toDay "2021-06-21"
-                                    , accessTokenId = Nothing
-                                    , accessTokenValue = Nothing
-                                    , accessTokenExpiresAt = Nothing
-                                    , accessTokenIsRevoked = Nothing
-                                    , signingId = Nothing
-                                    , signingSignedAt = Nothing
-                                    , timecardEntryId = get #id timecardEntry
-                                    , timecardEntryDate = toDay "2021-06-23"
-                                    , timecardEntryJobName = "McDonald's"
-                                    , timecardEntryClockedInAt = Nothing
-                                    , timecardEntryClockedOutAt = Nothing
-                                    , timecardEntryLunchDuration = Nothing
-                                    , timecardEntryHoursWorked = 8.0
-                                    , timecardEntryWorkDone = "work"
-                                    , timecardEntryInvoiceTranslation = "invoice"
+                recentTimecards
+                    `shouldBe` [ Timecard.View.Timecard
+                                    { id = get #id timecard
+                                    , personId = get #id worker
+                                    , weekOf = toDay "2021-06-21"
+                                    , status = Timecard.View.TimecardInProgress
+                                    , entries =
+                                        [ Timecard.View.TimecardEntry
+                                            { id = get #id timecardEntry
+                                            , date = toDay "2021-06-23"
+                                            , jobName = "McDonald's"
+                                            , clockedInAt = Nothing
+                                            , clockedOutAt = Nothing
+                                            , lunchDuration = Nothing
+                                            , hoursWorked = 8.0
+                                            , workDone = "work"
+                                            , invoiceTranslation = "invoice"
+                                            }
+                                        ]
                                     }
                                ]
 

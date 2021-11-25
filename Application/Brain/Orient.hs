@@ -7,7 +7,7 @@ import qualified Application.Brain.Observe as Observe
 import Application.Service.Time (nextWorkingDay, roundHours)
 import qualified Application.Timecard.Entry as Timecard.Entry
 import qualified Application.Timecard.EntryRequest as EntryRequest
-import qualified Application.Timecard.Query as Timecard.Query
+import qualified Application.Timecard.View as Timecard.View
 import qualified Application.Twilio.Query as Twilio.Query
 import qualified Application.Twilio.View as Twilio.View
 import Generated.Types
@@ -69,13 +69,13 @@ orient Observe.Observations {..} =
         Observe.IncomingMessage {..} ->
             Situation
                 { twilioMessageId = get #id message
-                , update = buildUpdate today timecardEntryRows message
+                , update = buildUpdate today recentTimecards message
                 , reminder = buildReminder scheduledReminders
                 , ..
                 }
 
-buildUpdate :: Day -> [Timecard.Query.Row] -> Twilio.View.Message -> Update
-buildUpdate today timecardEntryRows message
+buildUpdate :: Day -> [Timecard.View.Timecard] -> Twilio.View.Message -> Update
+buildUpdate today timecards message
     | anyLowConfidenceEntities entities = UpdateDetailsAreLowConfidence
     | hasMultipleJobNames entities = UpdateIsForMultipleJobs
     | otherwise =
@@ -88,9 +88,12 @@ buildUpdate today timecardEntryRows message
             [] -> MessageIsNotAnUpdate
   where
     jobs = message |> normalizedMessage previousJobName |> buildJobs date
-    previousJobName = get #timecardEntryJobName <$> head timecardEntryRows
-    date = nextTimecardEntryDay today timecardEntryDays
-    timecardEntryDays = get #timecardEntryDate <$> timecardEntryRows
+    previousJobName = get #jobName <$> last entriestOnLatestDay
+    date = nextTimecardEntryDay today entryDays
+    entryDays = get #date <$> allEntries
+    entriestOnLatestDay = fromMaybe [] (head $ groupByDay allEntries)
+    groupByDay = groupBy (\e1 e2 -> get #date e1 == get #date e2)
+    allEntries = concatMap (get #entries) timecards
     entities = get #entities message
 
 buildReminder :: [SendMessageAction.T] -> Reminder

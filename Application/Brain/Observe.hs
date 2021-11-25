@@ -2,6 +2,7 @@ module Application.Brain.Observe where
 
 import qualified Application.Action.SendMessageAction as SendMessageAction
 import qualified Application.Timecard.Query as Timecard.Query
+import qualified Application.Timecard.View as Timecard.View
 import qualified Application.Twilio.View as Twilio.View
 import Generated.Types
 import IHP.Prelude
@@ -20,7 +21,7 @@ data Observations = Observations
     , companyTimeZone :: !TimeZone
     , today :: !Day
     , event :: !Event
-    , timecardEntryRows :: ![Timecard.Query.Row]
+    , recentTimecards :: ![Timecard.View.Timecard]
     , scheduledReminders :: ![SendMessageAction.T]
     }
     deriving (Eq, Show)
@@ -32,10 +33,11 @@ observe event = do
     let companyTimeZone = companyTimeZone'
     let IncomingMessage {..} = event
 
-    timecardEntryRows <-
-        Timecard.Query.fetchByPerson
-            Timecard.Query.EntriesDateDescending
-            workerId
+    recentTimecards <-
+        Timecard.View.buildTimecards
+            <$> Timecard.Query.fetchByPerson
+                Timecard.Query.EntriesDateDescending
+                workerId
 
     scheduledReminders <-
         SendMessageAction.fetchNotStartedOrSuspendedByPhoneNumber

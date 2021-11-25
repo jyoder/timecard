@@ -4,7 +4,7 @@ import qualified Application.Action.ActionRunState as ActionRunState
 import qualified Application.Action.SendMessageAction as SendMessageAction
 import qualified Application.Brain.Observe as Observe
 import qualified Application.Brain.Orient as Orient
-import qualified Application.Timecard.Query as Timecard.Query
+import qualified Application.Timecard.View as Timecard.View
 import qualified Application.Twilio.Query as Twilio.Query
 import qualified Application.Twilio.View as Twilio.View
 import IHP.Prelude
@@ -51,7 +51,7 @@ spec = do
                             , workerPhoneNumberId = "30000000-0000-0000-0000-000000000000"
                             , botPhoneNumberId = "40000000-0000-0000-0000-000000000000"
                             }
-                    , timecardEntryRows = []
+                    , recentTimecards = []
                     , scheduledReminders =
                         [ SendMessageAction.T
                             { id = "10000000-0000-0000-0000-000000000000"
@@ -96,25 +96,24 @@ spec = do
             it "returns a single job extracted from a message" do
                 Orient.buildUpdate
                     (toDay "2021-09-07")
-                    [ Timecard.Query.Row
-                        { timecardId = "10000000-0000-0000-0000-000000000000"
-                        , timecardPersonId = "20000000-0000-0000-0000-000000000000"
-                        , timecardWeekOf = toDay "2021-09-06"
-                        , accessTokenId = Just "30000000-0000-0000-0000-000000000000"
-                        , accessTokenValue = Just "secret"
-                        , accessTokenExpiresAt = Just $ toUtc "2021-06-23 15:29:00 PDT"
-                        , accessTokenIsRevoked = Just False
-                        , signingId = Nothing
-                        , signingSignedAt = Nothing
-                        , timecardEntryId = "40000000-0000-0000-0000-000000000000"
-                        , timecardEntryDate = toDay "2021-09-06"
-                        , timecardEntryJobName = "jobName-1"
-                        , timecardEntryClockedInAt = Nothing
-                        , timecardEntryClockedOutAt = Nothing
-                        , timecardEntryLunchDuration = Nothing
-                        , timecardEntryHoursWorked = 8.0
-                        , timecardEntryWorkDone = "workDone-1"
-                        , timecardEntryInvoiceTranslation = "invoiceTranslation-1"
+                    [ Timecard.View.Timecard
+                        { id = "10000000-0000-0000-0000-000000000000"
+                        , personId = "20000000-0000-0000-0000-000000000000"
+                        , weekOf = toDay "2021-09-06"
+                        , status = Timecard.View.TimecardInProgress
+                        , entries =
+                            [ Timecard.View.TimecardEntry
+                                { id = "40000000-0000-0000-0000-000000000000"
+                                , date = toDay "2021-09-06"
+                                , jobName = "jobName-1"
+                                , clockedInAt = Nothing
+                                , clockedOutAt = Nothing
+                                , lunchDuration = Nothing
+                                , hoursWorked = 8.0
+                                , workDone = "workDone-1"
+                                , invoiceTranslation = "invoiceTranslation-1"
+                                }
+                            ]
                         }
                     ]
                     Twilio.View.Message
@@ -153,32 +152,64 @@ spec = do
                             , invoiceTranslation = "Did some stuff."
                             }
 
-            it "uses the job name from a prior timecard entry if no job name was found in the message" do
+            it "uses the job name from the earliest timecard entry on the most recent day if no job name was found in the message" do
                 Orient.buildUpdate
                     (toDay "2021-09-07")
-                    [ Timecard.Query.Row
-                        { timecardId = "10000000-0000-0000-0000-000000000000"
-                        , timecardPersonId = "20000000-0000-0000-0000-000000000000"
-                        , timecardWeekOf = toDay "2021-09-06"
-                        , accessTokenId = Just "30000000-0000-0000-0000-000000000000"
-                        , accessTokenValue = Just "secret"
-                        , accessTokenExpiresAt = Just $ toUtc "2021-06-23 15:29:00 PDT"
-                        , accessTokenIsRevoked = Just False
-                        , signingId = Nothing
-                        , signingSignedAt = Nothing
-                        , timecardEntryId = "40000000-0000-0000-0000-000000000000"
-                        , timecardEntryDate = toDay "2021-09-06"
-                        , timecardEntryJobName = "jobName-1"
-                        , timecardEntryClockedInAt = Nothing
-                        , timecardEntryClockedOutAt = Nothing
-                        , timecardEntryLunchDuration = Nothing
-                        , timecardEntryHoursWorked = 8.0
-                        , timecardEntryWorkDone = "workDone-1"
-                        , timecardEntryInvoiceTranslation = "invoiceTranslation-1"
+                    [ Timecard.View.Timecard
+                        { id = "10000000-0000-0000-0000-000000000000"
+                        , personId = "20000000-0000-0000-0000-000000000000"
+                        , weekOf = toDay "2021-09-06"
+                        , status = Timecard.View.TimecardInProgress
+                        , entries =
+                            [ Timecard.View.TimecardEntry
+                                { id = "40000000-0000-0000-0000-000000000000"
+                                , date = toDay "2021-09-07"
+                                , jobName = "jobName-4"
+                                , clockedInAt = Nothing
+                                , clockedOutAt = Nothing
+                                , lunchDuration = Nothing
+                                , hoursWorked = 8.0
+                                , workDone = "workDone-4"
+                                , invoiceTranslation = "invoiceTranslation-4"
+                                }
+                            , Timecard.View.TimecardEntry
+                                { id = "50000000-0000-0000-0000-000000000000"
+                                , date = toDay "2021-09-07"
+                                , jobName = "jobName-3"
+                                , clockedInAt = Nothing
+                                , clockedOutAt = Nothing
+                                , lunchDuration = Nothing
+                                , hoursWorked = 8.0
+                                , workDone = "workDone-3"
+                                , invoiceTranslation = "invoiceTranslation-3"
+                                }
+                            , Timecard.View.TimecardEntry
+                                { id = "60000000-0000-0000-0000-000000000000"
+                                , date = toDay "2021-09-06"
+                                , jobName = "jobName-2"
+                                , clockedInAt = Nothing
+                                , clockedOutAt = Nothing
+                                , lunchDuration = Nothing
+                                , hoursWorked = 8.0
+                                , workDone = "workDone-2"
+                                , invoiceTranslation = "invoiceTranslation-2"
+                                }
+                            , Timecard.View.TimecardEntry
+                                { id = "70000000-0000-0000-0000-000000000000"
+                                , date = toDay "2021-09-06"
+                                , jobName = "jobName-1"
+                                , clockedInAt = Nothing
+                                , clockedOutAt = Nothing
+                                , lunchDuration = Nothing
+                                , hoursWorked = 8.0
+                                , workDone = "workDone-1"
+                                , invoiceTranslation = "invoiceTranslation-1"
+                                }
+                            ]
                         }
                     ]
                     Twilio.View.Message
-                        { id = "50000000-0000-0000-0000-000000000000"
+                        { id = "80000000-0000-0000-0000-000000000000"
                         , fromFirstName = "Bob"
                         , fromLastName = "Ross"
                         , fromPhoneNumber = "+14444444444"
@@ -198,8 +229,8 @@ spec = do
                         }
                     `shouldBe` Orient.UpdateIsForASingleJob
                         Orient.Job
-                            { date = toDay "2021-09-07"
-                            , name = "jobName-1"
+                            { date = toDay "2021-09-08"
+                            , name = "jobName-3"
                             , clockedInAt = Nothing
                             , clockedOutAt = Nothing
                             , lunchDuration = 30
@@ -214,7 +245,7 @@ spec = do
                     (toDay "2021-09-07")
                     []
                     Twilio.View.Message
-                        { id = "50000000-0000-0000-0000-000000000000"
+                        { id = "60000000-0000-0000-0000-000000000000"
                         , fromFirstName = "Bob"
                         , fromLastName = "Ross"
                         , fromPhoneNumber = "+14444444444"
@@ -335,25 +366,24 @@ spec = do
             it "returns MessageIsNotAnUpdate if the message is missing clock information and number of hours worked" do
                 Orient.buildUpdate
                     (toDay "2021-09-07")
-                    [ Timecard.Query.Row
-                        { timecardId = "10000000-0000-0000-0000-000000000000"
-                        , timecardPersonId = "20000000-0000-0000-0000-000000000000"
-                        , timecardWeekOf = toDay "2021-09-06"
-                        , accessTokenId = Just "30000000-0000-0000-0000-000000000000"
-                        , accessTokenValue = Just "secret"
-                        , accessTokenExpiresAt = Just $ toUtc "2021-06-23 15:29:00 PDT"
-                        , accessTokenIsRevoked = Just False
-                        , signingId = Nothing
-                        , signingSignedAt = Nothing
-                        , timecardEntryId = "40000000-0000-0000-0000-000000000000"
-                        , timecardEntryDate = toDay "2021-09-06"
-                        , timecardEntryJobName = "jobName-1"
-                        , timecardEntryClockedInAt = Nothing
-                        , timecardEntryClockedOutAt = Nothing
-                        , timecardEntryLunchDuration = Nothing
-                        , timecardEntryHoursWorked = 8.0
-                        , timecardEntryWorkDone = "workDone-1"
-                        , timecardEntryInvoiceTranslation = "invoiceTranslation-1"
+                    [ Timecard.View.Timecard
+                        { id = "10000000-0000-0000-0000-000000000000"
+                        , personId = "20000000-0000-0000-0000-000000000000"
+                        , weekOf = toDay "2021-09-06"
+                        , status = Timecard.View.TimecardInProgress
+                        , entries =
+                            [ Timecard.View.TimecardEntry
+                                { id = "40000000-0000-0000-0000-000000000000"
+                                , date = toDay "2021-09-06"
+                                , jobName = "jobName-1"
+                                , clockedInAt = Nothing
+                                , clockedOutAt = Nothing
+                                , lunchDuration = Nothing
+                                , hoursWorked = 8.0
+                                , workDone = "workDone-1"
+                                , invoiceTranslation = "invoiceTranslation-1"
+                                }
+                            ]
                         }
                     ]
                     Twilio.View.Message
