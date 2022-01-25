@@ -172,7 +172,7 @@ latestTimecardsQuerySql whereCondition =
             #{maxTimecardsToRetrieve}
     |]
   where
-    maxTimecardsToRetrieve = 4 :: Int
+    maxTimecardsToRetrieve = 100 :: Int
 
 currentAccessTokenQuerySql :: Text
 currentAccessTokenQuerySql =
